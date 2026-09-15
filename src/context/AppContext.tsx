@@ -16,7 +16,8 @@ import {
   RewardItem,
 } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
-import { subscribeToHousehold, syncHouseholdToCloud } from '../lib/firebase';
+import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db } from '../lib/firebase';
+import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
 const STORAGE_KEY = 'pawdicure_household_state_v2';
 
@@ -102,6 +103,13 @@ interface AppContextType {
   markAllNotificationsRead: () => void;
   deleteNotification: (id: string) => void;
   addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp'>) => void;
+
+  // Badges & Missions
+  userId: string | null;
+  badgeProgress: any[];
+  missionProgress: any[];
+  toggleBadgeShowcase: (badgeId: string) => Promise<void>;
+  evaluateAchievements: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -131,6 +139,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Badges & Missions state
+  const [userId, setUserId] = useState<string | null>(null);
+  const [badgeProgress, setBadgeProgress] = useState<any[]>([]);
+  const [missionProgress, setMissionProgress] = useState<any[]>([]);
 
   // Notifications state
   const [notifications, setNotifications] = useState<AppNotification[]>([
@@ -199,6 +212,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.warn('Could not save to localStorage', e);
     }
   }, [householdData]);
+
+  // Boot Firebase anonymous authentication
+  useEffect(() => {
+    initFirebaseAuth((user) => {
+      if (user) {
+        setUserId(user.uid);
+      }
+    });
+  }, []);
+
+  // Sync real-time badge and mission collections from Firestore
+  useEffect(() => {
+    if (!userId) return;
+
+    const badgesRef = collection(db, 'users', userId, 'badgeProgress');
+    const unsubBadges = onSnapshot(badgesRef, (snap) => {
+      const items: any[] = [];
+      snap.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() });
+      });
+      setBadgeProgress(items);
+    });
+
+    const missionsRef = collection(db, 'users', userId, 'missionProgress');
+    const unsubMissions = onSnapshot(missionsRef, (snap) => {
+      const items: any[] = [];
+      snap.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() });
+      });
+      setMissionProgress(items);
+    });
+
+    return () => {
+      unsubBadges();
+      unsubMissions();
+    };
+  }, [userId]);
 
   // Firebase real-time subscription
   useEffect(() => {
@@ -301,10 +351,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Trigger cloud sync
       setIsSyncing(true);
       syncHouseholdToCloud(withTimestamp)
-        .then(() => setIsSyncing(false))
+        .then(() => {
+          setIsSyncing(false);
+          evaluateAchievements();
+        })
         .catch(() => setIsSyncing(false));
       return withTimestamp;
     });
+  };
+
+  // Evaluate achievements on our secure full-stack backend
+  const evaluateAchievements = async () => {
+    const hId = householdData.householdId;
+    if (!userId || !hId) return;
+
+    try {
+      const response = await fetch('/api/evaluate-achievements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ householdId: hId, userId: userId })
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.newlyUnlocked && result.newlyUnlocked.length > 0) {
+          result.newlyUnlocked.forEach((unlocked: any) => {
+            if (unlocked.type === 'badge') {
+              showToast(`🏆 UNLOCKED: "${unlocked.item.name}"!`, 'success', unlocked.item.icon);
+            } else if (unlocked.type === 'mission') {
+              showToast(`🗺️ MISSION COMPLETE: "${unlocked.item.title}"!`, 'success', '🎉');
+            }
+          });
+          triggerConfetti();
+        }
+      }
+    } catch (err) {
+      console.error("Backend evaluation request failed", err);
+    }
+  };
+
+  // Showcase / Pinned Badges feature toggler (strict limit: 3 pins max)
+  const toggleBadgeShowcase = async (badgeId: string) => {
+    if (!userId) return;
+    const badgeDocRef = doc(db, 'users', userId, 'badgeProgress', badgeId);
+    const existingBadge = badgeProgress.find((b: any) => b.badgeId === badgeId);
+    const currentShowcasedCount = badgeProgress.filter((b: any) => b.showcase).length;
+
+    if (existingBadge?.showcase) {
+      await updateDoc(badgeDocRef, { showcase: false });
+      showToast('Badge removed from your companion showcase.', 'info', '📌');
+    } else {
+      if (currentShowcasedCount >= 3) {
+        showToast('Showcase limit reached. Unpin another badge first.', 'warning', '🔒');
+        return;
+      }
+      await updateDoc(badgeDocRef, { showcase: true });
+      showToast('Badge pinned to your companion showcase!', 'success', '📌');
+    }
   };
 
   // -------------------------------------------------------------
@@ -1090,6 +1192,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         markAllNotificationsRead,
         deleteNotification,
         addNotification,
+        userId,
+        badgeProgress,
+        missionProgress,
+        toggleBadgeShowcase,
+        evaluateAchievements,
       }}
     >
       {children}

@@ -1,29 +1,45 @@
 import React, { useState } from 'react';
 import { Pet } from '../types';
-import { evaluatePetBadges, PetBadge } from '../lib/badgeSystem';
-import { Award, Lock, Sparkles, Clock, ShieldAlert, ChevronRight, Info, CheckCircle2 } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { PET_BADGES_CATALOG, PetBadge } from '../lib/badgeSystem';
+import { Award, Lock, Sparkles, Clock, ShieldAlert, ChevronRight, Info, CheckCircle2, Star, Bookmark } from 'lucide-react';
 
 interface PetBadgesSectionProps {
   pet: Pet;
 }
 
 export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
-  const evaluatedBadges = evaluatePetBadges(pet);
-  const unlockedCount = evaluatedBadges.filter((b) => b.isUnlocked).length;
-  const [selectedBadge, setSelectedBadge] = useState<typeof evaluatedBadges[0] | null>(null);
+  const { badgeProgress, toggleBadgeShowcase } = useApp();
+  const [selectedBadge, setSelectedBadge] = useState<PetBadge | null>(null);
+
+  // Blend static catalog with Firestore real-time progress values
+  const syncedBadges: PetBadge[] = PET_BADGES_CATALOG.map((badge) => {
+    const fireProgress = badgeProgress.find((p) => p.badgeId === badge.id);
+    return {
+      ...badge,
+      isUnlocked: fireProgress ? fireProgress.isUnlocked : false,
+      progressPercent: fireProgress ? fireProgress.progressPercent : 0,
+      progressLabel: fireProgress ? fireProgress.progressLabel : '0% Completed',
+      unlockedAt: fireProgress ? fireProgress.unlockedAt : null,
+      showcase: fireProgress ? fireProgress.showcase : false,
+    };
+  });
+
+  const unlockedCount = syncedBadges.filter((b) => b.isUnlocked).length;
+  const pinnedBadges = syncedBadges.filter((b) => b.showcase);
 
   const getTierColor = (tier: PetBadge['tier']) => {
     switch (tier) {
       case 'Bronze':
         return 'bg-amber-900/10 text-amber-800 border-amber-800/20';
       case 'Silver':
-        return 'bg-slate-200 text-slate-700 border-slate-300';
+        return 'bg-slate-100 text-slate-700 border-slate-200';
       case 'Gold':
-        return 'bg-amber-400/20 text-amber-900 border-amber-400/40';
+        return 'bg-amber-100 text-amber-900 border-amber-300';
       case 'Mythic':
-        return 'bg-purple-500/20 text-purple-900 border-purple-500/30';
+        return 'bg-purple-100 text-purple-900 border-purple-200';
       case 'Transcendent':
-        return 'bg-gradient-to-r from-amber-500/30 via-rose-500/30 to-purple-500/30 text-slate-900 border-amber-400/50 shadow-sm animate-pulse';
+        return 'bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-purple-500/20 text-slate-900 border-amber-400 shadow-xs';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -32,13 +48,13 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
   const getDifficultyBadge = (diff: PetBadge['difficulty']) => {
     switch (diff) {
       case 'Hard':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-50 text-blue-700 border-blue-100';
       case 'Extreme':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
+        return 'bg-orange-50 text-orange-700 border-orange-100';
       case 'Insane':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-purple-50 text-purple-700 border-purple-100';
       case 'Near Impossible':
-        return 'bg-red-900 text-amber-200 border-red-700 shadow-xs font-black';
+        return 'bg-red-900 text-amber-200 border-red-800 font-extrabold';
       default:
         return 'bg-slate-100 text-slate-600 border-slate-200';
     }
@@ -58,7 +74,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
                 Digital Companion Badges
               </h3>
               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold text-[10px]">
-                {unlockedCount} / {evaluatedBadges.length} Unlocked
+                {unlockedCount} / {syncedBadges.length} Unlocked
               </span>
             </div>
             <p className="text-[11px] text-slate-500">
@@ -68,9 +84,35 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
         </div>
       </div>
 
-      {/* Badges Grid */}
+      {/* Pinned Badges Showcase Shelf */}
+      {pinnedBadges.length > 0 && (
+        <div className="p-3 bg-amber-500/5 border border-amber-200/50 rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[10px] font-extrabold text-amber-900 uppercase">
+            <span className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+              <span>Showcased Companion Medals</span>
+            </span>
+            <span>{pinnedBadges.length} / 3</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {pinnedBadges.map((badge) => (
+              <button
+                key={badge.id}
+                type="button"
+                onClick={() => setSelectedBadge(badge)}
+                className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-amber-200 transition text-[11px] font-extrabold text-slate-800"
+              >
+                <span>{badge.icon}</span>
+                <span>{badge.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Badges Grid (showing all) */}
       <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5 pt-1">
-        {evaluatedBadges.map((badge) => {
+        {syncedBadges.map((badge) => {
           const isSelected = selectedBadge?.id === badge.id;
           return (
             <button
@@ -81,8 +123,14 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
                 badge.isUnlocked
                   ? 'bg-gradient-to-b from-amber-500/10 to-orange-500/5 border-amber-300/80 shadow-2xs hover:scale-105 active:scale-95'
                   : 'bg-slate-50/80 border-slate-200/80 opacity-60 hover:opacity-100'
-              } ${isSelected ? 'ring-2 ring-[#ff6b4a] border-transparent' : ''}`}
+              } ${isSelected ? 'ring-2 ring-amber-500 border-transparent' : ''}`}
             >
+              {badge.showcase && (
+                <div className="absolute right-1 top-1">
+                  <Bookmark className="w-2.5 h-2.5 text-amber-500 fill-amber-400" />
+                </div>
+              )}
+
               {/* Badge Icon */}
               <div className="relative text-2xl mb-1 filter drop-shadow-xs flex items-center justify-center w-9 h-9">
                 <span className={badge.isUnlocked ? '' : 'grayscale contrast-50'}>{badge.icon}</span>
@@ -134,14 +182,14 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
                     {selectedBadge.name}
                   </h4>
                   <span
-                    className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${getTierColor(
+                    className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold border ${getTierColor(
                       selectedBadge.tier
                     )}`}
                   >
                     {selectedBadge.tier} Tier
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${getDifficultyBadge(
+                    className={`px-2 py-0.5 rounded-md text-[9px] font-bold border ${getDifficultyBadge(
                       selectedBadge.difficulty
                     )}`}
                   >
@@ -180,7 +228,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
             <div className="flex items-center justify-between text-[11px] font-bold">
               <span className="text-slate-600">Current Progress</span>
               <span className={selectedBadge.isUnlocked ? 'text-emerald-700 font-extrabold' : 'text-slate-700'}>
-                {selectedBadge.isUnlocked ? 'Completed & Awarded 🏆' : selectedBadge.progressLabel} ({selectedBadge.progressPercent}%)
+                {selectedBadge.isUnlocked ? 'Completed & Awarded 🏆' : selectedBadge.progressLabel} ({selectedBadge.progressPercent}%Completed)
               </span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
@@ -194,6 +242,22 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
               />
             </div>
           </div>
+
+          {/* Pin/Unpin actions */}
+          {selectedBadge.isUnlocked && (
+            <button
+              type="button"
+              onClick={() => toggleBadgeShowcase(selectedBadge.id)}
+              className={`w-full py-2.5 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 ${
+                selectedBadge.showcase
+                  ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'
+                  : 'bg-amber-500 hover:bg-amber-600 text-white'
+              }`}
+            >
+              <Star className="w-4 h-4 fill-current" />
+              <span>{selectedBadge.showcase ? 'Unpin from Showcase' : 'Pin to Showcase'}</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -201,7 +265,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
       <div className="p-3 rounded-2xl bg-amber-500/5 border border-amber-200/60 flex items-start gap-2.5">
         <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <p className="text-[11px] text-amber-900/90 leading-relaxed">
-          <strong>Guardianship Legacy:</strong> Pet digital badges are prestige icons recognizing extreme long-term care, resilience, and affection. The apex <strong>Eternal Bond of Eternity</strong> badge demands 100,000 XP and absolute 100% resonance across every pillar.
+          <strong>Guardianship Legacy:</strong> Pet digital badges are prestige icons recognizing extreme long-term care, resilience, and affection. Pinned companion medals show off right on your companion's dashboard!
         </p>
       </div>
     </div>

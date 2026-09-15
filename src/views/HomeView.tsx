@@ -167,7 +167,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate('bond')}
-          className="flex flex-col items-center text-center p-1.5 rounded-xl bg-orange-50/50 hover:bg-orange-100/50 transition"
+          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-orange-50/50 hover:bg-orange-100/50 transition w-full"
         >
           <span className="text-sm">❤️</span>
           <span className="text-[9px] font-bold text-slate-400 mt-0.5">Bond</span>
@@ -179,7 +179,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate('feed')}
-          className="flex flex-col items-center text-center p-1.5 rounded-xl bg-rose-50/50 hover:bg-rose-100/50 transition"
+          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-rose-50/50 hover:bg-rose-100/50 transition w-full"
         >
           <span className="text-sm">🍖</span>
           <span className="text-[9px] font-bold text-slate-400 mt-0.5">Feeding</span>
@@ -194,7 +194,7 @@ export function HomeView({
         <button
           type="button"
           onClick={onLogExercise}
-          className="flex flex-col items-center text-center p-1.5 rounded-xl bg-emerald-50/50 hover:bg-emerald-100/50 transition"
+          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-emerald-50/50 hover:bg-emerald-100/50 transition w-full"
         >
           <span className="text-sm">🏃</span>
           <span className="text-[9px] font-bold text-slate-400 mt-0.5">Walks</span>
@@ -206,7 +206,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate('feed')}
-          className="flex flex-col items-center text-center p-1.5 rounded-xl bg-blue-50/50 hover:bg-blue-100/50 transition"
+          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-blue-50/50 hover:bg-blue-100/50 transition w-full"
         >
           <span className="text-sm">💧</span>
           <span className="text-[9px] font-bold text-slate-400 mt-0.5">Water</span>
@@ -218,7 +218,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate('health')}
-          className="flex flex-col items-center text-center p-1.5 rounded-xl bg-purple-50/50 hover:bg-purple-100/50 transition"
+          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-purple-50/50 hover:bg-purple-100/50 transition w-full"
         >
           <span className="text-sm">😴</span>
           <span className="text-[9px] font-bold text-slate-400 mt-0.5">Sleep</span>

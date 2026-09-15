@@ -105,6 +105,7 @@ function AppContent() {
   // Derive current active bottom tab from currentRoute
   const getActiveTab = (): NavTab => {
     if (currentRoute === '/feed') return 'feed';
+    if (currentRoute === '/badges') return 'badges';
     if (
       currentRoute.startsWith('/health') ||
       currentRoute === '/stats' ||
@@ -134,6 +135,9 @@ function AppContent() {
         break;
       case 'feed':
         navigate('/feed');
+        break;
+      case 'badges':
+        navigate('/badges');
         break;
       case 'health':
         navigate('/health');
@@ -503,7 +507,8 @@ function AppContent() {
 
       <div
         id="app-mobile-shell"
-        className="w-full max-w-md md:max-w-lg min-h-screen bg-[#fffaf5] flex flex-col pb-24 relative shadow-2xl border-x border-orange-200/50 overflow-hidden"
+        className="w-full max-w-md md:max-w-lg min-h-screen bg-[#fffaf5] flex flex-col relative shadow-2xl border-x border-orange-200/50 overflow-hidden"
+        style={{ paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }}
       >
         {/* Dynamic Route-Specific Background with Interactive Pets & Ambient Light */}
         <DynamicPetBackground route={currentRoute} />
@@ -582,7 +587,11 @@ function AppContent() {
         </div>
 
         {/* Main Content Area */}
-        <main className="relative z-10 flex-1 px-3 sm:px-4 py-2">{renderCurrentView()}</main>
+        <main className="relative z-10 flex-1 px-3 sm:px-4 pt-6 pb-4 flex flex-col items-center justify-start w-full">
+          <div className="w-full flex flex-col items-stretch">
+            {renderCurrentView()}
+          </div>
+        </main>
 
         {/* Persistent Bottom Navigation */}
         <Navigation

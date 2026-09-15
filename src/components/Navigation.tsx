@@ -1,7 +1,7 @@
-import { Home, Utensils, Activity, Sparkles, Gift } from 'lucide-react';
-import { PawLogo } from './PawLogo';
+import { Home, Utensils, Activity, Heart, Gift, PawPrint, Award } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 
-export type NavTab = 'home' | 'feed' | 'health' | 'bond' | 'rewards';
+export type NavTab = 'home' | 'feed' | 'health' | 'bond' | 'rewards' | 'badges';
 
 interface NavigationProps {
   currentTab: NavTab;
@@ -14,123 +14,131 @@ export function Navigation({
   onSelectTab,
   onOpenQuickCare,
 }: NavigationProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: Home },
     { id: 'feed' as const, label: 'Feed', icon: Utensils },
-    { id: 'care' as const, label: 'Care', icon: null }, // Center Floating Button
-    { id: 'health' as const, label: 'Health', icon: Activity },
-    { id: 'bond' as const, label: 'Bond', icon: Sparkles },
+    { id: 'badges' as const, label: 'Badges', icon: Award },
+    { id: 'care' as const, label: 'Care', icon: null }, // Central Floating Action
+    { id: 'health' as const, label: 'Stats', icon: Activity },
+    { id: 'bond' as const, label: 'Relationship', icon: Heart },
     { id: 'rewards' as const, label: 'Rewards', icon: Gift },
   ];
 
   return (
     <nav
       id="bottom-nav-bar"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-orange-200/60 shadow-[0_-4px_24px_rgba(255,107,74,0.06)]"
+      className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-24px)] max-w-md md:max-w-lg z-40 bg-white/95 backdrop-blur-xl border border-orange-100/80 shadow-[0_12px_32px_rgba(255,107,74,0.12)] rounded-2xl h-18 flex items-center px-1 py-1"
+      style={{ bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}
     >
-      <div className="relative max-w-md md:max-w-lg mx-auto px-2 sm:px-4 h-16 flex items-center justify-between">
-        {/* Tab 1: Home */}
-        <button
-          id="nav-tab-home"
-          type="button"
-          onClick={() => onSelectTab('home')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 transition-all duration-150 active:scale-95 ${
-            currentTab === 'home'
-              ? 'text-[#ff6b4a] font-bold'
-              : 'text-slate-400 hover:text-slate-600 font-medium'
-          }`}
-        >
-          <div className={`p-1 rounded-xl transition-colors ${currentTab === 'home' ? 'bg-orange-50' : ''}`}>
-            <Home className="w-5 h-5" />
-          </div>
-          <span className="text-[10px] leading-tight tracking-tight mt-0.5">Home</span>
-        </button>
+      <div className="relative w-full h-full grid grid-cols-7 items-center justify-items-center">
+        {tabs.map((tab) => {
+          if (tab.id === 'care') {
+            return (
+              <div
+                key="center-care-action"
+                className="relative flex flex-col items-center justify-center w-full h-full"
+              >
+                {/* Elevated Central Paw Button */}
+                <motion.button
+                  type="button"
+                  onClick={onOpenQuickCare}
+                  aria-label="Open Care"
+                  whileHover={shouldReduceMotion ? {} : { scale: 1.08 }}
+                  whileTap={shouldReduceMotion ? {} : { scale: 0.94 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  className="absolute -top-7 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ff6b4a] to-[#d94f2d] text-white shadow-[0_8px_20px_rgba(255,107,74,0.35),0_3px_8px_rgba(255,107,74,0.15)] hover:shadow-[0_12px_28px_rgba(255,107,74,0.5)] flex items-center justify-center border-3 border-white ring-2 ring-orange-100 z-50 group cursor-pointer"
+                >
+                  <PawPrint
+                    className="w-5.5 h-5.5 sm:w-6 sm:h-6 text-white group-hover:rotate-12 transition-transform duration-200"
+                    fill="currentColor"
+                  />
+                </motion.button>
+                
+                {/* Spacing alignment for text label under floating button */}
+                <div className="h-5 sm:h-6" />
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-2.5 pointer-events-none select-none">
+                  Care
+                </span>
+              </div>
+            );
+          }
 
-        {/* Tab 2: Feed */}
-        <button
-          id="nav-tab-feed"
-          type="button"
-          onClick={() => onSelectTab('feed')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 transition-all duration-150 active:scale-95 ${
-            currentTab === 'feed'
-              ? 'text-[#ff6b4a] font-bold'
-              : 'text-slate-400 hover:text-slate-600 font-medium'
-          }`}
-        >
-          <div className={`p-1 rounded-xl transition-colors ${currentTab === 'feed' ? 'bg-orange-50' : ''}`}>
-            <Utensils className="w-5 h-5" />
-          </div>
-          <span className="text-[10px] leading-tight tracking-tight mt-0.5">Feed</span>
-        </button>
+          const isActive = currentTab === tab.id;
+          const Icon = tab.icon!;
 
-        {/* Center Floating Action Button: Quick Care */}
-        <div className="flex-1 flex flex-col items-center justify-center relative -top-3 shrink-0">
-          <button
-            id="nav-center-care-btn"
-            type="button"
-            aria-label="Quick Care actions"
-            onClick={onOpenQuickCare}
-            className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-[#ff6b4a] to-[#ae3115] text-white shadow-[0_6px_20px_-2px_rgba(255,107,74,0.55)] hover:shadow-[0_8px_24px_rgba(255,107,74,0.7)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border-2 border-white ring-2 ring-orange-200"
-          >
-            <div className="w-6 h-6 text-white flex items-center justify-center">
-              <PawLogo className="w-6 h-6 text-white" variant="mark" />
-            </div>
-          </button>
-          <span className="text-[10px] text-orange-950 font-bold leading-tight mt-0.5">Care</span>
-        </div>
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onSelectTab(tab.id as NavTab)}
+              className="flex flex-col items-center justify-center w-full h-full py-1.5 relative group select-none cursor-pointer"
+            >
+              {/* Animated active state backdrop pill */}
+              {isActive && !shouldReduceMotion && (
+                <motion.div
+                  layoutId="active-nav-bg"
+                  className="absolute inset-x-1 sm:inset-x-1.5 top-1 bottom-6 rounded-xl bg-orange-50/80 -z-10"
+                  transition={{
+                    type: 'spring',
+                    stiffness: 380,
+                    damping: 30,
+                  }}
+                />
+              )}
 
-        {/* Tab 3: Health */}
-        <button
-          id="nav-tab-health"
-          type="button"
-          onClick={() => onSelectTab('health')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 transition-all duration-150 active:scale-95 ${
-            currentTab === 'health'
-              ? 'text-[#ff6b4a] font-bold'
-              : 'text-slate-400 hover:text-slate-600 font-medium'
-          }`}
-        >
-          <div className={`p-1 rounded-xl transition-colors ${currentTab === 'health' ? 'bg-orange-50' : ''}`}>
-            <Activity className="w-5 h-5" />
-          </div>
-          <span className="text-[10px] leading-tight tracking-tight mt-0.5">Health</span>
-        </button>
+              {/* Static fallback background for reduced motion */}
+              {isActive && shouldReduceMotion && (
+                <div className="absolute inset-x-1 sm:inset-x-1.5 top-1 bottom-6 rounded-xl bg-orange-50/80 -z-10" />
+              )}
 
-        {/* Tab 4: Bond */}
-        <button
-          id="nav-tab-bond"
-          type="button"
-          onClick={() => onSelectTab('bond')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 transition-all duration-150 active:scale-95 ${
-            currentTab === 'bond'
-              ? 'text-[#ff6b4a] font-bold'
-              : 'text-slate-400 hover:text-slate-600 font-medium'
-          }`}
-        >
-          <div className={`p-1 rounded-xl transition-colors ${currentTab === 'bond' ? 'bg-orange-50' : ''}`}>
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <span className="text-[10px] leading-tight tracking-tight mt-0.5">Bond</span>
-        </button>
+              {/* Icon Container with gentle scale and feedback */}
+              <motion.div
+                whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
+                whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+                className={`p-1 flex items-center justify-center rounded-lg transition-colors ${
+                  isActive ? 'text-[#ff6b4a]' : 'text-slate-400 group-hover:text-slate-600'
+                }`}
+              >
+                <Icon
+                  className={`w-4.5 h-4.5 sm:w-5 sm:h-5 transition-all duration-200 ${
+                    isActive ? 'stroke-[2.5px]' : 'stroke-2'
+                  }`}
+                />
+              </motion.div>
 
-        {/* Tab 5: Rewards */}
-        <button
-          id="nav-tab-rewards"
-          type="button"
-          onClick={() => onSelectTab('rewards')}
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 transition-all duration-150 active:scale-95 ${
-            currentTab === 'rewards'
-              ? 'text-[#ff6b4a] font-bold'
-              : 'text-slate-400 hover:text-slate-600 font-medium'
-          }`}
-        >
-          <div className={`p-1 rounded-xl transition-colors ${currentTab === 'rewards' ? 'bg-orange-50' : ''}`}>
-            <Gift className="w-5 h-5" />
-          </div>
-          <span className="text-[10px] leading-tight tracking-tight mt-0.5">Rewards</span>
-        </button>
+              {/* Dynamic accessible text labels */}
+              <span
+                className={`text-[9px] sm:text-[10px] whitespace-nowrap mt-1 leading-none tracking-tight transition-all duration-200 ${
+                  isActive
+                    ? 'text-[#ff6b4a] font-extrabold'
+                    : 'text-slate-400 font-medium group-hover:text-slate-600'
+                }`}
+              >
+                {tab.label}
+              </span>
+
+              {/* Centered animated Indicator Dot */}
+              {isActive && !shouldReduceMotion && (
+                <motion.div
+                  layoutId="active-dot"
+                  className="w-1 h-1 rounded-full bg-[#ff6b4a] absolute bottom-1"
+                  transition={{
+                    type: 'spring',
+                    stiffness: 350,
+                    damping: 25,
+                  }}
+                />
+              )}
+
+              {isActive && shouldReduceMotion && (
+                <div className="w-1 h-1 rounded-full bg-[#ff6b4a] absolute bottom-1" />
+              )}
+            </button>
+          );
+        })}
       </div>
-      <div className="h-[env(safe-area-inset-bottom,0px)] w-full" />
     </nav>
   );
 }

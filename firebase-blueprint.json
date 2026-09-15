@@ -1,0 +1,171 @@
+{
+  "entities": {
+    "badge": {
+      "title": "Badge Definition",
+      "description": "A metadata definition for a rare and difficult digital badge in PAWdiCURE.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the badge"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the badge"
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["Bronze", "Silver", "Gold", "Mythic", "Transcendent"],
+          "description": "The prestige level of the badge"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Emoji or icon identifier representing the badge visually"
+        },
+        "description": {
+          "type": "string",
+          "description": "The description details for the badge"
+        },
+        "requirementText": {
+          "type": "string",
+          "description": "Brief explanation of the requirement"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["CARE", "HEALTH", "NUTRITION", "ACTIVITY", "RELATIONSHIP", "MEMORIES", "EXPLORATION", "CONSISTENCY", "SAFETY", "RESPONSIBILITY", "COMMUNITY", "MASTERY", "LEGENDARY"],
+          "description": "Care category the badge aligns with"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["Hard", "Extreme", "Insane", "Near Impossible"],
+          "description": "Difficulty assessment"
+        },
+        "estimatedTime": {
+          "type": "string",
+          "description": "Estimated timeframe to earn"
+        }
+      },
+      "required": ["id", "name", "tier", "icon", "description", "requirementText", "category", "difficulty", "estimatedTime"]
+    },
+    "badgeProgress": {
+      "title": "User Badge Progress",
+      "description": "User-specific tracking of progress and unlock status for a badge.",
+      "type": "object",
+      "properties": {
+        "badgeId": {
+          "type": "string",
+          "description": "ID of the parent badge"
+        },
+        "userId": {
+          "type": "string",
+          "description": "ID of the user tracking progress"
+        },
+        "isUnlocked": {
+          "type": "boolean",
+          "description": "Whether the badge is unlocked"
+        },
+        "progressPercent": {
+          "type": "integer",
+          "description": "Percentage progress towards completion"
+        },
+        "progressLabel": {
+          "type": "string",
+          "description": "The label detailing exact progress e.g., '1,200 / 10,000 XP'"
+        },
+        "unlockedAt": {
+          "type": "integer",
+          "description": "Millisecond timestamp when unlocked, or null"
+        },
+        "showcase": {
+          "type": "boolean",
+          "description": "Whether this badge is pinned/showcased on the profile"
+        }
+      },
+      "required": ["badgeId", "userId", "isUnlocked", "progressPercent", "progressLabel", "showcase"]
+    },
+    "mission": {
+      "title": "Mission Definition",
+      "description": "A long-term multi-task campaign structure.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique mission ID"
+        },
+        "title": {
+          "type": "string",
+          "description": "The headline of the mission"
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the campaign"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["CARE", "HEALTH", "NUTRITION", "ACTIVITY", "RELATIONSHIP", "MEMORIES", "EXPLORATION", "CONSISTENCY", "SAFETY", "RESPONSIBILITY", "COMMUNITY", "MASTERY", "LEGENDARY"],
+          "description": "Care category the mission aligns with"
+        },
+        "badgeRewardId": {
+          "type": "string",
+          "description": "The ID of the badge rewarded on completion"
+        },
+        "tasks": {
+          "type": "array",
+          "description": "Defined targets inside this mission"
+        }
+      },
+      "required": ["id", "title", "description", "category", "badgeRewardId"]
+    },
+    "missionProgress": {
+      "title": "User Mission Progress",
+      "description": "User-specific state of active and completed tasks for a mission.",
+      "type": "object",
+      "properties": {
+        "missionId": {
+          "type": "string",
+          "description": "The associated mission ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The tracking user ID"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Active", "Completed"],
+          "description": "Overall status of the mission"
+        },
+        "completedTasks": {
+          "type": "array",
+          "description": "Array of task IDs or names completed by the user"
+        },
+        "progressPercent": {
+          "type": "integer",
+          "description": "Overall completion percentage of the mission"
+        },
+        "completedAt": {
+          "type": "integer",
+          "description": "Millisecond timestamp of completion"
+        }
+      },
+      "required": ["missionId", "userId", "status", "completedTasks", "progressPercent"]
+    }
+  },
+  "firestore": {
+    "/badges/{badgeId}": {
+      "schema": "badge",
+      "description": "Store defining the rare global badges available to unlock."
+    },
+    "/users/{userId}/badgeProgress/{badgeId}": {
+      "schema": "badgeProgress",
+      "description": "Stores current pet badge tracking metrics for a given user."
+    },
+    "/missions/{missionId}": {
+      "schema": "mission",
+      "description": "Defines long-term structural pet-care mission campaigns."
+    },
+    "/users/{userId}/missionProgress/{missionId}": {
+      "schema": "missionProgress",
+      "description": "Tracks sub-task completions of multi-step campaigns per user."
+    }
+  }
+}

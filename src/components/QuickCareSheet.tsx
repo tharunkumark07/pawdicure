@@ -25,7 +25,7 @@ export function QuickCareSheet({
       />
 
       {/* Floating Action Sheet */}
-      <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-100 z-10 mx-2 mb-2 sm:mb-6 animate-in slide-in-from-bottom duration-200">
+      <div className="relative w-[92%] max-w-[360px] bg-white rounded-3xl p-5 shadow-2xl border border-orange-100 z-10 mb-10 sm:mb-12 animate-in slide-in-from-bottom-6 duration-200">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ff6b4a]" />

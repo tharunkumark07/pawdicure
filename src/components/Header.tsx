@@ -42,7 +42,10 @@ export function Header({
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-orange-200/60 shadow-[0_1px_8px_rgba(255,107,74,0.04)] transition-all">
+    <header
+      className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-orange-200/60 shadow-[0_1px_8px_rgba(255,107,74,0.04)] transition-all"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
       <div className="h-16 px-3 sm:px-4 max-w-lg mx-auto flex items-center justify-between gap-1.5">
         {/* Left: Brand & Pet Switcher */}
         <div className="flex items-center space-x-2 min-w-0">
