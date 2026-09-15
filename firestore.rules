@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write for all users (or authenticated/anonymous users) to manage their pet care data and sync across devices
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "PAWdiCURE - Pet Care & Journey Companion",
+  "description": "A minimalist, subtle, fully functional pet care and bond journey companion to manage, store, and sync pet health, feeding, memories, and wellness across devices.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

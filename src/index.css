@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-outfit: 'Outfit', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --color-orange-primary: #ff6b4a;
+    --color-orange-deep: #ae3115;
+    --color-orange-light: #fff7ed;
+    --color-orange-subtle: #fffaf5;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #fffaf5;
+    color: #2c1810;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: var(--font-outfit);
+  }
+}
+
+/* Warm Orange Card Styles & Glass Accents */
+.bg-orange-card {
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(254, 215, 170, 0.6);
+}
+
+.bg-orange-subtle-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(255, 107, 74, 0.08), transparent 70%);
+}
+
+/* Hide scrollbars for clean horizontal and pill scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
