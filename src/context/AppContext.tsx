@@ -92,6 +92,7 @@ interface AppContextType {
 
   // User Profile & Settings
   updateUserProfile: (profile: Partial<UserProfile>) => void;
+  updateHouseholdSettings: (settings: any) => void;
   resetDemoData: () => void;
   exportData: () => void;
   performDailyCheckIn: () => { success: boolean; message: string; pointsEarned: number };
@@ -110,6 +111,12 @@ interface AppContextType {
   missionProgress: any[];
   toggleBadgeShowcase: (badgeId: string) => Promise<void>;
   evaluateAchievements: () => Promise<void>;
+
+  // Push Notifications State & Operations
+  isPushEnabled: boolean;
+  pushPermissionStatus: 'default' | 'granted' | 'denied';
+  registerPushNotifications: () => Promise<boolean>;
+  triggerTestPushNotification: () => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -144,6 +151,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [badgeProgress, setBadgeProgress] = useState<any[]>([]);
   const [missionProgress, setMissionProgress] = useState<any[]>([]);
+
+  // Push Notifications State
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [pushPermissionStatus, setPushPermissionStatus] = useState<'default' | 'granted' | 'denied'>(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  );
 
   // Notifications state
   const [notifications, setNotifications] = useState<AppNotification[]>([
@@ -221,6 +234,132 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     });
   }, []);
+
+  // Base64 helper for VAPID key conversion
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  // Service Worker Registration & Push listener
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then((reg) => {
+          console.log('PAWdiCURE background service worker active:', reg.scope);
+          reg.pushManager.getSubscription().then((sub) => {
+            setIsPushEnabled(!!sub);
+          });
+        })
+        .catch((err) => {
+          console.warn('Service Worker registration skipped/failed:', err);
+        });
+    }
+
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'NAVIGATE_TO_ROUTE') {
+        navigate(event.data.route);
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handleSWMessage);
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
+    };
+  }, []);
+
+  // Request browser permission and register Web Push Subscription
+  const registerPushNotifications = async (): Promise<boolean> => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      showToast('Native Push Notifications are not supported in this frame context.', 'warning', '⏰');
+      return false;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermissionStatus(permission);
+
+      if (permission !== 'granted') {
+        showToast('Notification permission was denied.', 'error', '🔒');
+        return false;
+      }
+
+      // Retrieve public VAPID key from full-stack server
+      const response = await fetch('/api/vapid-public-key');
+      if (!response.ok) throw new Error('VAPID key retrieval failed');
+      const { publicKey } = await response.json();
+
+      const registration = await navigator.serviceWorker.ready;
+      
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
+      });
+
+      let deviceId = localStorage.getItem('pawdicure_device_id');
+      if (!deviceId) {
+        deviceId = 'dev-' + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem('pawdicure_device_id', deviceId);
+      }
+
+      // Register subscription on our backend database mapping
+      const regResponse = await fetch('/api/register-device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId || 'anonymous-user',
+          deviceId,
+          subscription,
+          platform: 'Web/PWA',
+          browser: navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Safari',
+          notificationsEnabled: true
+        })
+      });
+
+      if (regResponse.ok) {
+        setIsPushEnabled(true);
+        showToast('Real Device Push Notifications configured successfully!', 'success', '🔔');
+        addCareActivity('Activated real device push notifications', 30, 'notifications_active');
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Push subscription failed:', err);
+      showToast('Could not register device push subscription.', 'error', '❌');
+      return false;
+    }
+  };
+
+  // Trigger test push notification
+  const triggerTestPushNotification = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/trigger-test-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId || 'anonymous-user',
+          title: '🐾 PAWdiCURE OS Notification!',
+          body: 'Test Successful! Real OS-level push notifications are fully configured and functional for Milo.',
+          route: '/feed'
+        })
+      });
+      if (response.ok) {
+        showToast('Push alert sent! Verify on your physical phone lockscreen.', 'info', '📲');
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Test push request failure:', err);
+      return false;
+    }
+  };
 
   // Sync real-time badge and mission collections from Firestore
   useEffect(() => {
@@ -1052,6 +1191,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showToast('Settings saved successfully', 'success', '⚙️');
   };
 
+  const updateHouseholdSettings = (settings: any) => {
+    updateHousehold((prev) => ({
+      ...prev,
+      settings: {
+        ...(prev.settings || {}),
+        ...settings,
+      },
+    }));
+
+    // Sync notificationSettings to the backend user profile API layer
+    if (userId) {
+      const notifSettings = {
+        notifyFeeding: settings.notifyFeeding !== false,
+        notifyMeds: settings.notifyMeds !== false,
+        notifyVaccinations: settings.notifyVaccinations !== false,
+        notifyVet: settings.notifyVet !== false,
+        notifyAchievements: settings.notifyAchievements !== false,
+        quietHoursEnabled: !!settings.quietHoursEnabled,
+        quietHoursStart: settings.quietHoursStart || '22:00',
+        quietHoursEnd: settings.quietHoursEnd || '07:00'
+      };
+
+      fetch('/api/user/notification-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          notificationSettings: notifSettings
+        })
+      })
+      .then((res) => {
+        if (res.ok) {
+          console.log('User profile notification settings synced.');
+        }
+      })
+      .catch((err) => {
+        console.warn('Background notification settings sync deferred:', err);
+      });
+    }
+  };
+
   const resetDemoData = () => {
     localStorage.removeItem(STORAGE_KEY);
     setHouseholdData(INITIAL_HOUSEHOLD_DATA);
@@ -1183,6 +1363,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addCareActivity,
         togglePlaceFavorite,
         updateUserProfile,
+        updateHouseholdSettings,
         resetDemoData,
         exportData,
         performDailyCheckIn,
@@ -1197,6 +1378,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         missionProgress,
         toggleBadgeShowcase,
         evaluateAchievements,
+        isPushEnabled,
+        pushPermissionStatus,
+        registerPushNotifications,
+        triggerTestPushNotification,
       }}
     >
       {children}

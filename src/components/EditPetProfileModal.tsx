@@ -14,7 +14,10 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
 
   const [name, setName] = useState(activePet.name);
   const [breed, setBreed] = useState(activePet.breed);
+  const [dateOfBirth, setDateOfBirth] = useState(activePet.dateOfBirth || '');
   const [age, setAge] = useState(activePet.age);
+  const [sizeCategory, setSizeCategory] = useState<'Tiny' | 'Small' | 'Medium' | 'Large' | 'Giant'>(activePet.sizeCategory || 'Medium');
+  const [activityLevel, setActivityLevel] = useState<'Low' | 'Moderate' | 'High'>(activePet.activityLevel || 'Moderate');
   const [weight, setWeight] = useState(activePet.weight.toString());
   const [gender, setGender] = useState(activePet.gender || 'Male');
   const [mood, setMood] = useState(activePet.mood);
@@ -58,7 +61,10 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
       ...activePet,
       name: name.trim(),
       breed: breed.trim(),
+      dateOfBirth,
       age: age.trim(),
+      sizeCategory,
+      activityLevel,
       weight: parsedWeight,
       gender: gender as any,
       mood: mood.trim(),
@@ -216,6 +222,53 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Size Category
+              </label>
+              <select
+                value={sizeCategory}
+                onChange={(e) => setSizeCategory(e.target.value as any)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+              >
+                <option value="Tiny">Tiny</option>
+                <option value="Small">Small</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+                <option value="Giant">Giant</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Activity Level
+              </label>
+              <select
+                value={activityLevel}
+                onChange={(e) => setActivityLevel(e.target.value as any)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+              >
+                <option value="Low">Low</option>
+                <option value="Moderate">Moderate</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
                 Age
               </label>
               <input
@@ -226,9 +279,6 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 Weight (kg) *
@@ -245,21 +295,21 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
                 required
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Gender
-              </label>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Unknown">Unknown</option>
-              </select>
-            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Gender
+            </label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value as any)}
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Unknown">Unknown</option>
+            </select>
           </div>
 
           <div>

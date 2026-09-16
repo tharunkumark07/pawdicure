@@ -16,6 +16,9 @@ export function AddPetModal({ isOpen, onClose, onAddPet }: AddPetModalProps) {
   const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [sizeCategory, setSizeCategory] = useState<'Tiny' | 'Small' | 'Medium' | 'Large' | 'Giant'>('Medium');
+  const [activityLevel, setActivityLevel] = useState<'Low' | 'Moderate' | 'High'>('Moderate');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +54,10 @@ export function AddPetModal({ isOpen, onClose, onAddPet }: AddPetModalProps) {
       name: name.trim(),
       species,
       breed: breed.trim() || (species === 'Cat' ? 'Domestic Shorthair' : 'Mixed Breed'),
+      dateOfBirth,
       age: age.trim() || '1 year',
+      sizeCategory,
+      activityLevel,
       weight: parsedWeight,
       restingBpm: species === 'Cat' ? 120 : 80,
       mood: 'Curious & Loved 💖',
@@ -101,6 +107,7 @@ export function AddPetModal({ isOpen, onClose, onAddPet }: AddPetModalProps) {
     setName('');
     setBreed('');
     setAge('');
+    setDateOfBirth('');
     setWeight('');
     onClose();
   };
@@ -189,16 +196,61 @@ export function AddPetModal({ isOpen, onClose, onAddPet }: AddPetModalProps) {
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Age
+                Date of Birth
               </label>
               <input
-                type="text"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                placeholder="e.g. 8 months"
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#ff6b4a] focus:bg-white transition"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Size Category
+              </label>
+              <select
+                value={sizeCategory}
+                onChange={(e) => setSizeCategory(e.target.value as any)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#ff6b4a] focus:bg-white transition"
+              >
+                <option value="Tiny">Tiny</option>
+                <option value="Small">Small</option>
+                <option value="Medium">Medium</option>
+                <option value="Large">Large</option>
+                <option value="Giant">Giant</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Activity Level
+              </label>
+              <select
+                value={activityLevel}
+                onChange={(e) => setActivityLevel(e.target.value as any)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#ff6b4a] focus:bg-white transition"
+              >
+                <option value="Low">Low</option>
+                <option value="Moderate">Moderate</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Age (Optional, for reference)
+            </label>
+            <input
+              type="text"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              placeholder="e.g. 8 months"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#ff6b4a] focus:bg-white transition"
+            />
           </div>
 
           <div>

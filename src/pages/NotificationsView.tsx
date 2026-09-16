@@ -14,17 +14,19 @@ import {
 
 export function NotificationsView() {
   const {
-    householdData,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    clearAllNotifications,
+    notifications,
+    unreadNotificationCount,
+    markNotificationRead,
+    markAllNotificationsRead,
+    deleteNotification,
     navigate,
     showToast,
+    isPushEnabled,
+    registerPushNotifications,
+    triggerTestPushNotification,
   } = useApp();
 
   const [filter, setFilter] = useState<'all' | 'unread' | 'health' | 'reminder'>('all');
-
-  const notifications = householdData.notifications || [];
 
   const filtered = notifications.filter((n) => {
     if (filter === 'unread') return !n.read;
@@ -33,12 +35,10 @@ export function NotificationsView() {
     return true;
   });
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
   const handleNotificationClick = (n: any) => {
-    markNotificationAsRead(n.id);
-    if (n.link) {
-      navigate(n.link);
+    markNotificationRead(n.id);
+    if (n.actionRoute) {
+      navigate(n.actionRoute);
     }
   };
 
@@ -64,9 +64,9 @@ export function NotificationsView() {
             <h1 className="font-heading font-black text-xl text-slate-900">
               Notification Center
             </h1>
-            {unreadCount > 0 && (
+            {unreadNotificationCount > 0 && (
               <span className="text-[10px] font-bold text-white bg-[#ff6b4a] px-2 py-0.5 rounded-full">
-                {unreadCount} new
+                {unreadNotificationCount} new
               </span>
             )}
           </div>
@@ -76,10 +76,10 @@ export function NotificationsView() {
         </div>
 
         <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
+          {unreadNotificationCount > 0 && (
             <button
               type="button"
-              onClick={markAllNotificationsAsRead}
+              onClick={markAllNotificationsRead}
               className="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold transition"
               title="Mark all as read"
             >
@@ -90,7 +90,10 @@ export function NotificationsView() {
           {notifications.length > 0 && (
             <button
               type="button"
-              onClick={clearAllNotifications}
+              onClick={() => {
+                notifications.forEach((n) => deleteNotification(n.id));
+                showToast('All notifications cleared', 'info');
+              }}
               className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl text-xs font-bold transition"
               title="Clear all"
             >
@@ -100,11 +103,52 @@ export function NotificationsView() {
         </div>
       </div>
 
+      {/* Real Device Push Configuration */}
+      <div className="bg-slate-900 text-white p-5 rounded-3xl border border-slate-800 shadow-lg space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h3 className="font-heading font-black text-sm tracking-wide text-white flex items-center gap-2">
+              <span>📲 REAL-DEVICE PUSH ALERTS</span>
+              <span className={`w-2 h-2 rounded-full ${isPushEnabled ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
+            </h3>
+            <p className="text-[11px] text-slate-300 leading-relaxed max-w-md">
+              Deliver critical medication alarms, due reminders, and missed-feeding alerts directly to your actual physical phone, even when PAWdiCURE runs in the background.
+            </p>
+          </div>
+          <span className="text-xl shrink-0">📱</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-800">
+          {!isPushEnabled ? (
+            <button
+              type="button"
+              onClick={registerPushNotifications}
+              className="px-4 py-2 bg-white text-slate-950 rounded-xl text-xs font-bold hover:bg-slate-100 transition shadow-xs flex items-center gap-1.5"
+            >
+              <span>🔔 Enable Native Push Alerts</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 w-full justify-between">
+              <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                <span>✓ Push Active on this Device</span>
+              </span>
+              <button
+                type="button"
+                onClick={triggerTestPushNotification}
+                className="px-3.5 py-1.5 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+              >
+                <span>📲 Send Test Push</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Filter Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
         {[
           { id: 'all', label: 'All Alerts' },
-          { id: 'unread', label: `Unread (${unreadCount})` },
+          { id: 'unread', label: `Unread (${unreadNotificationCount})` },
           { id: 'health', label: 'Health & Vet 🩺' },
           { id: 'reminder', label: 'Reminders ⏰' },
         ].map((tab) => (
@@ -163,12 +207,12 @@ export function NotificationsView() {
                     {n.message}
                   </p>
                   <span className="text-[9px] text-slate-400 font-mono mt-1 block">
-                    {n.time}
+                    {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
 
-              {n.link && (
+              {n.actionRoute && (
                 <button
                   type="button"
                   className="text-slate-400 hover:text-[#ff6b4a] p-1 shrink-0"

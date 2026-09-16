@@ -23,13 +23,22 @@ export function SettingsView() {
     navigate,
   } = useApp();
 
-  const settings = householdData.settings || {
-    weightUnit: 'kg',
-    volumeUnit: 'ml',
-    feedingReminders: true,
-    medicationReminders: true,
-    activityReminders: true,
-    cloudBackup: true,
+  const rawSettings = householdData.settings || {};
+  const settings = {
+    weightUnit: rawSettings.weightUnit || 'kg',
+    volumeUnit: rawSettings.volumeUnit || 'ml',
+    feedingReminders: rawSettings.feedingReminders !== false,
+    medicationReminders: rawSettings.medicationReminders !== false,
+    activityReminders: rawSettings.activityReminders !== false,
+    cloudBackup: rawSettings.cloudBackup !== false,
+    notifyFeeding: rawSettings.notifyFeeding !== false,
+    notifyMeds: rawSettings.notifyMeds !== false,
+    notifyVaccinations: rawSettings.notifyVaccinations !== false,
+    notifyVet: rawSettings.notifyVet !== false,
+    notifyAchievements: rawSettings.notifyAchievements !== false,
+    quietHoursEnabled: !!rawSettings.quietHoursEnabled,
+    quietHoursStart: rawSettings.quietHoursStart || '22:00',
+    quietHoursEnd: rawSettings.quietHoursEnd || '07:00',
   };
 
   const [confirmReset, setConfirmReset] = useState(false);
@@ -40,7 +49,15 @@ export function SettingsView() {
       [key]: !settings[key],
     };
     updateHouseholdSettings(updated);
-    showToast('Settings saved', 'info');
+    showToast('Preference updated', 'info');
+  };
+
+  const updateTimeSetting = (key: 'quietHoursStart' | 'quietHoursEnd', val: string) => {
+    const updated = {
+      ...settings,
+      [key]: val,
+    };
+    updateHouseholdSettings(updated);
   };
 
   const handleManualSync = async () => {
@@ -111,37 +128,88 @@ export function SettingsView() {
         </div>
 
         <div className="space-y-2.5 pt-1 text-xs">
+          {/* Feeding */}
           <div className="flex items-center justify-between py-1 border-b border-slate-100">
             <div>
-              <div className="font-bold text-slate-900">Feeding Schedules</div>
+              <div className="font-bold text-slate-900">Feeding Alerts</div>
               <div className="text-[11px] text-slate-500">
-                Reminders for morning and evening portions
+                Reminders for morning/evening portions and overdue watchdog warnings
               </div>
             </div>
             <input
               type="checkbox"
-              checked={settings.feedingReminders}
-              onChange={() => toggleSetting('feedingReminders')}
+              checked={settings.notifyFeeding}
+              onChange={() => toggleSetting('notifyFeeding')}
               className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
             />
           </div>
 
+          {/* Meds */}
           <div className="flex items-center justify-between py-1 border-b border-slate-100">
             <div>
-              <div className="font-bold text-slate-900">Medications &amp; Supplements</div>
+              <div className="font-bold text-slate-900">Medication Reminders</div>
               <div className="text-[11px] text-slate-500">
-                High-priority dosage alerts &amp; heartworm reminders
+                High-priority supplement dosages &amp; therapeutic schedules
               </div>
             </div>
             <input
               type="checkbox"
-              checked={settings.medicationReminders}
-              onChange={() => toggleSetting('medicationReminders')}
+              checked={settings.notifyMeds}
+              onChange={() => toggleSetting('notifyMeds')}
               className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
             />
           </div>
 
-          <div className="flex items-center justify-between py-1">
+          {/* Vaccinations */}
+          <div className="flex items-center justify-between py-1 border-b border-slate-100">
+            <div>
+              <div className="font-bold text-slate-900">Vaccination Triggers</div>
+              <div className="text-[11px] text-slate-500">
+                Core booster schedules and veterinary immunization alerts
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.notifyVaccinations}
+              onChange={() => toggleSetting('notifyVaccinations')}
+              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+            />
+          </div>
+
+          {/* Vet */}
+          <div className="flex items-center justify-between py-1 border-b border-slate-100">
+            <div>
+              <div className="font-bold text-slate-900">Vet &amp; Clinical Visits</div>
+              <div className="text-[11px] text-slate-500">
+                Appointment confirmations and clinical checkups
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.notifyVet}
+              onChange={() => toggleSetting('notifyVet')}
+              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+            />
+          </div>
+
+          {/* Achievements */}
+          <div className="flex items-center justify-between py-1 border-b border-slate-100">
+            <div>
+              <div className="font-bold text-slate-900">Achievements &amp; Milestones</div>
+              <div className="text-[11px] text-slate-500">
+                Instant alerts on level-ups, badge unlocks, and family streaks
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.notifyAchievements}
+              onChange={() => toggleSetting('notifyAchievements')}
+              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+            />
+          </div>
+
+          {/* Routine/Activity Reminders */}
+          <div className="flex items-center justify-between py-1 border-b border-slate-100">
             <div>
               <div className="font-bold text-slate-900">Daily Activity Summary</div>
               <div className="text-[11px] text-slate-500">
@@ -155,6 +223,50 @@ export function SettingsView() {
               className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
             />
           </div>
+        </div>
+
+        {/* Quiet Hours Sub-Section */}
+        <div className="border-t border-slate-100 pt-3 mt-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Moon className="w-4 h-4 text-indigo-500 shrink-0" />
+              <div>
+                <div className="font-bold text-slate-900 text-xs">Quiet Hours (Mute Alerts)</div>
+                <div className="text-[11px] text-slate-500">
+                  Do not send push notifications during specified sleep windows
+                </div>
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.quietHoursEnabled}
+              onChange={() => toggleSetting('quietHoursEnabled')}
+              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+            />
+          </div>
+
+          {settings.quietHoursEnabled && (
+            <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Mute From</label>
+                <input
+                  type="time"
+                  value={settings.quietHoursStart}
+                  onChange={(e) => updateTimeSetting('quietHoursStart', e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[#ff6b4a]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Mute Until</label>
+                <input
+                  type="time"
+                  value={settings.quietHoursEnd}
+                  onChange={(e) => updateTimeSetting('quietHoursEnd', e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[#ff6b4a]"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

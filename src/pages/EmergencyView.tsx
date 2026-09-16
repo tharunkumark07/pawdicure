@@ -14,6 +14,8 @@ import {
   Activity,
   ArrowLeft,
 } from 'lucide-react';
+import { Card } from '../components/Card';
+import { Button } from '../components/Button';
 
 export function EmergencyView() {
   const { activePet, householdData, navigate, showToast } = useApp();
@@ -48,17 +50,16 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
     >
       {/* Top Banner with Back and Emergency Toggle */}
       <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => navigate('/home')}
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 transition"
-        >
+        <Button variant="secondary" className="px-3 py-1.5 text-xs h-auto" onClick={() => navigate('/home')}>
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
-        </button>
+        </Button>
 
-        <button
-          type="button"
+        <Button
+          variant={emergencyMode ? 'danger' : 'secondary'}
+          className={`px-3.5 py-1.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition ${
+            emergencyMode ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40' : ''
+          }`}
           onClick={() => {
             const next = !emergencyMode;
             setEmergencyMode(next);
@@ -67,19 +68,14 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
               next ? 'error' : 'info'
             );
           }}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition ${
-            emergencyMode
-              ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40'
-              : 'bg-red-100 text-red-700 hover:bg-red-200'
-          }`}
         >
           <ShieldAlert className="w-4 h-4" />
           <span>{emergencyMode ? 'Emergency Active' : 'Toggle SOS Mode'}</span>
-        </button>
+        </Button>
       </div>
 
       {/* Primary Emergency Card */}
-      <div className="bg-red-600 text-white rounded-3xl p-5 shadow-xl shadow-red-600/20 space-y-4">
+      <Card className="bg-red-600 text-white space-y-4 shadow-xl shadow-red-600/20 border-red-500">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -100,15 +96,15 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleCopyPass}
-            className="p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold flex flex-col items-center gap-1 transition"
+          <Button
+            variant="secondary"
+            className="p-2.5 h-auto bg-white/20 hover:bg-white/30 text-white flex-col gap-1"
             title="Copy Pass text"
+            onClick={handleCopyPass}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             <span className="text-[9px]">{copied ? 'Copied' : 'Share'}</span>
-          </button>
+          </Button>
         </div>
 
         {/* Microchip & Blood */}
@@ -152,10 +148,10 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Immediate 1-Tap Emergency Phone Contacts */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-3">
+      <Card className="space-y-3">
         <h3 className="font-heading font-bold text-xs text-slate-400 uppercase tracking-wider">
           Immediate 1-Tap Emergency Contacts
         </h3>
@@ -234,11 +230,11 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
             <span>Call</span>
           </a>
         </div>
-      </div>
+      </Card>
 
       {/* Active Medications & Vaccines Quick Summary */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-2">
+        <Card className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
             <Pill className="w-4 h-4 text-blue-600" />
             <span>Active Medications</span>
@@ -254,9 +250,9 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
           ) : (
             <span className="text-[11px] text-slate-400 italic">None active</span>
           )}
-        </div>
+        </Card>
 
-        <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs space-y-2">
+        <Card className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
             <Shield className="w-4 h-4 text-emerald-600" />
             <span>Core Vaccines</span>
@@ -268,7 +264,7 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       </div>
     </div>
   );

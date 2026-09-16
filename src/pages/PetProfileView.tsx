@@ -19,6 +19,8 @@ import { PetPhotoUploadModal } from '../components/PetPhotoUploadModal';
 import { PetBadgesSection } from '../components/PetBadgesSection';
 import { evaluatePetBadges } from '../lib/badgeSystem';
 import { Pet } from '../types';
+import { Card } from '../components/Card';
+import { Button } from '../components/Button';
 
 export function PetProfileView() {
   const {
@@ -93,7 +95,7 @@ export function PetProfileView() {
   return (
     <div className="flex flex-col w-full pb-14 space-y-4 animate-in fade-in duration-200">
       {/* Pet Switcher Strip */}
-      <div className="flex items-center justify-between bg-white p-2.5 rounded-3xl border border-slate-100 shadow-xs">
+      <Card className="flex items-center justify-between p-2.5">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           {petList.map((p) => (
             <button
@@ -116,18 +118,14 @@ export function PetProfileView() {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={handleAddNewPet}
-          className="px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 shrink-0 transition"
-        >
+        <Button variant="secondary" className="px-3 py-1.5 text-xs h-auto" onClick={handleAddNewPet}>
           <Plus className="w-3.5 h-3.5" />
           <span>Add Pet</span>
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       {/* Main Profile Card */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs space-y-4">
+      <Card className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3.5">
             <div className="relative group cursor-pointer" onClick={() => setIsPhotoUploadOpen(true)}>
@@ -169,8 +167,13 @@ export function PetProfileView() {
                 )}
               </div>
               <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                {activePet.breed} • {activePet.gender} • {activePet.age}
+                {activePet.breed} • {activePet.gender} • {activePet.age} {activePet.dateOfBirth ? `(DOB: ${activePet.dateOfBirth})` : ''}
               </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-slate-400">
+                  Size: {activePet.sizeCategory} | Activity: {activePet.activityLevel}
+                </span>
+              </div>
               <div className="flex items-center gap-2 mt-1">
                 <button
                   type="button"
@@ -185,22 +188,12 @@ export function PetProfileView() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsPhotoUploadOpen(true)}
-              className="p-2.5 rounded-2xl bg-slate-50 hover:bg-orange-50 text-slate-700 hover:text-[#ff6b4a] transition shadow-2xs"
-              title="Upload Photo"
-            >
+            <Button variant="secondary" className="p-2.5 h-auto" title="Upload Photo" onClick={() => setIsPhotoUploadOpen(true)}>
               <Camera className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsEditOpen(true)}
-              className="p-2.5 rounded-2xl bg-orange-50 hover:bg-orange-100 text-[#ff6b4a] transition shadow-2xs"
-              title="Edit Profile"
-            >
+            </Button>
+            <Button variant="primary" className="p-2.5 h-auto" title="Edit Profile" onClick={() => setIsEditOpen(true)}>
               <Edit3 className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -233,13 +226,13 @@ export function PetProfileView() {
             </span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Digital Badges & Extreme Milestone System */}
       <PetBadgesSection pet={activePet} />
 
       {/* Clinical & Emergency Info Card */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs space-y-3">
+      <Card className="space-y-3">
         <h3 className="font-heading font-bold text-xs text-slate-400 uppercase tracking-wider">
           Registry &amp; Emergency Contacts
         </h3>
@@ -275,22 +268,14 @@ export function PetProfileView() {
         </div>
 
         <div className="pt-2 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate('/health')}
-            className="flex-1 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition text-center"
-          >
+          <Button variant="secondary" className="flex-1 py-2.5 text-xs h-auto" onClick={() => navigate('/health')}>
             Open Medical Chart
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/emergency')}
-            className="flex-1 py-2.5 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition text-center"
-          >
+          </Button>
+          <Button variant="danger" className="flex-1 py-2.5 text-xs h-auto" onClick={() => navigate('/emergency')}>
             Emergency Pass
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <EditPetProfileModal
         isOpen={isEditOpen}

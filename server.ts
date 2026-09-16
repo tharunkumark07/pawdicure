@@ -1,18 +1,483 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, writeBatch, collection, getDocs } from 'firebase/firestore';
 import firebaseConfig from './firebase-applet-config.json';
+import webpush from 'web-push';
 
 // Initialize Firebase securely on the server using identical applet credentials
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId || '(default)');
 
+// -------------------------------------------------------------
+// PERSISTENT VAPID WEBPUSH SETUP (Zero-Config Self-Healing)
+// -------------------------------------------------------------
+const VAPID_FILE = path.join(process.cwd(), 'vapid-keys.json');
+let vapidKeys: { publicKey: string; privateKey: string };
+
+if (fs.existsSync(VAPID_FILE)) {
+  try {
+    vapidKeys = JSON.parse(fs.readFileSync(VAPID_FILE, 'utf8'));
+    console.log('Loaded persistent VAPID keys.');
+  } catch (err) {
+    console.warn('Failed to parse persistent VAPID file, generating fresh pair:', err);
+    vapidKeys = webpush.generateVAPIDKeys();
+    try { fs.writeFileSync(VAPID_FILE, JSON.stringify(vapidKeys), 'utf8'); } catch (e) {}
+  }
+} else {
+  vapidKeys = webpush.generateVAPIDKeys();
+  try {
+    fs.writeFileSync(VAPID_FILE, JSON.stringify(vapidKeys), 'utf8');
+    console.log('Created and persisted new VAPID keys.');
+  } catch (err) {
+    console.warn('Failed to save VAPID keys (read-only filesystem?):', err);
+  }
+}
+
+webpush.setVapidDetails(
+  'mailto:freefirefor21@gmail.com',
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
+);
+
+// -------------------------------------------------------------
+// PUSH NOTIFICATION SENDER HELPER
+// -------------------------------------------------------------
+async function sendPushNotification(userId: string, title: string, body: string, route: string = '/home') {
+  try {
+    // Fetch and check the user profile notification settings to honor user preferences
+    try {
+      const userDocRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userDocRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const notifSettings = userData.notificationSettings;
+        if (notifSettings) {
+          const lowerTitle = title.toLowerCase();
+          const lowerBody = body.toLowerCase();
+
+          // Identify category of notification
+          const isFeeding = lowerTitle.includes('feed') || lowerTitle.includes('breakfast') || lowerTitle.includes('dinner') || lowerTitle.includes('lunch') || lowerTitle.includes('meal') || lowerBody.includes('feed') || lowerBody.includes('breakfast') || lowerBody.includes('dinner') || lowerBody.includes('lunch') || lowerBody.includes('meal');
+          const isMeds = lowerTitle.includes('med') || lowerTitle.includes('dose') || lowerTitle.includes('tablet') || lowerTitle.includes('supplement') || lowerBody.includes('med') || lowerBody.includes('dose') || lowerBody.includes('tablet') || lowerBody.includes('supplement');
+          const isVaccination = lowerTitle.includes('vaccin') || lowerTitle.includes('booster') || lowerTitle.includes('immuniz') || lowerBody.includes('vaccin') || lowerBody.includes('booster') || lowerBody.includes('immuniz');
+          const isVet = lowerTitle.includes('vet') || lowerTitle.includes('clinic') || lowerTitle.includes('appointment') || lowerBody.includes('vet') || lowerBody.includes('clinic') || lowerBody.includes('appointment');
+          const isAchievements = lowerTitle.includes('achievement') || lowerTitle.includes('milestone') || lowerTitle.includes('badge') || lowerTitle.includes('unlocked') || lowerTitle.includes('level') || lowerBody.includes('achievement') || lowerBody.includes('milestone') || lowerBody.includes('badge') || lowerBody.includes('unlocked') || lowerBody.includes('level');
+
+          // Honor granular toggle choices
+          if (isFeeding && notifSettings.notifyFeeding === false) {
+            console.log(`[Push Suppressed] User ${userId} has disabled feeding notifications.`);
+            return;
+          }
+          if (isMeds && notifSettings.notifyMeds === false) {
+            console.log(`[Push Suppressed] User ${userId} has disabled medication notifications.`);
+            return;
+          }
+          if (isVaccination && notifSettings.notifyVaccinations === false) {
+            console.log(`[Push Suppressed] User ${userId} has disabled vaccination notifications.`);
+            return;
+          }
+          if (isVet && notifSettings.notifyVet === false) {
+            console.log(`[Push Suppressed] User ${userId} has disabled vet notifications.`);
+            return;
+          }
+          if (isAchievements && notifSettings.notifyAchievements === false) {
+            console.log(`[Push Suppressed] User ${userId} has disabled achievement notifications.`);
+            return;
+          }
+
+          // Evaluate Quiet Hours unless marked as high priority (e.g. includes "🚨", "urgent", "emergency")
+          const isHighPriority = title.includes('🚨') || lowerTitle.includes('urgent') || lowerTitle.includes('emergency') || lowerBody.includes('🚨') || lowerBody.includes('urgent') || lowerBody.includes('emergency');
+          if (!isHighPriority && notifSettings.quietHoursEnabled) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            if (checkQuietHours(notifSettings, currentHour, currentMin)) {
+              console.log(`[Push Suppressed] User ${userId} is currently within quiet hours.`);
+              return;
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[Push Settings Verification Error] skipped settings evaluation:`, err.message);
+    }
+
+    const snap = await getDocs(collection(db, 'users', userId, 'devices'));
+    
+    if (snap.empty) {
+      console.log(`No active push devices registered for user: ${userId}`);
+      return;
+    }
+
+    const payload = JSON.stringify({
+      title,
+      body,
+      route,
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      timestamp: Date.now()
+    });
+
+    snap.forEach(async (deviceDoc) => {
+      const device = deviceDoc.data();
+      if (!device.notificationsEnabled || !device.subscription) return;
+
+      try {
+        const sub = JSON.parse(device.subscription);
+        await webpush.sendNotification(sub, payload);
+        console.log(`Sent Push Notification: "${title}" to device: ${device.deviceId}`);
+      } catch (err: any) {
+        console.warn(`Could not deliver push to device ${device.deviceId}:`, err.message);
+        // If the subscription is no longer valid, we set notificationsEnabled to false
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          console.log(`Disabling invalid push subscription for device: ${device.deviceId}`);
+          try {
+            const devRef = doc(db, 'users', userId, 'devices', device.deviceId);
+            await setDoc(devRef, { notificationsEnabled: false }, { merge: true });
+          } catch (e) {}
+        }
+      }
+    });
+  } catch (err) {
+    console.error(`Push Notification Dispatch failure for user ${userId}:`, err);
+  }
+}
+
+// Helper to check dynamic Quiet Hours window from household settings
+function checkQuietHours(settings: any, currentH: number, currentM: number): boolean {
+  if (!settings || !settings.quietHoursEnabled) return false;
+  const start = settings.quietHoursStart || '22:00';
+  const end = settings.quietHoursEnd || '07:00';
+  const [startH, startM] = start.split(':').map(Number);
+  const [endH, endM] = end.split(':').map(Number);
+  if (isNaN(startH) || isNaN(endH)) return false;
+
+  const currentMinutes = currentH * 60 + currentM;
+  const startMinutes = startH * 60 + (startM || 0);
+  const endMinutes = endH * 60 + (endM || 0);
+
+  if (startMinutes < endMinutes) {
+    // Standard window (e.g., 14:00 to 16:00)
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  } else {
+    // Overnight window (e.g., 22:00 to 07:00)
+    return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+  }
+}
+
+// -------------------------------------------------------------
+// REAL COMPANION CARE SCHEDULER & REVOLUTIONARY WATCHDOG
+// -------------------------------------------------------------
+async function runScheduler() {
+  try {
+    const snap = await getDocs(collection(db, 'households'));
+    if (snap.empty) return;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    const todayStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+    const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+
+    // Initialize global in-memory deduplication cache if absent
+    if (!(global as any).notifiedCache) {
+      (global as any).notifiedCache = {
+        reminders: new Set<string>(),
+        feedings: new Set<string>()
+      };
+    }
+    const cache = (global as any).notifiedCache;
+
+    for (const householdDoc of snap.docs) {
+      const householdId = householdDoc.id;
+      const household = householdDoc.data();
+
+      // Collect active user IDs associated with this household
+      const members = household.familyMembers || [];
+      const userIds: string[] = members.map((m: any) => m.id).filter(Boolean);
+      
+      // Fallback: if no explicit family members, push to userProfile owner if available
+      if (userIds.length === 0 && household.userProfile?.email) {
+        // Find by household ID or search devices
+      }
+
+      // 1. EVALUATE DUE SMART REMINDERS
+      const reminders = household.reminders || [];
+      for (const r of reminders) {
+        if (!r.enabled || r.completed) continue;
+
+        let isTargetDay = false;
+        if (r.date === 'Today' || r.date === todayStr) {
+          isTargetDay = true;
+        } else if (r.repeat === 'Daily') {
+          isTargetDay = true;
+        } else if (r.repeat === 'Weekly') {
+          const reminderDay = new Date(r.date).toLocaleDateString('en-US', { weekday: 'long' });
+          if (reminderDay === dayName) isTargetDay = true;
+        }
+
+        if (!isTargetDay) continue;
+
+        const [schHour, schMin] = r.time.split(':').map(Number);
+        if (isNaN(schHour) || isNaN(schMin)) continue;
+
+        // Calculate discrepancy in minutes
+        const diffMins = (currentHour * 60 + currentMin) - (schHour * 60 + schMin);
+        const cacheId = `${householdId}-${r.id}-${todayStr}`;
+
+        // Fire if due within last 5 minutes and not notified already
+        if (diffMins >= 0 && diffMins < 5 && !cache.reminders.has(cacheId)) {
+          cache.reminders.add(cacheId);
+
+          // Respect specific category toggles
+          const settings = household.settings || {};
+          if (r.type === 'feeding' && settings.notifyFeeding === false) continue;
+          if (r.type === 'medication' && settings.notifyMeds === false) continue;
+          if (r.type === 'vaccination' && settings.notifyVaccinations === false) continue;
+          if (r.type === 'vet' && settings.notifyVet === false) continue;
+
+          // Honor quiet hours unless reminder is categorized as 'high' priority
+          const householdQuiet = checkQuietHours(settings, currentHour, currentMin);
+          if (householdQuiet && r.priority !== 'high') {
+            console.log(`[Scheduler] Snoozing reminder "${r.title}" due to active Quiet Hours.`);
+            continue;
+          }
+
+          console.log(`[Scheduler] Reminder Triggered: "${r.title}" for household ${householdId}`);
+          
+          for (const uId of userIds) {
+            await sendPushNotification(
+              uId,
+              `🔔 PAWdiCURE: ${r.title}`,
+              `Your care task: "${r.title}" is due now! (${r.time})`,
+              r.actionRoute || '/reminders'
+            );
+          }
+        }
+      }
+
+      // 2. EVALUATE MISSED FEEDING ALERTS WITH GRACE PERIODS
+      // Breakfast target: 08:00 AM. Dinner target: 06:00 PM (18:00).
+      const feedingHistory = household.feedingHistory || [];
+      const activePetId = household.activePetId || 'milo';
+      const pet = household.pets?.[activePetId];
+
+      if (pet) {
+        // C. GENERIC MISSED FEEDING EVALUATOR WITH 60-MINUTE GRACE PERIOD
+        const feedingReminders = reminders.filter((r: any) => 
+          r.enabled && 
+          !r.completed && 
+          (r.title.toLowerCase().includes("feed") || 
+           r.title.toLowerCase().includes("breakfast") || 
+           r.title.toLowerCase().includes("dinner") || 
+           r.title.toLowerCase().includes("lunch") ||
+           r.title.toLowerCase().includes("meal"))
+        );
+
+        for (const r of feedingReminders) {
+          const [schHour, schMin] = r.time.split(":").map(Number);
+          if (isNaN(schHour) || isNaN(schMin)) continue;
+
+          // Discrepancy in minutes between now and the scheduled feeding time
+          const diffMins = (currentHour * 60 + currentMin) - (schHour * 60 + schMin);
+          const genericCacheId = `${householdId}-${r.id}-${todayStr}-missed-60`;
+
+          // If overdue by 60+ minutes and not notified yet
+          if (diffMins >= 60 && !cache.feedings.has(genericCacheId)) {
+            // Respect dynamic notification preference and quiet hours
+            const settings = household.settings || {};
+            if (settings.notifyFeeding === false) continue;
+
+            const isQuiet = checkQuietHours(settings, currentHour, currentMin);
+            if (isQuiet) {
+              console.log(`[Scheduler] Suppressed overdue feeding alert during active Quiet Hours for household ${householdId}`);
+              continue;
+            }
+
+            const hasBeenFed = feedingHistory.some((f: any) => {
+              const isToday = f.date === "Today" || f.date === todayStr;
+              if (!isToday) return false;
+
+              const [fHour, fMin] = f.time.split(":").map(Number);
+              const feedTimeMins = fHour * 60 + fMin;
+              const schTimeMins = schHour * 60 + schMin;
+
+              return feedTimeMins >= (schTimeMins - 30);
+            });
+
+            if (!hasBeenFed) {
+              cache.feedings.add(genericCacheId);
+              console.log(`[Scheduler] Overdue feeding reminder "${r.title}" detected for household ${householdId}`);
+              
+              for (const uId of userIds) {
+                await sendPushNotification(
+                  uId,
+                  `🚨 Overdue Feeding: ${pet.name}!`,
+                  `Your scheduled feeding "${r.title}" (due at ${r.time}) is overdue by 60+ minutes. Please feed your pet and record it!`,
+                  '/feed'
+                );
+              }
+            }
+          }
+        }
+
+        // A. BREAKFAST MISSED CHECK (Notified between 09:00 AM and 12:00 PM if morning feed missing)
+        if (currentHour >= 9 && currentHour < 12) {
+          const breakfastCacheId = `${householdId}-${todayStr}-breakfast`;
+          if (!cache.feedings.has(breakfastCacheId)) {
+            const hasMorningFeed = feedingHistory.some((f: any) => {
+              const isToday = f.date === 'Today' || f.date === todayStr;
+              if (isToday) {
+                const [fHour] = f.time.split(':').map(Number);
+                return fHour >= 5 && fHour < 10;
+              }
+              return false;
+            });
+
+            if (!hasMorningFeed) {
+              cache.feedings.add(breakfastCacheId);
+              console.log(`[Scheduler] Missed Breakfast Detected! Triggering Alert for household ${householdId}`);
+              
+              for (const uId of userIds) {
+                await sendPushNotification(
+                  uId,
+                  `🚨 Missed Breakfast Alert!`,
+                  `${pet.name} has not been fed his scheduled Breakfast meal portion. (Grace period expired by 60 mins).`,
+                  '/feed'
+                );
+              }
+            }
+          }
+        }
+
+        // B. DINNER MISSED CHECK (Notified between 07:00 PM and 10:00 PM if evening feed missing)
+        if (currentHour >= 19 && currentHour < 22) {
+          const dinnerCacheId = `${householdId}-${todayStr}-dinner`;
+          if (!cache.feedings.has(dinnerCacheId)) {
+            const hasEveningFeed = feedingHistory.some((f: any) => {
+              const isToday = f.date === 'Today' || f.date === todayStr;
+              if (isToday) {
+                const [fHour] = f.time.split(':').map(Number);
+                return fHour >= 16 && fHour < 20;
+              }
+              return false;
+            });
+
+            if (!hasEveningFeed) {
+              cache.feedings.add(dinnerCacheId);
+              console.log(`[Scheduler] Missed Dinner Detected! Triggering Alert for household ${householdId}`);
+              
+              for (const uId of userIds) {
+                await sendPushNotification(
+                  uId,
+                  `🚨 Missed Dinner Alert!`,
+                  `${pet.name} has not been fed his scheduled Dinner meal portion. (Grace period expired by 60 mins).`,
+                  '/feed'
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[Scheduler] Background run error:", err);
+  }
+}
+
+// Spin up background scheduler every 30 seconds
+setInterval(runScheduler, 30000);
+
 async function startServer() {
   const app = express();
   app.use(express.json());
   const PORT = 3000;
+
+  // -------------------------------------------------------------
+  // PUSH NOTIFICATION API ENDPOINTS
+  // -------------------------------------------------------------
+  
+  // Return the stable public VAPID key to the client
+  app.get("/api/vapid-public-key", (req, res) => {
+    return res.json({ publicKey: vapidKeys.publicKey });
+  });
+
+  // Register device push subscription in Firestore
+  app.post("/api/register-device", async (req, res) => {
+    try {
+      const { userId, deviceId, subscription, platform, browser, notificationsEnabled } = req.body;
+      if (!userId || !deviceId) {
+        return res.status(400).json({ error: "Missing userId or deviceId" });
+      }
+
+      const deviceRef = doc(db, 'users', userId, 'devices', deviceId);
+      await setDoc(deviceRef, {
+        deviceId,
+        userId,
+        subscription: subscription ? JSON.stringify(subscription) : null,
+        platform: platform || 'Web/PWA',
+        browser: browser || 'Unknown',
+        notificationsEnabled: notificationsEnabled !== false,
+        updatedAt: Date.now(),
+        createdAt: Date.now()
+      }, { merge: true });
+
+      console.log(`Device ${deviceId} registered for user ${userId}`);
+      return res.json({ success: true, message: "Device registered for native OS push alerts." });
+    } catch (err: any) {
+      console.error("Device registration endpoint error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Sync user notification settings to Firestore profile
+  app.post("/api/user/notification-settings", async (req, res) => {
+    try {
+      const { userId, notificationSettings } = req.body;
+      if (!userId || !notificationSettings) {
+        return res.status(400).json({ error: "Missing userId or notificationSettings" });
+      }
+
+      const userRef = doc(db, 'users', userId);
+      await setDoc(userRef, { 
+        notificationSettings,
+        updatedAt: Date.now()
+      }, { merge: true });
+
+      console.log(`Notification settings synced to user profile: ${userId}`);
+      return res.json({ 
+        success: true, 
+        message: "Notification settings synced successfully to user profile." 
+      });
+    } catch (err: any) {
+      console.error("Sync notification settings endpoint error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Trigger a test push notification to a user's active devices
+  app.post("/api/trigger-test-push", async (req, res) => {
+    try {
+      const { userId, title, body, route } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "Missing userId" });
+      }
+
+      await sendPushNotification(
+        userId,
+        title || "🐾 Test Push Notification!",
+        body || "Hello from PAWdiCURE! Your actual device push notification is fully active and functional.",
+        route || "/home"
+      );
+
+      return res.json({ success: true, message: "Test push notification dispatched." });
+    } catch (err: any) {
+      console.error("Test push trigger error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
 
   // -------------------------------------------------------------
   // SECURE BACKEND BADGE & MISSION EVALUATOR API
@@ -25,8 +490,7 @@ async function startServer() {
       }
 
       // Fetch current household state directly from Firestore (trusted source of truth)
-      const householdRef = doc(db, 'households', householdId);
-      const householdSnap = await getDoc(householdRef);
+      const householdSnap = await getDoc(doc(db, 'households', householdId));
       if (!householdSnap.exists()) {
         return res.status(404).json({ error: "Household not found" });
       }

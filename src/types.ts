@@ -139,12 +139,35 @@ export interface WeightRecord {
   weightKg: number;
 }
 
+export interface CareLimit {
+  value: number;
+  unit: string;
+  source: 'GENERAL' | 'USER_DEFINED' | 'VETERINARIAN';
+  updatedAt: number;
+  notes?: string;
+}
+
+export interface CareSettings {
+  id: string;
+  petId: string;
+  activityGuidance?: CareLimit;
+  feedingGuidance?: CareLimit;
+  treatGuidance?: CareLimit;
+  medicationGuidance?: CareLimit;
+  customRestrictions?: string[];
+  veterinarianNotes?: string;
+  updatedAt: number;
+}
+
 export interface Pet {
   id: string;
   name: string;
   species: 'Dog' | 'Cat' | 'Other';
   breed: string;
+  dateOfBirth: string; // Added
   age: string;
+  sizeCategory: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Giant'; // Added
+  activityLevel: 'Low' | 'Moderate' | 'High'; // Added
   gender: 'Male' | 'Female' | 'Unknown';
   personality: string[];
   weight: number; // in kg
@@ -184,7 +207,10 @@ export interface Pet {
   caloriesBurned?: number;
   currentMl?: number;
   sleepHours?: number;
+  careSettingsId?: string;
+  applicationNumber: string; // Added
 }
+
 
 export interface StoreProduct {
   id: string;
@@ -255,6 +281,17 @@ export interface PlaceItem {
   features?: string[];
 }
 
+export interface NotificationSettings {
+  notifyFeeding: boolean;
+  notifyMeds: boolean;
+  notifyVaccinations: boolean;
+  notifyVet: boolean;
+  notifyAchievements: boolean;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
@@ -272,6 +309,7 @@ export interface UserProfile {
     cloudSync: boolean;
     publicProfile: boolean;
   };
+  notificationSettings?: NotificationSettings;
 }
 
 export interface RedeemedReward {
@@ -315,6 +353,8 @@ export interface HouseholdData {
   careStreakDays?: number;
   userRank?: string;
   currentXp?: number;
+  settings?: any;
+  syncStatus?: string;
 }
 
 export interface ToastMessage {

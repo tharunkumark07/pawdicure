@@ -148,9 +148,71 @@
         }
       },
       "required": ["missionId", "userId", "status", "completedTasks", "progressPercent"]
+    },
+    "userProfile": {
+      "title": "User Profile Settings",
+      "description": "Stores user preferences, profile details, and system notification preferences.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User's full name"
+        },
+        "email": {
+          "type": "string",
+          "description": "User's electronic mail address"
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Avatar image source"
+        },
+        "theme": {
+          "type": "string",
+          "description": "Preferred UI theme (light, dark, or system)"
+        },
+        "notificationSettings": {
+          "type": "object",
+          "description": "Granular user level notification settings and Quiet Hours windows.",
+          "properties": {
+            "notifyFeeding": { "type": "boolean" },
+            "notifyMeds": { "type": "boolean" },
+            "notifyVaccinations": { "type": "boolean" },
+            "notifyVet": { "type": "boolean" },
+            "notifyAchievements": { "type": "boolean" },
+            "quietHoursEnabled": { "type": "boolean" },
+            "quietHoursStart": { "type": "string" },
+            "quietHoursEnd": { "type": "string" }
+          }
+        }
+      },
+      "required": ["name", "email", "avatar", "theme", "notificationSettings"]
+    },
+    "careSettings": {
+      "title": "Pet Care Settings & Safety Limits",
+      "description": "Stores pet-specific safety limits and care guidance.",
+      "type": "object",
+      "properties": {
+        "petId": { "type": "string" },
+        "activityGuidance": { "type": "object" },
+        "feedingGuidance": { "type": "object" },
+        "treatGuidance": { "type": "object" },
+        "medicationGuidance": { "type": "object" },
+        "customRestrictions": { "type": "array", "items": { "type": "string" } },
+        "veterinarianNotes": { "type": "string" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["petId", "updatedAt"]
     }
   },
   "firestore": {
+    "/users/{userId}/pets/{petId}/careSettings/{settingId}": {
+      "schema": "careSettings",
+      "description": "Pet-specific safety guardrails and guidance."
+    },
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "Stores primary user account metadata and granular notification settings."
+    },
     "/badges/{badgeId}": {
       "schema": "badge",
       "description": "Store defining the rare global badges available to unlock."

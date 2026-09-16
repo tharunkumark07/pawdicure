@@ -1,48 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, BellRing, Check, ShieldCheck, Sparkles, Send } from 'lucide-react';
-import { pushNotifications } from '../lib/pushNotifications';
+import React, { useState } from 'react';
+import { Bell, BellRing, Check, Send } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
 interface PushNotificationBannerProps {
   petName: string;
 }
 
 export function PushNotificationBanner({ petName }: PushNotificationBannerProps) {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const {
+    isPushEnabled,
+    registerPushNotifications,
+    triggerTestPushNotification,
+  } = useApp();
+
   const [dismissed, setDismissed] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
   const [testSent, setTestSent] = useState(false);
 
-  useEffect(() => {
-    setPermission(pushNotifications.getPermissionStatus());
-  }, []);
-
   const handleEnablePush = async () => {
     setIsRequesting(true);
-    const status = await pushNotifications.requestPermission();
-    setPermission(status);
+    const success = await registerPushNotifications();
     setIsRequesting(false);
-
-    if (status === 'granted') {
-      pushNotifications.sendNotification({
-        title: `🐾 PAWdiCURE Alerts Activated!`,
-        body: `You will now receive vital reminders for ${petName}'s feedings, walks, and vaccines.`,
-      });
+    if (success) {
       setTestSent(true);
       setTimeout(() => setTestSent(false), 4000);
     }
   };
 
-  const handleSendSampleAlert = () => {
-    pushNotifications.scheduleCareAlert(petName, 'feeding');
+  const handleSendSampleAlert = async () => {
     setTestSent(true);
+    await triggerTestPushNotification();
     setTimeout(() => setTestSent(false), 3500);
   };
 
-  if (dismissed || permission === 'denied') {
+  if (dismissed) {
     return null;
   }
 
-  if (permission === 'granted') {
+  if (isPushEnabled) {
     return (
       <div className="mx-3 sm:mx-4 mt-2 mb-1 p-2.5 rounded-2xl bg-orange-50/80 border border-orange-200/80 flex items-center justify-between text-xs animate-in fade-in">
         <div className="flex items-center gap-2 text-orange-950">
