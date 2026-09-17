@@ -164,10 +164,10 @@ export interface Pet {
   name: string;
   species: 'Dog' | 'Cat' | 'Other';
   breed: string;
-  dateOfBirth: string; // Added
+  dateOfBirth?: string;
   age: string;
-  sizeCategory: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Giant'; // Added
-  activityLevel: 'Low' | 'Moderate' | 'High'; // Added
+  sizeCategory?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Giant';
+  activityLevel?: 'Low' | 'Moderate' | 'High';
   gender: 'Male' | 'Female' | 'Unknown';
   personality: string[];
   weight: number; // in kg
@@ -208,7 +208,7 @@ export interface Pet {
   currentMl?: number;
   sleepHours?: number;
   careSettingsId?: string;
-  applicationNumber: string; // Added
+  applicationNumber?: string;
 }
 
 
@@ -379,4 +379,46 @@ export interface RewardItem {
   image?: string;
   terms?: string;
   partnerClinic?: string;
+}
+
+export interface DailyCycle {
+  id: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
+  petId: string;
+  userId: string;
+  timezone: string;
+  feeding: {
+    breakfast: { quantity: number; unit: string; recorded: boolean; timestamp?: string };
+    lunch: { quantity: number; unit: string; recorded: boolean; timestamp?: string };
+    dinner: { quantity: number; unit: string; recorded: boolean; timestamp?: string };
+    treats: { quantity: number; unit: string; recorded: boolean; timestamp?: string };
+    totalGrams: number;
+    totalCalories: number;
+  };
+  water: {
+    entries: { amount: number; timestamp: string }[];
+    totalMl: number;
+  };
+  activities: {
+    walkingMinutes: number;
+    playMinutes: number;
+    exerciseMinutes: number;
+    trainingMinutes: number;
+    totalMinutes: number;
+  };
+  care: {
+    medicationsTaken: string[]; // IDs of meds taken
+    remindersCompleted: string[]; // IDs of reminders completed
+    groomingDone: boolean;
+    healthChecksDone: boolean;
+  };
+  stats: {
+    careScore: number;
+    relationshipXpEarned: number;
+    pawPointsEarned: number;
+    completedTaskIds: string[];
+    completedMissionIds: string[];
+  };
+  createdAt: number;
+  updatedAt: number;
 }

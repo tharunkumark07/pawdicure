@@ -1,5 +1,10 @@
 import { Pet, RoutineTask } from '../types';
 import { evaluatePetBadges } from '../lib/badgeSystem';
+import { PetCard } from '../components/PetCard';
+import { SpotlightCard } from '../components/ui/premium/SpotlightCard';
+import { PremiumButton } from '../components/ui/premium/PremiumButton';
+import { GlossyCard } from '../components/ui/premium/GlossyCard';
+import { AnimatedCounter } from '../components/ui/premium/AnimatedCounter';
 import {
   Sparkles,
   Utensils,
@@ -42,8 +47,6 @@ export function HomeView({
 }: HomeViewProps) {
   const isCheckedInToday = lastCheckInDate === new Date().toISOString().slice(0, 10);
   const xpPct = Math.min(100, Math.round(((pet.xp ?? 0) / (pet.nextLevelXp || 1000)) * 100));
-  const evaluatedBadges = evaluatePetBadges(pet);
-  const unlockedBadges = evaluatedBadges.filter((b) => b.isUnlocked);
 
   const dynamicCareScore = Math.min(
     100,
@@ -51,44 +54,23 @@ export function HomeView({
   );
 
   return (
-    <div className="flex flex-col w-full pb-8 space-y-4 animate-in fade-in duration-200">
-      {/* Personalized Greeting Card */}
-      <div className="bg-gradient-to-r from-orange-50 via-rose-50/50 to-amber-50/50 rounded-3xl p-4 sm:p-5 border border-orange-100/80 shadow-xs relative overflow-hidden">
+    <div className="flex flex-col w-full pb-8 space-y-6 animate-in fade-in duration-500">
+      {/* Hero Greeting Section */}
+      <GlossyCard className="relative p-6 sm:p-8 bg-gradient-to-br from-white/80 to-white/40">
         <div className="flex items-center justify-between">
-          <div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/90 text-[10px] font-bold text-[#ae3115] shadow-2xs mb-1">
+          <div className="space-y-1">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#ff6b4a]/10 to-amber-500/10 text-[11px] font-bold text-[#ae3115] border border-[#ff6b4a]/20 shadow-xs">
               <Sparkles className="w-3 h-3 text-[#ff6b4a]" />
               <span>Daily Concierge Active</span>
             </span>
-            <h1 className="font-heading font-extrabold text-xl sm:text-2xl text-slate-900 leading-tight">
-              Good day, Tharun 👋
+            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-slate-950 leading-tight">
+              Good morning, Tharun
             </h1>
-            <p className="text-xs font-semibold text-[#ae3115] mt-0.5">
-              {pet.name} is feeling energetic &amp; healthy today ✨
+            <p className="text-sm font-semibold text-slate-600">
+              How's {pet.name} doing today? ✨
             </p>
-
-            {/* Unlocked Badges Mini Strip */}
-            {unlockedBadges.length > 0 && (
-              <div className="flex items-center gap-1.5 mt-2">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  Badges:
-                </span>
-                <div className="flex items-center gap-1">
-                  {unlockedBadges.map((ub) => (
-                    <span
-                      key={ub.id}
-                      title={`${ub.name} (${ub.tier} Tier)`}
-                      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white shadow-2xs text-xs border border-amber-200 cursor-pointer"
-                    >
-                      {ub.icon}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-
-          <div className="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-white shadow-md shrink-0">
+          <div className="w-20 h-20 rounded-3xl overflow-hidden ring-4 ring-white/50 shadow-xl shadow-orange-500/20 shrink-0 transform rotate-3 hover:rotate-0 transition-transform duration-500">
             <img
               src={pet.avatarUrl}
               alt={pet.name}
@@ -96,27 +78,13 @@ export function HomeView({
             />
           </div>
         </div>
-
-        {/* Pet Mood Pill */}
-        <div className="mt-3.5 p-2.5 rounded-2xl bg-white/95 border border-white flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
-            <span className="text-xs text-slate-700 font-medium truncate">
-              "{pet.mood}"
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate('bond')}
-            className="text-[11px] font-bold text-[#ff6b4a] hover:underline shrink-0"
-          >
-            Bond Map →
-          </button>
-        </div>
-      </div>
+      </GlossyCard>
+      
+      {/* Pet ID Card */}
+      <PetCard pet={pet} />
 
       {/* Daily Check-In & Streak Reward Card */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-200/80 rounded-3xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
+      <SpotlightCard id="daily-streak-card">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-[#ff6b4a] flex items-center justify-center text-white shadow-xs shrink-0">
@@ -137,15 +105,9 @@ export function HomeView({
             </div>
           </div>
 
-          <button
-            type="button"
+          <PremiumButton
             onClick={onDailyCheckIn}
-            disabled={isCheckedInToday}
-            className={`px-4 py-2.5 rounded-2xl font-bold text-xs flex items-center gap-1.5 shrink-0 transition shadow-xs active:scale-95 ${
-              isCheckedInToday
-                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default'
-                : 'bg-gradient-to-r from-[#ff6b4a] to-amber-500 hover:from-[#ae3115] hover:to-amber-600 text-white shadow-orange-500/20'
-            }`}
+            className={isCheckedInToday ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default' : ''}
           >
             {isCheckedInToday ? (
               <>
@@ -158,74 +120,31 @@ export function HomeView({
                 <span>Claim +12 Pts</span>
               </>
             )}
-          </button>
+          </PremiumButton>
         </div>
-      </div>
+      </SpotlightCard>
 
-      {/* 5 Key Pillars Metric Row */}
-      <div className="grid grid-cols-5 gap-1.5 bg-white p-2.5 rounded-2xl border border-slate-100 shadow-xs">
-        <button
-          type="button"
-          onClick={() => onNavigate('bond')}
-          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-orange-50/50 hover:bg-orange-100/50 transition w-full"
-        >
-          <span className="text-sm">❤️</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Bond</span>
-          <span className="text-[11px] font-extrabold text-slate-800 font-heading">
-            Lvl {pet.level}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onNavigate('feed')}
-          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-rose-50/50 hover:bg-rose-100/50 transition w-full"
-        >
-          <span className="text-sm">🍖</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Feeding</span>
-          <span className="text-[11px] font-extrabold text-slate-800 font-heading">
-            {pet.dailyGramsFed ?? 180}g
-          </span>
-          <span className="text-[8px] font-bold text-emerald-600">
-            {pet.nutritionPercent ?? 50}%
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onLogExercise}
-          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-emerald-50/50 hover:bg-emerald-100/50 transition w-full"
-        >
-          <span className="text-sm">🏃</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Walks</span>
-          <span className="text-[11px] font-extrabold text-slate-800 font-heading">
-            2.4 km
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onNavigate('feed')}
-          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-blue-50/50 hover:bg-blue-100/50 transition w-full"
-        >
-          <span className="text-sm">💧</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Water</span>
-          <span className="text-[11px] font-extrabold text-slate-800 font-heading">
-            {pet.hydrationPercent}%
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onNavigate('health')}
-          className="flex flex-col items-center justify-center text-center p-1.5 rounded-xl bg-purple-50/50 hover:bg-purple-100/50 transition w-full"
-        >
-          <span className="text-sm">😴</span>
-          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Sleep</span>
-          <span className="text-[11px] font-extrabold text-slate-800 font-heading">
-            9.2h
-          </span>
-        </button>
+      {/* Key Metrics Bento Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <SpotlightCard className="p-4 bg-gradient-to-br from-orange-50/50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-orange-100 text-[#ff6b4a]"><Heart className="w-5 h-5" /></div>
+            <div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase">Bond Level</div>
+              <div className="text-lg font-black text-slate-950 font-heading">Lvl {pet.level}</div>
+            </div>
+          </div>
+        </SpotlightCard>
+        
+        <SpotlightCard className="p-4 bg-gradient-to-br from-emerald-50/50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-100 text-emerald-600"><Utensils className="w-5 h-5" /></div>
+            <div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase">Nutrition</div>
+              <div className="text-lg font-black text-slate-950 font-heading">{pet.nutritionPercent ?? 50}%</div>
+            </div>
+          </div>
+        </SpotlightCard>
       </div>
 
       {/* Level & XP Progression Bar */}

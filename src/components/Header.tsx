@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   PlusCircle,
   RefreshCw,
+  Settings,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -24,6 +25,8 @@ interface HeaderProps {
   onOpenSyncModal: () => void;
   onOpenNotifications: () => void;
   onOpenProfile: () => void;
+  onOpenSettings: () => void;
+  isTutorialActive?: boolean;
 }
 
 export function Header({
@@ -38,12 +41,16 @@ export function Header({
   onOpenSyncModal,
   onOpenNotifications,
   onOpenProfile,
+  onOpenSettings,
+  isTutorialActive = false,
 }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
     <header
-      className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-orange-200/60 shadow-[0_1px_8px_rgba(255,107,74,0.04)] transition-all"
+      className={`sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-orange-200/60 shadow-[0_1px_8px_rgba(255,107,74,0.04)] transition-all duration-300 ${
+        isTutorialActive ? 'opacity-35 brightness-75 pointer-events-none' : ''
+      }`}
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="h-16 px-3 sm:px-4 max-w-lg mx-auto flex items-center justify-between gap-1.5">
@@ -168,11 +175,22 @@ export function Header({
             id="header-notifications-btn"
             type="button"
             onClick={onOpenNotifications}
-            className="relative w-8 h-8 flex items-center justify-center rounded-full text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="relative w-8 h-8 flex items-center justify-center rounded-full text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Notifications"
           >
             <Bell className="w-4 h-4" />
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#ff6b4a] ring-2 ring-white" />
+          </button>
+
+          {/* Settings button */}
+          <button
+            id="header-settings-btn"
+            type="button"
+            onClick={onOpenSettings}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            title="App Settings & Guide"
+          >
+            <Settings className="w-4 h-4" />
           </button>
 
           {/* Profile Menu with Sarah photo */}

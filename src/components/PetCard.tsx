@@ -3,7 +3,7 @@ import { Pet } from '../types';
 import { Card } from './Card';
 import { Button } from './Button';
 import { PetIllustration } from './PetIllustration';
-import { Copy, ChevronRight } from 'lucide-react';
+import { Copy, ChevronRight, Utensils, Activity, Heart, Camera, Bell } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 interface PetCardProps {
@@ -19,8 +19,13 @@ export function PetCard({ pet, className = '' }: PetCardProps) {
     showToast('Pet ID copied.', 'success', '📋');
   };
 
+  const quickActions = [
+    { icon: Camera, label: 'Memories', route: '/memories' },
+    { icon: Bell, label: 'Reminders', route: '/reminders' },
+  ];
+
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-300 ${className}`} padding="lg">
+    <Card id="pet-card" className={`group hover:shadow-lg transition-all duration-300 ${className}`} padding="lg">
       <div className="flex justify-between items-start mb-4">
         <div className="relative">
           {pet.avatarUrl ? (
@@ -41,19 +46,23 @@ export function PetCard({ pet, className = '' }: PetCardProps) {
       </div>
 
       <h3 className="font-heading font-black text-2xl text-slate-900 mb-0.5">{pet.name}</h3>
-      <p className="text-sm text-slate-500 font-semibold mb-3">
+      <p className="text-sm text-slate-500 font-semibold mb-4">
         {pet.breed} • {pet.age}
       </p>
 
-      <div className="flex items-center gap-4 mb-4">
-        <div className="text-center">
-          <div className="text-[10px] text-slate-400 font-bold uppercase">Level</div>
-          <div className="text-sm font-bold text-orange-600">❤️ {pet.level}</div>
-        </div>
-        <div className="text-center">
-          <div className="text-[10px] text-slate-400 font-bold uppercase">Status</div>
-          <div className="text-sm font-bold text-emerald-600">✓ {pet.healthStatus}</div>
-        </div>
+      {/* Quick Actions Grid */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {quickActions.map((action) => (
+          <button
+            key={action.label}
+            onClick={() => navigate(action.route)}
+            className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-slate-50 transition"
+            title={action.label}
+          >
+            <action.icon className="w-5 h-5 text-slate-400" />
+            <span className="text-[9px] font-bold text-slate-500">{action.label}</span>
+          </button>
+        ))}
       </div>
 
       <Button variant="outline" className="w-full text-xs" onClick={() => navigate(`/pet/${pet.id}`)}>

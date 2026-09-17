@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { Navigation, NavTab } from './components/Navigation';
@@ -10,8 +11,13 @@ import { AddPetModal } from './components/AddPetModal';
 import { PillarDetailModal } from './components/PillarDetailModal';
 import { ProfileModal } from './components/ProfileModal';
 import { NotificationsModal } from './components/NotificationsModal';
+import { SettingsModal } from './components/SettingsModal';
 import { DynamicPetBackground } from './components/DynamicPetBackground';
 import { PushNotificationBanner } from './components/PushNotificationBanner';
+import { PetGuide } from './components/pet-guide/PetGuide';
+import { usePetGuide } from './hooks/usePetGuide';
+import { ColdStartAnimation } from './components/ColdStartAnimation';
+import { MainContentSkeleton } from './components/MainContentSkeleton';
 
 // Views
 import { HomeView } from './views/HomeView';
@@ -80,6 +86,19 @@ function AppContent() {
     performDailyCheckIn,
   } = useApp();
 
+  const {
+    isVisible,
+    currentStep,
+    totalSteps,
+    step,
+    handleNext,
+    handleBack,
+    handleSkip,
+    restartGuide,
+    characterId,
+    setCharacterId,
+  } = usePetGuide();
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<
@@ -93,14 +112,39 @@ function AppContent() {
   const [isCloudSyncOpen, setIsCloudSyncOpen] = useState(false);
   const [isAddPetOpen, setIsAddPetOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [inspectedPillar, setInspectedPillar] = useState<AffinityPillar | null>(null);
 
   // One-time login / entrance animation state
-  // Check if the user has previously logged in/setup on this device
+  const [showAnimation, setShowAnimation] = useState(true);
   const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(() => {
     const isCompleted = localStorage.getItem('PAWdiCURE_AUTH_COMPLETED_V1');
     return !isCompleted;
   });
+
+  useEffect(() => {
+    const hasBeenOpened = sessionStorage.getItem('PAWdiCURE_OPENED');
+    if (hasBeenOpened) {
+      setShowAnimation(false);
+    } else {
+      sessionStorage.setItem('PAWdiCURE_OPENED', 'true');
+    }
+  }, []);
+
+  // Page Transition Skeleton State for UI stability during navigation
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
+  const [activeViewRoute, setActiveViewRoute] = useState(currentRoute);
+
+  useEffect(() => {
+    if (currentRoute !== activeViewRoute) {
+      setIsPageTransitioning(true);
+      const timer = setTimeout(() => {
+        setActiveViewRoute(currentRoute);
+        setIsPageTransitioning(false);
+      }, 220);
+      return () => clearTimeout(timer);
+    }
+  }, [currentRoute, activeViewRoute]);
 
   // Derive current active bottom tab from currentRoute
   const getActiveTab = (): NavTab => {
@@ -501,6 +545,21 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#fffaf5] flex flex-col items-center justify-start text-[#2c1810]">
+      {showAnimation && <ColdStartAnimation onComplete={() => setShowAnimation(false)} />}
+      {isVisible && step && (
+        <PetGuide 
+          characterId={characterId}
+          message={step.message}
+          targetId={step.targetId}
+          onNext={handleNext}
+          onBack={handleBack}
+          onSkip={handleSkip}
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          onToggleCharacter={() => setCharacterId((prev) => (prev === 'dog' ? 'cat' : 'dog'))}
+        />
+      )}
+
       {showSplashAndAuth && (
         <SplashAndAuth onComplete={() => setShowSplashAndAuth(false)} />
       )}
@@ -514,21 +573,25 @@ function AppContent() {
         <DynamicPetBackground route={currentRoute} />
 
         {/* Global Top Header */}
-        <div className="relative z-50">
-          <Header
-            pets={householdData.pets}
-            activePet={activePet}
-            streakDays={householdData.streakDays}
-            isSyncing={isSyncing}
-            isOnline={isOnline}
-            onSelectPet={(petId) => setActivePetId(petId)}
-            onOpenAddPet={() => setIsAddPetOpen(true)}
-            onOpenEmergency={() => navigate('/emergency')}
-            onOpenSyncModal={() => setIsCloudSyncOpen(true)}
-            onOpenNotifications={() => navigate('/notifications')}
-            onOpenProfile={() => navigate('/pet-profile')}
-          />
-        </div>
+        {!showSplashAndAuth && (
+          <div className="relative z-50">
+            <Header
+              pets={householdData.pets}
+              activePet={activePet}
+              streakDays={householdData.streakDays}
+              isSyncing={isSyncing}
+              isOnline={isOnline}
+              onSelectPet={(petId) => setActivePetId(petId)}
+              onOpenAddPet={() => setIsAddPetOpen(true)}
+              onOpenEmergency={() => navigate('/emergency')}
+              onOpenSyncModal={() => setIsCloudSyncOpen(true)}
+              onOpenNotifications={() => navigate('/notifications')}
+              onOpenProfile={() => navigate('/pet-profile')}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              isTutorialActive={isVisible}
+            />
+          </div>
+        )}
 
         {/* Native Push Notification Request & Care Alert Banner */}
         <div className="relative z-10">
@@ -586,19 +649,45 @@ function AppContent() {
           )}
         </div>
 
-        {/* Main Content Area */}
-        <main className="relative z-10 flex-1 px-3 sm:px-4 pt-6 pb-4 flex flex-col items-center justify-start w-full">
+        {/* Main Content Area with Subtle Skeleton Transition State */}
+        <main className="relative z-10 flex-1 px-3 sm:px-4 pt-6 pb-4 flex flex-col items-center justify-start w-full min-h-[520px]">
           <div className="w-full flex flex-col items-stretch">
-            {renderCurrentView()}
+            <AnimatePresence mode="wait">
+              {isPageTransitioning ? (
+                <motion.div
+                  key={`skeleton-${currentRoute}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.12 }}
+                  className="w-full"
+                >
+                  <MainContentSkeleton route={currentRoute} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={currentRoute}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
+                  className="w-full"
+                >
+                  {renderCurrentView()}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </main>
 
         {/* Persistent Bottom Navigation */}
-        <Navigation
-          currentTab={getActiveTab()}
-          onSelectTab={handleSelectTab}
-          onOpenQuickCare={() => setIsQuickCareOpen(true)}
-        />
+        {!showSplashAndAuth && (
+          <Navigation
+            currentTab={getActiveTab()}
+            onSelectTab={handleSelectTab}
+            onOpenQuickCare={() => setIsQuickCareOpen(true)}
+          />
+        )}
 
         {/* Global Toast Stack */}
         <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1.5 pointer-events-none">
@@ -678,6 +767,17 @@ function AppContent() {
           onClose={() => setIsProfileOpen(false)}
           onOpenSync={() => setIsCloudSyncOpen(true)}
           onOpenAddPet={() => setIsAddPetOpen(true)}
+        />
+
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          onRestartGuide={() => restartGuide()}
+          onOpenSync={() => setIsCloudSyncOpen(true)}
+          onOpenEmergency={() => navigate('/emergency')}
+          onOpenNotifications={() => navigate('/notifications')}
+          onOpenProfile={() => navigate('/pet-profile')}
+          characterId={characterId}
         />
 
         <NotificationsModal

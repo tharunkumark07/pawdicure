@@ -14,9 +14,11 @@ import {
   UserProfile,
   AppNotification,
   RewardItem,
+  DailyCycle,
 } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
 import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db } from '../lib/firebase';
+import { dailyCycleService } from '../services/dailyCycleService';
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
 const STORAGE_KEY = 'pawdicure_household_state_v2';
@@ -112,6 +114,10 @@ interface AppContextType {
   toggleBadgeShowcase: (badgeId: string) => Promise<void>;
   evaluateAchievements: () => Promise<void>;
 
+  // Daily Care Cycle
+  dailyCycle: DailyCycle | null;
+  refreshDailyCycle: () => Promise<void>;
+
   // Push Notifications State & Operations
   isPushEnabled: boolean;
   pushPermissionStatus: 'default' | 'granted' | 'denied';
@@ -151,6 +157,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [badgeProgress, setBadgeProgress] = useState<any[]>([]);
   const [missionProgress, setMissionProgress] = useState<any[]>([]);
+
+  // Daily Care Cycle State
+  const [dailyCycle, setDailyCycle] = useState<DailyCycle | null>(null);
+
+  const refreshDailyCycle = async () => {
+    if (!userId) return;
+    const petId = householdData.activePetId || 'milo';
+    const cycle = await dailyCycleService.getCurrentDailyCycle(userId, petId, 'UTC');
+    setDailyCycle(cycle);
+  };
+
+  useEffect(() => {
+    refreshDailyCycle();
+  }, [userId, householdData.activePetId]);
 
   // Push Notifications State
   const [isPushEnabled, setIsPushEnabled] = useState(false);
@@ -630,11 +650,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const feedPet = (grams: number, toppers: string[]) => {
+  const feedPet = async (grams: number, toppers: string[]) => {
     const baseKcal = Math.round(grams * 3.44);
     const salmonKcal = toppers.some((t) => t.toLowerCase().includes('salmon')) ? 45 : 0;
     const jointKcal = toppers.some((t) => t.toLowerCase().includes('glucosamine')) ? 25 : 0;
     const mealKcal = baseKcal + salmonKcal + jointKcal;
+
+    if (userId && activePetId && dailyCycle) {
+      const updatedFeeding = {
+        ...dailyCycle.feeding,
+        totalGrams: dailyCycle.feeding.totalGrams + grams,
+        totalCalories: dailyCycle.feeding.totalCalories + mealKcal,
+      };
+      
+      await dailyCycleService.updateDailyCycle(userId, activePetId, dailyCycle.date, {
+        feeding: updatedFeeding
+      });
+      await refreshDailyCycle();
+    }
 
     updateHousehold((prev) => {
       const pet = { ...prev.pets[prev.activePetId] };
@@ -720,7 +753,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showToast('New 10 kg Salmon Formula bag dispatched to household!', 'success', '📦');
   };
 
-  const toggleTask = (taskId: string) => {
+  const toggleTask = async (taskId: string) => {
     let earnedXp = 0;
     let completedTitle = '';
     let isCompleted = false;
@@ -740,6 +773,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return { ...prev, routineTasks: tasks };
     });
+
+    if (userId && activePetId && dailyCycle) {
+      const completedTaskIds = isCompleted 
+        ? [...dailyCycle.stats.completedTaskIds, taskId]
+        : dailyCycle.stats.completedTaskIds.filter(id => id !== taskId);
+      
+      await dailyCycleService.updateDailyCycle(userId, activePetId, dailyCycle.date, {
+        stats: { ...dailyCycle.stats, completedTaskIds }
+      });
+      await refreshDailyCycle();
+    }
 
     if (isCompleted && earnedXp > 0) {
       triggerConfetti();
@@ -1378,6 +1422,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         missionProgress,
         toggleBadgeShowcase,
         evaluateAchievements,
+        dailyCycle,
+        refreshDailyCycle,
         isPushEnabled,
         pushPermissionStatus,
         registerPushNotifications,
@@ -1395,4 +1441,12 @@ export function useApp() {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;
+}
+
+export function useAuth() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AppProvider');
+  }
+  return { userId: context.userId };
 }
