@@ -209,6 +209,8 @@ export interface Pet {
   sleepHours?: number;
   careSettingsId?: string;
   applicationNumber?: string;
+  streakDays?: number;
+  lastCheckInDate?: string;
 }
 
 

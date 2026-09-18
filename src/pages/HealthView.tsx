@@ -199,35 +199,75 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
           </div>
 
           {/* Clinical Alerts / Reminders Pill */}
-          <div className="p-4 rounded-3xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-bold text-amber-900">
-                Upcoming Immunization Booster
-              </h4>
-              <p className="text-[11px] text-amber-800/90 mt-0.5 leading-relaxed">
-                DHPP 5-in-1 core vaccine window opens in 33 days. Schedule with Dr. Elena Rostova at Bay Paws Specialty Clinic.
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('vaccinations');
-                    navigate('/health/vaccinations');
-                  }}
-                  className="px-3 py-1 rounded-xl bg-amber-600 text-white text-[11px] font-bold hover:bg-amber-700 transition"
-                >
-                  View Vaccine Passport
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/reminders')}
-                  className="px-3 py-1 rounded-xl bg-white text-amber-900 border border-amber-300 text-[11px] font-bold hover:bg-amber-100 transition"
-                >
-                  Set Reminder
-                </button>
+          {(() => {
+            const pendingVaccine = petVaccines.find((v) => !v.completed || v.status === 'Overdue' || v.status === 'Upcoming');
+            return pendingVaccine ? (
+              <div className="p-4 rounded-3xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs font-bold text-amber-900">
+                    Upcoming Immunization Booster
+                  </h4>
+                  <p className="text-[11px] text-amber-800/90 mt-0.5 leading-relaxed">
+                    {pendingVaccine.name} booster window opens on {pendingVaccine.dueDate}. Schedule with {pendingVaccine.vet}.
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('vaccinations');
+                        navigate('/health/vaccinations');
+                      }}
+                      className="px-3 py-1 rounded-xl bg-amber-600 text-white text-[11px] font-bold hover:bg-amber-700 transition"
+                    >
+                      View Vaccine Passport
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/reminders')}
+                      className="px-3 py-1 rounded-xl bg-white text-amber-900 border border-amber-300 text-[11px] font-bold hover:bg-amber-100 transition"
+                    >
+                      Set Reminder
+                    </button>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <div className="p-4 rounded-3xl bg-emerald-50/80 border border-emerald-200/80 flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs font-bold text-emerald-900">
+                    All Immunizations Up-to-Date
+                  </h4>
+                  <p className="text-[11px] text-emerald-800/90 mt-0.5 leading-relaxed">
+                    {activePet.name} is completely up-to-date with all clinical vaccinations and immunization booster windows!
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Find Clinics & Hospitals CTA Banner */}
+          <div className="bg-slate-900 text-white p-4 rounded-3xl relative overflow-hidden flex items-center justify-between border border-slate-800 shadow-md">
+            {/* Background design accents */}
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-[#ff6b4a]/20 blur-xl" />
+            <div className="absolute right-12 top-2 w-12 h-12 rounded-full bg-emerald-500/10 blur-lg" />
+            
+            <div className="space-y-1 relative z-10 pr-2">
+              <span className="text-[10px] text-amber-400 font-extrabold uppercase tracking-widest block">Interactive Locator</span>
+              <h3 className="font-heading font-black text-xs leading-tight">Find Vaccine Centres &amp; Hospitals</h3>
+              <p className="text-[10px] text-slate-300 leading-relaxed max-w-[220px] sm:max-w-md">
+                Locate certified vaccine clinics, low-cost booster centers, and 24/7 emergency pet hospitals near you.
+              </p>
             </div>
+            
+            <button
+              type="button"
+              onClick={() => navigate('/health/clinics')}
+              className="px-3.5 py-2 rounded-xl bg-[#ff6b4a] hover:bg-orange-600 text-white text-xs font-bold transition shrink-0 shadow-sm relative z-10 hover:scale-105 active:scale-95"
+            >
+              Find Care 🏥
+            </button>
           </div>
 
           {/* Weight Growth / Stability Trend */}

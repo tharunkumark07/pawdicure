@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { motion, useMotionValue, useSpring } from 'motion/react';
+import { motion } from 'motion/react';
 
 interface TiltedCardProps {
   children: React.ReactNode;
@@ -7,70 +7,46 @@ interface TiltedCardProps {
   id?: string;
   rotateAmplitude?: number;
   scaleOnHover?: number;
+  onClick?: () => void;
 }
 
 export function TiltedCard({
   children,
   className = '',
   id,
-  rotateAmplitude = 12,
-  scaleOnHover = 1.02,
+  onClick,
 }: TiltedCardProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const [isTapped, setIsTapped] = useState(false);
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
-  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
-
-  const [isHovered, setIsHovered] = useState(false);
-
-  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-
-    x.set(xPct * rotateAmplitude * -1);
-    y.set(yPct * rotateAmplitude);
-  }
-
-  function handleMouseEnter() {
-    setIsHovered(true);
-  }
-
-  function handleMouseLeave() {
-    setIsHovered(false);
-    x.set(0);
-    y.set(0);
-  }
+  const handleTap = () => {
+    setIsTapped(true);
+    setTimeout(() => setIsTapped(false), 200);
+    if (onClick) {
+      onClick();
+    }
+  };
 
   return (
     <motion.div
       id={id}
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      whileTap={{ scale: 0.96 }}
-      style={{
-        rotateX: mouseYSpring,
-        rotateY: mouseXSpring,
-        transformStyle: 'preserve-3d',
+      onClick={handleTap}
+      whileTap={{ scale: 0.94, y: 1.5 }}
+      animate={{
+        boxShadow: isTapped 
+          ? '0 10px 25px -5px rgba(255, 107, 74, 0.2), 0 8px 10px -6px rgba(255, 107, 74, 0.2)' 
+          : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)'
       }}
-      animate={{ scale: isHovered ? scaleOnHover : 1 }}
-      transition={{ duration: 0.2 }}
-      className={`relative rounded-3xl cursor-pointer ${className}`}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      className={`relative rounded-3xl cursor-pointer select-none active:brightness-95 transition-all duration-150 ${className}`}
     >
-      <div style={{ transform: 'translateZ(30px)', transformStyle: 'preserve-3d' }}>
+      <div className="relative z-10 w-full h-full">
         {children}
       </div>
+      
+      {/* Subtle mobile tap indicator ripple backdrop */}
+      {isTapped && (
+        <span className="absolute inset-0 bg-orange-500/5 rounded-3xl pointer-events-none animate-ping duration-150" />
+      )}
     </motion.div>
   );
 }

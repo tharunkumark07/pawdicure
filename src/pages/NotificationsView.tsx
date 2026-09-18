@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Bell,
   CheckCheck,
@@ -167,62 +168,80 @@ export function NotificationsView() {
         ))}
       </div>
 
-      {/* Notifications List */}
+      {/* Notifications List with Animate-In and Stagger Shifting */}
       <div className="space-y-2.5">
-        {filtered.length === 0 ? (
-          <div className="bg-white p-8 rounded-3xl border border-dashed border-slate-200 text-center space-y-2">
-            <Bell className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="font-heading font-bold text-sm text-slate-800">
-              No notifications here
-            </h3>
-            <p className="text-xs text-slate-500">
-              You are completely caught up on your pet care routines!
-            </p>
-          </div>
-        ) : (
-          filtered.map((n) => (
-            <div
-              key={n.id}
-              onClick={() => handleNotificationClick(n)}
-              className={`p-4 rounded-3xl border transition cursor-pointer flex items-start justify-between gap-3 ${
-                n.read
-                  ? 'bg-white border-slate-100 shadow-2xs opacity-80 hover:opacity-100'
-                  : 'bg-orange-50/50 border-orange-200 shadow-xs hover:border-orange-300'
-              }`}
+        <AnimatePresence mode="popLayout">
+          {filtered.length === 0 ? (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white p-8 rounded-3xl border border-dashed border-slate-200 text-center space-y-2"
             >
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-2xs shrink-0 mt-0.5">
-                  {getIcon(n.type)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-xs font-bold text-slate-900">
-                      {n.title}
-                    </h4>
-                    {!n.read && (
-                      <span className="w-2 h-2 rounded-full bg-[#ff6b4a]" />
-                    )}
+              <Bell className="w-10 h-10 text-slate-300 mx-auto" />
+              <h3 className="font-heading font-bold text-sm text-slate-800">
+                No notifications here
+              </h3>
+              <p className="text-xs text-slate-500">
+                You are completely caught up on your pet care routines!
+              </p>
+            </motion.div>
+          ) : (
+            filtered.map((n, i) => (
+              <motion.div
+                key={n.id}
+                layout
+                initial={{ opacity: 0, y: 15, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 420,
+                  damping: 28,
+                  delay: Math.min(i * 0.04, 0.24)
+                }}
+                onClick={() => handleNotificationClick(n)}
+                className={`p-4 rounded-3xl border transition cursor-pointer flex items-start justify-between gap-3 select-none active:scale-99 ${
+                  n.read
+                    ? 'bg-white border-slate-100 shadow-2xs opacity-80 hover:opacity-100'
+                    : 'bg-orange-50/50 border-orange-200 shadow-xs hover:border-orange-300'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-2xs shrink-0 mt-0.5">
+                    {getIcon(n.type)}
                   </div>
-                  <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
-                    {n.message}
-                  </p>
-                  <span className="text-[9px] text-slate-400 font-mono mt-1 block">
-                    {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-slate-900">
+                        {n.title}
+                      </h4>
+                      {!n.read && (
+                        <span className="w-2 h-2 rounded-full bg-[#ff6b4a]" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                      {n.message}
+                    </p>
+                    <span className="text-[9px] text-slate-400 font-mono mt-1 block">
+                      {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {n.actionRoute && (
-                <button
-                  type="button"
-                  className="text-slate-400 hover:text-[#ff6b4a] p-1 shrink-0"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          ))
-        )}
+                {n.actionRoute && (
+                  <button
+                    type="button"
+                    className="text-slate-400 hover:text-[#ff6b4a] p-1 shrink-0"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -26,6 +26,7 @@ import { BondView } from './views/BondView';
 
 // Dedicated Full Functional Pages
 import { HealthView } from './pages/HealthView';
+import { NearbyCareView } from './pages/NearbyCareView';
 import { RemindersView } from './pages/RemindersView';
 import { EmergencyView } from './pages/EmergencyView';
 import { AIAssistantView } from './pages/AIAssistantView';
@@ -350,6 +351,10 @@ function AppContent() {
       return <StatsView />;
     }
 
+    if (currentRoute === '/health/clinics') {
+      return <NearbyCareView />;
+    }
+
     if (currentRoute.startsWith('/health')) {
       return <HealthView />;
     }
@@ -536,6 +541,15 @@ function AppContent() {
 
           <button
             type="button"
+            onClick={() => navigate('/health/clinics')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
+          >
+            <span className="text-xs">🏥</span>
+            <span>Clinics &amp; Hospitals</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => navigate('/family')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
           >
@@ -547,8 +561,8 @@ function AppContent() {
         <HomeView
           pet={activePet}
           tasks={(householdData.routineTasks || []).filter((t) => !t.petId || t.petId === activePet.id)}
-          streakDays={householdData.streakDays}
-          lastCheckInDate={householdData.lastCheckInDate}
+          streakDays={activePet.streakDays ?? householdData.streakDays ?? 5}
+          lastCheckInDate={activePet.lastCheckInDate ?? householdData.lastCheckInDate}
           onDailyCheckIn={performDailyCheckIn}
           onNavigate={(tab) => handleSelectTab(tab)}
           onToggleTask={(tId) => toggleTask(tId)}
@@ -598,7 +612,7 @@ function AppContent() {
             <Header
               pets={householdData.pets}
               activePet={activePet}
-              streakDays={householdData.streakDays}
+              streakDays={activePet.streakDays ?? householdData.streakDays ?? 5}
               isSyncing={isSyncing}
               isOnline={isOnline}
               onSelectPet={(petId) => setActivePetId(petId)}

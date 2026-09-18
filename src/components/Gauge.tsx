@@ -111,7 +111,7 @@ export function Gauge({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="flex flex-col items-center justify-between p-5 sm:p-6 lg:p-7 bg-white/70 backdrop-blur-[12px] rounded-3xl border border-white/50 shadow-lg shadow-slate-200/30 ring-1 ring-slate-900/5 relative overflow-hidden w-full h-full min-h-[350px] transition-all duration-300 hover:shadow-xl group"
+      className="flex flex-col items-center justify-between p-5 sm:p-6 lg:p-7 bg-white/70 backdrop-blur-[12px] rounded-3xl border border-white/50 shadow-lg shadow-slate-200/30 ring-1 ring-slate-900/5 relative overflow-hidden w-full h-full min-h-[370px] transition-all duration-300 hover:shadow-xl group"
     >
       {/* Dynamic spotlight hover glow */}
       {isHovered && (

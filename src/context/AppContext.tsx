@@ -1377,18 +1377,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const performDailyCheckIn = () => {
     const todayStr = new Date().toISOString().slice(0, 10);
-    if (householdData.lastCheckInDate === todayStr) {
+    const petLastCheckIn = activePet.lastCheckInDate || '';
+    if (petLastCheckIn === todayStr) {
       showToast('You already checked in today! Come back tomorrow for +12 pts ✨', 'info', '📅');
       return { success: false, message: 'Already checked in today', pointsEarned: 0 };
     }
 
-    const nextStreak = (householdData.streakDays || 0) + 1;
-    updateHousehold((prev) => ({
-      ...prev,
-      pawPoints: (prev.pawPoints || 0) + 12,
-      streakDays: nextStreak,
-      lastCheckInDate: todayStr,
-    }));
+    const nextStreak = (activePet.streakDays || 0) + 1;
+    updateHousehold((prev) => {
+      const updatedPets = { ...prev.pets };
+      if (updatedPets[activePetId]) {
+        updatedPets[activePetId] = {
+          ...updatedPets[activePetId],
+          streakDays: nextStreak,
+          lastCheckInDate: todayStr,
+        };
+      }
+      return {
+        ...prev,
+        pawPoints: (prev.pawPoints || 0) + 12,
+        pets: updatedPets,
+        // Legacy top-level sync for safety/compatibility
+        streakDays: nextStreak,
+        lastCheckInDate: todayStr,
+      };
+    });
 
     triggerConfetti();
     addXp(20, `Daily check-in streak Day ${nextStreak}`);
@@ -1397,7 +1410,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     addNotification({
       title: `Daily Check-In: +12 Points!`,
-      message: `You maintained your ${nextStreak}-day care streak and earned +12 Paw Points!`,
+      message: `You maintained your ${nextStreak}-day care streak for ${activePet.name} and earned +12 Paw Points!`,
       timeAgo: 'Just now',
       type: 'reward',
       read: false,

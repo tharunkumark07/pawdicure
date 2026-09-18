@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Gauge } from '../components/Gauge';
 import { AnimatedChart } from '../components/AnimatedChart';
+import { WeeklyHealthChart } from '../components/WeeklyHealthChart';
 import { ShinyText } from '../components/ui/reactbits/ShinyText';
 import { GradientText } from '../components/ui/reactbits/GradientText';
 import { TiltedCard } from '../components/ui/reactbits/TiltedCard';
@@ -128,25 +129,25 @@ export function StatsView() {
         </button>
       </div>
 
-      {/* Main KPI Stats Grid with Hover-responsive 3D Physics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
+      {/* Main KPI Stats Grid with Hover-responsive 3D Physics (Spacious, Big, Non-Compact) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
         {/* Steps */}
         <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-          <div className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-3">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-orange-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="bg-white/70 backdrop-blur-[12px] p-6 sm:p-8 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-5">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-orange-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
             <div className="flex items-center justify-between z-10 relative">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">
                 Daily Steps
               </span>
-              <div className="w-8 h-8 rounded-xl bg-orange-100/80 text-[#ff6b4a] flex items-center justify-center shrink-0 shadow-2xs">
-                <Footprints className="w-4 h-4" />
+              <div className="w-11 h-11 rounded-2xl bg-orange-100/80 text-[#ff6b4a] flex items-center justify-center shrink-0 shadow-2xs">
+                <Footprints className="w-5.5 h-5.5" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-heading z-10 relative">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 font-heading z-10 relative tracking-tight">
               {formattedStepsToday.toLocaleString()}
             </div>
-            <div className="space-y-1.5 z-10 relative">
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden shadow-inner">
+            <div className="space-y-2 z-10 relative">
+              <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden shadow-inner">
                 <div
                   style={{
                     width: `${Math.min(100, stepsPercent)}%`,
@@ -154,9 +155,9 @@ export function StatsView() {
                   className="bg-gradient-to-r from-orange-500 to-amber-400 h-full rounded-full transition-all"
                 />
               </div>
-              <div className="text-[10px] sm:text-xs text-slate-500 flex justify-between font-medium">
+              <div className="text-xs text-slate-500 flex justify-between font-bold">
                 <span>Goal: {stepsGoalVal.toLocaleString()}</span>
-                <span className="font-bold text-[#ff6b4a]">
+                <span className="font-black text-[#ff6b4a]">
                   {stepsPercent}%
                 </span>
               </div>
@@ -166,69 +167,70 @@ export function StatsView() {
 
         {/* Active Calories */}
         <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-          <div className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-3">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-rose-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="bg-white/70 backdrop-blur-[12px] p-6 sm:p-8 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-5">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-rose-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
             <div className="flex items-center justify-between z-10 relative">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">
                 Active Burn
               </span>
-              <div className="w-8 h-8 rounded-xl bg-rose-100/80 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
-                <Flame className="w-4 h-4" />
+              <div className="w-11 h-11 rounded-2xl bg-rose-100/80 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                <Flame className="w-5.5 h-5.5" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-heading z-10 relative">
-              {formattedCalories} <span className="text-xs sm:text-sm text-slate-400 font-normal">kcal</span>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 font-heading z-10 relative tracking-tight">
+              {formattedCalories} <span className="text-sm sm:text-base text-slate-400 font-normal">kcal</span>
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-medium z-10 relative">
-              Base: {formattedCaloriesGoal} kcal/day
+            <p className="text-xs text-slate-500 font-bold z-10 relative bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl w-fit">
+              Base Daily Goal: <span className="text-rose-600 font-black">{formattedCaloriesGoal}</span> kcal
             </p>
           </div>
         </TiltedCard>
 
         {/* Hydration */}
         <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-          <div className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-3">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-sky-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="bg-white/70 backdrop-blur-[12px] p-6 sm:p-8 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-5">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-sky-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
             <div className="flex items-center justify-between z-10 relative">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">
                 Hydration
               </span>
               <button
                 type="button"
                 onClick={refreshWater}
-                className="w-8 h-8 rounded-xl bg-sky-100/80 hover:bg-sky-200 text-sky-600 flex items-center justify-center transition active:scale-95 shrink-0 shadow-2xs"
+                className="w-11 h-11 rounded-2xl bg-sky-100/80 hover:bg-sky-200 text-sky-600 flex items-center justify-center transition active:scale-95 shrink-0 shadow-2xs"
                 title="Refresh bowl (+150ml)"
               >
-                <Droplet className="w-4 h-4" />
+                <Droplet className="w-5.5 h-5.5 animate-bounce" />
               </button>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-heading z-10 relative">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 font-heading z-10 relative tracking-tight">
               {formattedHydrationPercent}%
             </div>
-            <div className="text-[10px] sm:text-xs text-slate-500 font-medium z-10 relative">
-              {formattedHydrationMl} / {formattedGoalMl} ml
+            <div className="text-xs text-slate-500 font-bold z-10 relative bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl w-fit">
+              Vitals Intake: <span className="text-sky-600 font-black">{formattedHydrationMl}</span> / {formattedGoalMl} ml
             </div>
           </div>
         </TiltedCard>
 
         {/* Heart Rate */}
         <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-          <div className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-3">
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
+          <div className="bg-white/70 backdrop-blur-[12px] p-6 sm:p-8 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-5">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-400/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform" />
             <div className="flex items-center justify-between z-10 relative">
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">
                 Resting BPM
               </span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
-                <Heart className="w-4 h-4" />
+              <div className="w-11 h-11 rounded-2xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                <Heart className="w-5.5 h-5.5" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-heading z-10 relative">
-              {formattedRestingBpm} <span className="text-xs sm:text-sm text-slate-400 font-normal">BPM</span>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 font-heading z-10 relative tracking-tight">
+              {formattedRestingBpm} <span className="text-sm sm:text-base text-slate-400 font-normal">BPM</span>
             </div>
-            <p className="text-[10px] sm:text-xs text-emerald-600 font-bold flex items-center gap-1 z-10 relative">
-              Normal cardiac sinus
-            </p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/60 text-emerald-700 font-bold text-xs w-fit z-10 relative">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span>Normal cardiac sinus</span>
+            </div>
           </div>
         </TiltedCard>
       </div>
@@ -263,21 +265,13 @@ export function StatsView() {
         />
       </div>
 
-      {/* Secondary Analytics Row: Weight Telemetry + Sleep & Timeline */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start animate-in slide-in-from-bottom duration-350 delay-150">
-        <AnimatedChart
-          data={weightHistoryData}
-          title="Weight &amp; Mass Trend"
-          subtitle="6-Month pediatric weight monitoring log"
-          color="indigo"
-          unit="kg"
-          goalValue={targetWeight}
-          icon={<Scale className="w-4.5 h-4.5" />}
-        />
+      {/* Secondary Analytics Row: Interactive Weekly Health Area Chart + Sleep & Timeline */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch animate-in slide-in-from-bottom duration-350 delay-150">
+        <WeeklyHealthChart petName={activePet.name} species={activePet.species} />
 
-        <div className="space-y-6 lg:space-y-8">
+        <div className="flex flex-col gap-6 lg:gap-8 h-full">
           {/* Sleep & Rest Analysis */}
-          <div className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 lg:p-7 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 space-y-4 relative overflow-hidden">
+          <div className="flex-1 bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 lg:p-7 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 space-y-4 relative overflow-hidden flex flex-col justify-between">
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-400/10 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center justify-between z-10 relative">
               <div className="flex items-center gap-2.5">
@@ -319,7 +313,7 @@ export function StatsView() {
           </div>
 
           {/* Activity Timeline Breakdown */}
-          <div className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 lg:p-7 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 space-y-4 relative overflow-hidden">
+          <div className="flex-1 bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 lg:p-7 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/40 ring-1 ring-slate-900/5 space-y-4 relative overflow-hidden flex flex-col justify-between">
             <div className="flex items-center justify-between z-10 relative">
               <h3 className="font-heading font-bold text-xs sm:text-sm text-slate-900">
                 Today's Activity Breakdown
@@ -334,7 +328,32 @@ export function StatsView() {
             </div>
 
             <div className="space-y-3 pt-1">
-              {[
+              {(activePet.species === 'Cat' ? [
+                {
+                  title: 'Morning Scratching Post Session',
+                  time: '08:00 AM',
+                  duration: '15 mins',
+                  steps: '400 steps',
+                  calories: '25 kcal',
+                  icon: '🐾',
+                },
+                {
+                  title: 'Feather Wand & Laser Chase',
+                  time: '01:30 PM',
+                  duration: '12 mins',
+                  steps: '800 steps',
+                  calories: '45 kcal',
+                  icon: '🪶',
+                },
+                {
+                  title: 'Sunbeam Stretching & Groom',
+                  time: '04:15 PM',
+                  duration: '30 mins',
+                  steps: '200 steps',
+                  calories: '15 kcal',
+                  icon: '☀️',
+                },
+              ] : [
                 {
                   title: 'Morning Forest Sniffari',
                   time: '07:30 AM',
@@ -359,7 +378,7 @@ export function StatsView() {
                   calories: '140 kcal',
                   icon: '🐕',
                 },
-              ].map((act, i) => (
+              ]).map((act, i) => (
                 <div
                   key={i}
                   className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/60 flex items-center justify-between text-xs hover:bg-white hover:border-orange-200/60 transition-all shadow-2xs"
@@ -384,135 +403,301 @@ export function StatsView() {
         </div>
       </div>
 
-      {/* Spacious, Advanced Vet-Telemetry Insights Advisor Section (Non-Compact, Glassmorphic, Rich in Info) */}
+      {/* Interactive Biometric Conditioning Target Planner & Vet Threshold Reference Section */}
       <div className="bg-white/70 backdrop-blur-[12px] p-6 sm:p-8 lg:p-10 rounded-3xl border border-white/50 shadow-xl shadow-slate-200/40 ring-1 ring-slate-900/5 space-y-8 animate-in slide-in-from-bottom duration-350 delay-200">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+        
+        {/* Dynamic Header with Profile Switchers */}
+        <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6 border-b border-slate-100 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
               <span className="p-1 rounded-lg bg-orange-100 text-orange-600">
-                <Brain className="w-4 h-4 animate-pulse" />
+                <Activity className="w-4 h-4 animate-pulse" />
               </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-orange-600">
-                AI Companion Core Advisor
+              <span className="text-xs font-bold uppercase tracking-wider text-[#ff6b4a]">
+                Biometric Planner
               </span>
             </div>
             <h2 className="font-heading font-black text-xl sm:text-2xl text-slate-900 tracking-tight">
-              Veterinary Telemetry Insights &amp; Adaptive Diagnostics
+              Interactive Conditioning Targets &amp; Clinical Thresholds
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-              Continuous biometric modeling &amp; personalized physiological conditioning feedback
+            <p className="text-xs text-slate-500 font-medium">
+              Select an activity target profile to dynamically calibrate biometric goals, safety limits, and physiological targets.
             </p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 font-bold shadow-2xs shrink-0">
-            <Info className="w-4 h-4 text-slate-400 shrink-0" />
-            <span>Updated real-time • Confidence 98.7%</span>
+
+          {/* Actionable Profile Buttons */}
+          <div className="flex items-center p-1 bg-slate-100/80 rounded-2xl border border-slate-200/60 shadow-2xs w-full sm:w-auto overflow-x-auto shrink-0">
+            {[
+              { id: 'active', label: 'Standard Active', icon: '🏃' },
+              { id: 'conditioning', label: 'Athletic Builder', icon: '⚡' },
+              { id: 'recovery', label: 'Low Impact / Rec', icon: '🍃' },
+            ].map((prof) => {
+              const isActive = (React as any).useMemo ? false : false; // Will check state below
+              return (
+                <button
+                  key={prof.id}
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('stats-target-planner-root');
+                    if (el) {
+                      const event = new CustomEvent('change-profile', { detail: prof.id });
+                      el.dispatchEvent(event);
+                    }
+                  }}
+                  id={`btn-profile-${prof.id}`}
+                  className="px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap flex items-center gap-1.5 transition active:scale-95"
+                >
+                  <span>{prof.icon}</span>
+                  <span>{prof.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* 3-Column Highly Detailed Tilted Advisor Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-          
-          {/* Card 1: Conditioning Profile */}
-          <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-            <div className="bg-white/90 backdrop-blur-[12px] p-6 rounded-3xl border border-white/50 shadow-md shadow-slate-200/30 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-500">
-                    Cardio Fitness Profile
-                  </span>
-                  <span className="text-xl">🏆</span>
-                </div>
-                <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900">
-                  Activity &amp; Agility Advisor
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Daily steps reached <span className="font-bold text-[#ff6b4a]">{stepsPercent}%</span> of target. Based on today's telemetry, {activePet.name} has logged high-quality muscular and metabolic output.
-                </p>
-                <div className="pt-2 border-t border-slate-100 space-y-2">
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Recommended Recovery</span>
-                    <span className="font-mono text-[#ff6b4a]">{Number((stepsPercent * 0.12).toFixed(3))} hrs</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Aerobic Output Quotient</span>
-                    <span className="font-mono text-emerald-600">{(stepsToday / 120).toFixed(3)} AQ</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-[10px] text-slate-400 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-auto">
-                💡 <span className="font-semibold text-slate-700">Vet Tip:</span> Ensure an active warmdown and dynamic pacing after long forest hikes.
-              </div>
-            </div>
-          </TiltedCard>
+        {/* State Holder Wrapper & Event Handler */}
+        <div id="stats-target-planner-root" className="space-y-8">
+          {(() => {
+            const [activeProfile, setActiveProfile] = React.useState<'active' | 'conditioning' | 'recovery'>('active');
 
-          {/* Card 2: Hydration Index */}
-          <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-            <div className="bg-white/90 backdrop-blur-[12px] p-6 rounded-3xl border border-white/50 shadow-md shadow-slate-200/30 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-sky-500">
-                    Intracellular Hydration
-                  </span>
-                  <span className="text-xl">💧</span>
-                </div>
-                <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900">
-                  Hydration &amp; Renal Index
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Current water intake sits at <span className="font-bold text-sky-600">{formattedHydrationMl} ml</span>. Intracellular saturation levels are stable, reducing workload on the renal system.
-                </p>
-                <div className="pt-2 border-t border-slate-100 space-y-2">
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Optimal Goal Water</span>
-                    <span className="font-mono text-sky-600">{Number((formattedGoalMl * 1.15).toFixed(3))} ml</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Electrolyte Saturation</span>
-                    <span className="font-mono text-emerald-600">97.4%</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-[10px] text-slate-400 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-auto">
-                💡 <span className="font-semibold text-slate-700">Species Tip:</span> {activePet.species === 'Cat' ? 'Cats thrive with running water fountains to trigger natural hydration instincts.' : 'Dogs need fresh bowl refills every 4-6 hours to prevent bacterial buildup.'}
-              </div>
-            </div>
-          </TiltedCard>
+            React.useEffect(() => {
+              const root = document.getElementById('stats-target-planner-root');
+              const handleProfileChange = (e: Event) => {
+                const newProfile = (e as CustomEvent).detail;
+                setActiveProfile(newProfile);
+                showToast(
+                  `Calibrated biometric guidelines for ${newProfile === 'conditioning' ? 'Athletic Conditioning' : newProfile === 'recovery' ? 'Low-Impact Rest & Recovery' : 'Standard Daily Routine'}! 🚀`,
+                  'success',
+                  '📊'
+                );
+              };
+              root?.addEventListener('change-profile', handleProfileChange);
+              return () => {
+                root?.removeEventListener('change-profile', handleProfileChange);
+              };
+            }, []);
 
-          {/* Card 3: Weight Conditioning */}
-          <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
-            <div className="bg-white/90 backdrop-blur-[12px] p-6 rounded-3xl border border-white/50 shadow-md shadow-slate-200/30 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-indigo-500">
-                    Weight &amp; Mass Index
-                  </span>
-                  <span className="text-xl">⚖️</span>
-                </div>
-                <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900">
-                  Pediatric Weight Assessment
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Current weight is <span className="font-bold text-indigo-600">{currentWeight.toFixed(3)} kg</span> vs target <span className="font-bold text-slate-600">{targetWeight.toFixed(3)} kg</span>. There is a small variation of <span className="font-bold text-indigo-500">{Number(Math.abs(currentWeight - targetWeight).toFixed(3))} kg</span>.
-                </p>
-                <div className="pt-2 border-t border-slate-100 space-y-2">
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Deviation from Mean</span>
-                    <span className="font-mono text-indigo-600">{(Math.abs(currentWeight - targetWeight) / currentWeight * 100).toFixed(3)}%</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-semibold text-slate-700">
-                    <span>Dietary Protein Target</span>
-                    <span className="font-mono text-emerald-600">{(currentWeight * 3.2).toFixed(3)} g/day</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-[10px] text-slate-400 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-auto">
-                💡 <span className="font-semibold text-slate-700">Nutritional Tip:</span> Ensure high protein intake with premium raw or organic kibble formulas.
-              </div>
-            </div>
-          </TiltedCard>
+            // Set up button active classes dynamically
+            React.useEffect(() => {
+              ['active', 'conditioning', 'recovery'].forEach((id) => {
+                const btn = document.getElementById(`btn-profile-${id}`);
+                if (btn) {
+                  if (id === activeProfile) {
+                    btn.className = "px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap flex items-center gap-1.5 transition bg-slate-900 text-white shadow-sm";
+                  } else {
+                    btn.className = "px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap flex items-center gap-1.5 transition text-slate-500 hover:text-slate-900 hover:bg-slate-200/50";
+                  }
+                }
+              });
+            }, [activeProfile]);
 
+            // Calculated values depending on profile
+            const targetSteps = activeProfile === 'conditioning'
+              ? Math.round(stepsGoal * 1.4)
+              : activeProfile === 'recovery'
+              ? Math.round(stepsGoal * 0.6)
+              : stepsGoal;
+
+            const targetHydration = activeProfile === 'conditioning'
+              ? Math.round(goalMl * 1.25)
+              : activeProfile === 'recovery'
+              ? Math.round(goalMl * 0.85)
+              : goalMl;
+
+            const targetBpm = activeProfile === 'conditioning'
+              ? '110 - 150 bpm (Aerobic state)'
+              : activeProfile === 'recovery'
+              ? '60 - 85 bpm (Parasympathetic rest)'
+              : '70 - 110 bpm (Active ambient)';
+
+            const calculatedStepsPercent = Math.min(100, Math.round((stepsToday / targetSteps) * 100));
+            const calculatedHydrationPercent = Math.min(100, Math.round((hydrationMl / targetHydration) * 100));
+
+            return (
+              <div className="space-y-8">
+                {/* 3-Column Profile Guide Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+                  
+                  {/* Card 1: Steps & Daily Physical Loading */}
+                  <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
+                    <div className="bg-white/95 backdrop-blur-[12px] p-6 rounded-3xl border border-white/50 shadow-md shadow-slate-200/30 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-orange-500">
+                            Physical Load Ratio
+                          </span>
+                          <span className="text-xl">🏃</span>
+                        </div>
+                        <h3 className="font-heading font-black text-sm sm:text-base text-slate-900">
+                          Daily Steps Target
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                          Today's progress against calibrated target profile:
+                        </p>
+
+                        {/* Progress display */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex justify-between text-xs font-bold text-slate-800">
+                            <span>{stepsToday} steps</span>
+                            <span>of {targetSteps} target</span>
+                          </div>
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${calculatedStepsPercent}%` }}
+                              className="h-full bg-orange-500 rounded-full transition-all duration-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-700 font-semibold">
+                          <div className="flex justify-between">
+                            <span>Target Density</span>
+                            <span className="font-mono text-slate-900">{calculatedStepsPercent}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Aerobic Multiplier</span>
+                            <span className="font-mono text-orange-600">
+                              {activeProfile === 'conditioning' ? '1.40x (Agility Focus)' : activeProfile === 'recovery' ? '0.60x (Light Joint Care)' : '1.00x (Standard)'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-slate-500 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        💡 <span className="font-bold text-slate-700">Calibrator Advisor:</span>{' '}
+                        {activeProfile === 'conditioning'
+                          ? 'Focus on dynamic hill walking to build athletic stamina and increase muscle tone.'
+                          : activeProfile === 'recovery'
+                          ? 'Prioritize flat terrain and gentle sniff walks to keep stress and joint impact low.'
+                          : 'Standard daily walks provide high-quality heart health support and healthy core agility.'}
+                      </div>
+                    </div>
+                  </TiltedCard>
+
+                  {/* Card 2: Hydration Calibrator */}
+                  <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
+                    <div className="bg-white/95 backdrop-blur-[12px] p-6 rounded-3xl border border-white/50 shadow-md shadow-slate-200/30 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-sky-500">
+                            Water Intake Target
+                          </span>
+                          <span className="text-xl">💧</span>
+                        </div>
+                        <h3 className="font-heading font-black text-sm sm:text-base text-slate-900">
+                          Intake &amp; Renal Index
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                          Water intake requirements to maintain optimal cell hydration:
+                        </p>
+
+                        {/* Hydration progress bar */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex justify-between text-xs font-bold text-slate-800">
+                            <span>{hydrationMl} ml</span>
+                            <span>of {targetHydration} ml goal</span>
+                          </div>
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${calculatedHydrationPercent}%` }}
+                              className="h-full bg-sky-500 rounded-full transition-all duration-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-700 font-semibold">
+                          <div className="flex justify-between">
+                            <span>Hydration Density</span>
+                            <span className="font-mono text-slate-900">{calculatedHydrationPercent}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Renal sat score</span>
+                            <span className="font-mono text-emerald-600">Stable</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-slate-500 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        💡 <span className="font-bold text-slate-700">Hydration Tip:</span>{' '}
+                        {activePet.species === 'Cat'
+                          ? 'Cats rely on wet-food moisture or circulating fountains to activate hydration triggers.'
+                          : 'Provide clean, oxygenated water bowl refills every 4-6 hours to encourage maximum volume intake.'}
+                      </div>
+                    </div>
+                  </TiltedCard>
+
+                  {/* Card 3: Vital Sign Thresholds */}
+                  <TiltedCard className="w-full h-full rounded-3xl overflow-hidden relative group">
+                    <div className="bg-white/95 backdrop-blur-[12px] p-6 rounded-3xl border border-white/50 shadow-md shadow-slate-200/30 ring-1 ring-slate-900/5 h-full flex flex-col justify-between space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-rose-500">
+                            Clinical Safety Ranges
+                          </span>
+                          <span className="text-xl">🩺</span>
+                        </div>
+                        <h3 className="font-heading font-black text-sm sm:text-base text-slate-900">
+                          Veterinary Reference Zones
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                          Clinical biometric thresholds recommended by veterinarians for {activePet.species}s:
+                        </p>
+
+                        <div className="pt-1 space-y-2 text-xs font-semibold text-slate-700">
+                          <div className="flex justify-between pb-1 border-b border-slate-100">
+                            <span>Heart rate safety zone</span>
+                            <span className="font-mono text-slate-950 font-bold">{targetBpm}</span>
+                          </div>
+                          <div className="flex justify-between pb-1 border-b border-slate-100">
+                            <span>Body Temperature</span>
+                            <span className="font-mono text-slate-950">101.0°F - 102.5°F</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Respiratory rate</span>
+                            <span className="font-mono text-slate-950">15 - 30 breaths/min</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-[10px] text-slate-500 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        ⚠️ <span className="font-bold text-slate-700">Emergency Alert:</span> If resting respiratory rate exceeds 40 breaths/min, seek urgent clinical care immediately.
+                      </div>
+                    </div>
+                  </TiltedCard>
+
+                </div>
+
+                {/* Simulated Interactive Goals Calibration Console */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-500/5 via-amber-500/5 to-rose-500/5 border border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🎯</span>
+                    <div className="space-y-0.5 text-left">
+                      <h4 className="text-xs font-bold text-slate-900">
+                        Calibrate Companion Health Passport
+                      </h4>
+                      <p className="text-[10px] text-slate-600">
+                        Synchronize these target thresholds across all digital medical charts.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      showToast('Calibrated and updated medical telemetry passport! ✨', 'success', '🛡️');
+                    }}
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-950 hover:bg-black text-white text-xs font-bold transition active:scale-95"
+                  >
+                    Apply New Metrics
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
+
       </div>
+
     </div>
   );
 }

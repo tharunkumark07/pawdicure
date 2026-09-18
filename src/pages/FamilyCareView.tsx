@@ -135,7 +135,26 @@ export function FamilyCareView() {
         </div>
 
         <div className="space-y-3 pt-1">
-          {[
+          {(activePet.species === 'Cat' ? [
+            {
+              author: 'Sarah Miller',
+              action: `Fed ${activePet.name} morning meal (65g) + Pumpkin Puree`,
+              time: 'Today, 8:15 AM',
+              icon: '🍖',
+            },
+            {
+              author: 'David Miller',
+              action: `Completed 25-minute indoor play loop & interactive wand chase with ${activePet.name}`,
+              time: 'Today, 10:30 AM',
+              icon: '🐱',
+            },
+            {
+              author: 'Dr. Mark Wu',
+              action: `Logged routine feline wellness examination & updated vaccine passport`,
+              time: 'Yesterday, 3:20 PM',
+              icon: '🩺',
+            },
+          ] : [
             {
               author: 'Sarah Miller',
               action: `Fed ${activePet.name} morning meal (180g) + Salmon Oil`,
@@ -154,7 +173,7 @@ export function FamilyCareView() {
               time: 'Yesterday, 3:20 PM',
               icon: '🩺',
             },
-          ].map((item, idx) => (
+          ]).map((item, idx) => (
             <div key={idx} className="flex items-start gap-3 text-xs">
               <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 text-sm">
                 {item.icon}

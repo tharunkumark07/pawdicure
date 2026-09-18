@@ -288,7 +288,15 @@ export function HomeView({
         </div>
 
         <p className="text-xs text-blue-900 mt-2.5 leading-relaxed font-medium">
-          {pet.name}'s activity peaked <strong>22% higher</strong> post-beach run. Next DHPP 5-in-1 vaccination booster is recommended in <strong>14 days</strong>.
+          {pet.species === 'Cat' ? (
+            <>
+              {pet.name}'s activity peaked <strong>18% higher</strong> post-climbing session. Next FVRCP vaccination booster is recommended in <strong>14 days</strong>.
+            </>
+          ) : (
+            <>
+              {pet.name}'s activity peaked <strong>22% higher</strong> post-beach run. Next DHPP 5-in-1 vaccination booster is recommended in <strong>14 days</strong>.
+            </>
+          )}
         </p>
 
         <div className="mt-3 flex items-center gap-2">

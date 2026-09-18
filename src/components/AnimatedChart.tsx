@@ -129,7 +129,7 @@ export function AnimatedChart({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsCardHovered(true)}
       onMouseLeave={() => setIsCardHovered(false)}
-      className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 lg:p-8 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/30 ring-1 ring-slate-900/5 relative overflow-hidden w-full h-full min-h-[380px] flex flex-col justify-between transition-all duration-300 hover:shadow-xl group"
+      className="bg-white/70 backdrop-blur-[12px] p-5 sm:p-6 lg:p-7 rounded-3xl border border-white/50 shadow-lg shadow-slate-200/30 ring-1 ring-slate-900/5 relative overflow-hidden w-full h-full min-h-[370px] flex flex-col justify-between transition-all duration-300 hover:shadow-xl group"
     >
       {/* Background ambient glass glows */}
       <div className="absolute -top-16 -left-16 w-40 h-40 bg-orange-400/10 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
