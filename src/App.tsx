@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { Navigation, NavTab } from './components/Navigation';
-import { QuickCareSheet } from './components/QuickCareSheet';
+import { RadialQuickCare } from './components/RadialQuickCare';
 import { AddMemoryModal } from './components/AddMemoryModal';
 import { EmergencyModal } from './components/EmergencyModal';
 import { CloudSyncModal } from './components/CloudSyncModal';
@@ -16,7 +16,7 @@ import { DynamicPetBackground } from './components/DynamicPetBackground';
 import { PushNotificationBanner } from './components/PushNotificationBanner';
 import { PetGuide } from './components/pet-guide/PetGuide';
 import { usePetGuide } from './hooks/usePetGuide';
-import { ColdStartAnimation } from './components/ColdStartAnimation';
+import { WelcomeAnimation } from './components/WelcomeAnimation';
 import { MainContentSkeleton } from './components/MainContentSkeleton';
 
 // Views
@@ -84,6 +84,10 @@ function AppContent() {
     addMemory,
     toggleMedication,
     performDailyCheckIn,
+    isPushEnabled,
+    pushPermissionStatus,
+    registerPushNotifications,
+    triggerTestPushNotification,
   } = useApp();
 
   const {
@@ -113,6 +117,22 @@ function AppContent() {
   const [isAddPetOpen, setIsAddPetOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<string>(() => {
+    return localStorage.getItem('pawdicure_app_theme') || 'sunset';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pawdicure_app_theme', currentTheme);
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    const themeColors: Record<string, string> = {
+      sunset: '#ff6b4a',
+      forest: '#059669',
+      royal: '#2563eb',
+      purple: '#7c3aed',
+    };
+    const color = themeColors[currentTheme] || '#ff6b4a';
+    document.documentElement.style.setProperty('--primary', color);
+  }, [currentTheme]);
   const [inspectedPillar, setInspectedPillar] = useState<AffinityPillar | null>(null);
 
   // One-time login / entrance animation state
@@ -545,7 +565,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#fffaf5] flex flex-col items-center justify-start text-[#2c1810]">
-      {showAnimation && <ColdStartAnimation onComplete={() => setShowAnimation(false)} />}
+      {showAnimation && <WelcomeAnimation onComplete={() => setShowAnimation(false)} />}
       {isVisible && step && (
         <PetGuide 
           characterId={characterId}
@@ -667,10 +687,10 @@ function AppContent() {
               ) : (
                 <motion.div
                   key={currentRoute}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 1 }}
                   className="w-full"
                 >
                   {renderCurrentView()}
@@ -713,11 +733,10 @@ function AppContent() {
         </div>
 
         {/* Global Modals & Drawers */}
-        <QuickCareSheet
+        <RadialQuickCare
           isOpen={isQuickCareOpen}
-          activePet={activePet}
           onClose={() => setIsQuickCareOpen(false)}
-          onQuickAction={handleQuickCareAction}
+          onAction={handleQuickCareAction}
         />
 
         <AddMemoryModal
@@ -778,6 +797,16 @@ function AppContent() {
           onOpenNotifications={() => navigate('/notifications')}
           onOpenProfile={() => navigate('/pet-profile')}
           characterId={characterId}
+          currentTheme={currentTheme}
+          onSelectTheme={(t) => setCurrentTheme(t)}
+          isPushEnabled={isPushEnabled}
+          pushPermissionStatus={pushPermissionStatus}
+          onEnablePush={async () => { await registerPushNotifications(); }}
+          onTestPush={async () => { await triggerTestPushNotification(); }}
+          pets={householdData.pets}
+          activePet={activePet}
+          onSelectPet={(pId) => setActivePetId(pId)}
+          onOpenAddPet={() => setIsAddPetOpen(true)}
         />
 
         <NotificationsModal

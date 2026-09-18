@@ -4,7 +4,8 @@
   :root {
     --font-outfit: 'Outfit', sans-serif;
     --font-sans: 'Plus Jakarta Sans', sans-serif;
-    --color-orange-primary: #ff6b4a;
+    --primary: #ff6b4a;
+    --color-orange-primary: var(--primary);
     --color-orange-deep: #ae3115;
     --color-orange-light: #fff7ed;
     --color-orange-subtle: #fffaf5;
@@ -49,6 +50,27 @@
   }
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes shine {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }
 

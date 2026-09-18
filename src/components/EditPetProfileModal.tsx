@@ -19,6 +19,8 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
   const [sizeCategory, setSizeCategory] = useState<'Tiny' | 'Small' | 'Medium' | 'Large' | 'Giant'>(activePet.sizeCategory || 'Medium');
   const [activityLevel, setActivityLevel] = useState<'Low' | 'Moderate' | 'High'>(activePet.activityLevel || 'Moderate');
   const [weight, setWeight] = useState(activePet.weight.toString());
+  const [dailyGramsGoal, setDailyGramsGoal] = useState((activePet.dailyGramsGoal || 360).toString());
+  const [maxMeals, setMaxMeals] = useState((activePet.maxMeals || 4).toString());
   const [gender, setGender] = useState(activePet.gender || 'Male');
   const [mood, setMood] = useState(activePet.mood);
   const [avatarUrl, setAvatarUrl] = useState(activePet.avatarUrl);
@@ -56,6 +58,8 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
       setError('Enter a valid weight (e.g. 28.4).');
       return;
     }
+    const parsedDailyGoal = parseFloat(dailyGramsGoal);
+    const parsedMaxMeals = parseInt(maxMeals);
 
     const updated: Pet = {
       ...activePet,
@@ -66,6 +70,9 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
       sizeCategory,
       activityLevel,
       weight: parsedWeight,
+      dailyGramsGoal: isNaN(parsedDailyGoal) ? 360 : parsedDailyGoal,
+      dailyCaloriesGoal: Math.round((isNaN(parsedDailyGoal) ? 360 : parsedDailyGoal) * 3.44),
+      maxMeals: isNaN(parsedMaxMeals) ? 4 : parsedMaxMeals,
       gender: gender as any,
       mood: mood.trim(),
       avatarUrl: avatarUrl.trim() || activePet.avatarUrl,
@@ -269,18 +276,6 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Age
-              </label>
-              <input
-                type="text"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                placeholder="2y 4m"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
                 Weight (kg) *
               </label>
               <input
@@ -295,6 +290,31 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
                 required
               />
             </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Daily Feed Limit (g)
+              </label>
+              <input
+                type="number"
+                value={dailyGramsGoal}
+                onChange={(e) => setDailyGramsGoal(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Max Meals Per Day Limit
+            </label>
+            <input
+              type="number"
+              value={maxMeals}
+              onChange={(e) => setMaxMeals(e.target.value)}
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+              required
+            />
           </div>
           
           <div>

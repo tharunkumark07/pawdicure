@@ -33,40 +33,8 @@ export function PushNotificationBanner({ petName }: PushNotificationBannerProps)
     setTimeout(() => setTestSent(false), 3500);
   };
 
-  if (dismissed) {
+  if (dismissed || isPushEnabled) {
     return null;
-  }
-
-  if (isPushEnabled) {
-    return (
-      <div className="mx-3 sm:mx-4 mt-2 mb-1 p-2.5 rounded-2xl bg-orange-50/80 border border-orange-200/80 flex items-center justify-between text-xs animate-in fade-in">
-        <div className="flex items-center gap-2 text-orange-950">
-          <div className="w-6 h-6 rounded-lg bg-orange-100 text-[#ff6b4a] flex items-center justify-center">
-            <BellRing className="w-3.5 h-3.5" />
-          </div>
-          <span className="font-semibold">
-            Push notifications active for <strong>{petName}</strong>
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={handleSendSampleAlert}
-          className="px-2.5 py-1 rounded-xl bg-white border border-orange-200 text-orange-800 text-[11px] font-bold hover:bg-orange-100/60 transition shadow-2xs flex items-center gap-1 active:scale-95"
-        >
-          {testSent ? (
-            <>
-              <Check className="w-3 h-3 text-emerald-600" />
-              <span>Sent!</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-3 h-3 text-[#ff6b4a]" />
-              <span>Test Push</span>
-            </>
-          )}
-        </button>
-      </div>
-    );
   }
 
   return (

@@ -5,7 +5,7 @@ interface DynamicPetBackgroundProps {
   route: string;
 }
 
-// Configured pet silhouettes and decorative illustration patterns for each route
+// Configured pet silhouettes, 50% opacity background images, and decorative illustration patterns for each route
 const ROUTE_PET_THEMES: Record<
   string,
   {
@@ -17,6 +17,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: string;
     bgAccentGlow: string;
     pawPatternColor: string;
+    bgImageUrl: string;
   }
 > = {
   '/home': {
@@ -28,6 +29,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff7ed] via-[#fffaf5] to-[#fff4ea]',
     bgAccentGlow: 'bg-orange-300/15',
     pawPatternColor: 'text-orange-900/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80',
   },
   '/feed': {
     petType: 'corgi',
@@ -38,6 +40,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff5eb] via-[#fff9f2] to-[#ffedd5]',
     bgAccentGlow: 'bg-amber-400/15',
     pawPatternColor: 'text-amber-900/5',
+    bgImageUrl: 'https://images.unsplash.com/photo-1612536057862-ffa10618a5bc?auto=format&fit=crop&w=800&q=80',
   },
   '/health': {
     petType: 'siamese',
@@ -48,6 +51,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff8f0] via-[#fffaf6] to-[#feeadd]',
     bgAccentGlow: 'bg-rose-300/15',
     pawPatternColor: 'text-rose-900/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
   },
   '/relationship': {
     petType: 'frenchie',
@@ -58,6 +62,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff6ed] via-[#fffbf7] to-[#fed7aa]/20',
     bgAccentGlow: 'bg-orange-400/15',
     pawPatternColor: 'text-orange-950/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
   },
   '/bond': {
     petType: 'frenchie',
@@ -68,6 +73,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff6ed] via-[#fffbf7] to-[#fed7aa]/20',
     bgAccentGlow: 'bg-orange-400/15',
     pawPatternColor: 'text-orange-950/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
   },
   '/rewards': {
     petType: 'shiba',
@@ -78,6 +84,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff7ed] via-[#fffaf0] to-[#fde8d7]',
     bgAccentGlow: 'bg-amber-300/20',
     pawPatternColor: 'text-amber-900/5',
+    bgImageUrl: 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=800&q=80',
   },
   '/store': {
     petType: 'husky',
@@ -88,6 +95,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff8f2] via-[#fffcf9] to-[#fed7aa]/25',
     bgAccentGlow: 'bg-orange-300/15',
     pawPatternColor: 'text-orange-900/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1605568427561-40dd23c2fea4?auto=format&fit=crop&w=800&q=80',
   },
   '/explore': {
     petType: 'corgi',
@@ -98,6 +106,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff5eb] via-[#fffaf5] to-[#fef3c7]/20',
     bgAccentGlow: 'bg-amber-400/15',
     pawPatternColor: 'text-amber-900/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80',
   },
   '/pet-profile': {
     petType: 'calico',
@@ -108,6 +117,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff7ee] via-[#fffaf5] to-[#fed7aa]/25',
     bgAccentGlow: 'bg-orange-300/15',
     pawPatternColor: 'text-orange-900/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=800&q=80',
   },
   '/notifications': {
     petType: 'golden',
@@ -118,6 +128,7 @@ const ROUTE_PET_THEMES: Record<
     bgTint: 'from-[#fff8f2] via-[#fffaf6] to-[#fed7aa]/20',
     bgAccentGlow: 'bg-orange-400/15',
     pawPatternColor: 'text-orange-900/4',
+    bgImageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80',
   },
 };
 
@@ -146,6 +157,8 @@ export function DynamicPetBackground({ route }: DynamicPetBackgroundProps) {
           />
           <div className="absolute top-1/3 -left-20 w-72 h-72 rounded-full bg-amber-200/15 blur-3xl" />
           <div className="absolute -bottom-16 right-0 w-80 h-80 rounded-full bg-orange-300/15 blur-3xl" />
+
+
 
           {/* Artistic Ambient Pet Silhouette / Graphic watermark in background */}
           <div className="absolute right-2 top-24 opacity-[0.045] select-none pointer-events-none">

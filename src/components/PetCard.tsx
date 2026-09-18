@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pet } from '../types';
 import { Card } from './Card';
 import { Button } from './Button';
 import { PetIllustration } from './PetIllustration';
-import { Copy, ChevronRight, Utensils, Activity, Heart, Camera, Bell } from 'lucide-react';
+import { Copy, ChevronRight, Utensils, Activity, Heart, Camera, Bell, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface PetCardProps {
   pet: Pet;
@@ -13,10 +14,25 @@ interface PetCardProps {
 
 export function PetCard({ pet, className = '' }: PetCardProps) {
   const { navigate, showToast } = useApp();
+  const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(pet.applicationNumber);
     showToast('Pet ID copied.', 'success', '📋');
+  };
+
+  const handlePetAvatarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const newHeart = { id: Date.now(), x, y };
+    setHearts((prev) => [...prev, newHeart]);
+    setTimeout(() => {
+      setHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
+    }, 1000);
+
+    showToast(`🐾 *Purr!* ${pet.name} loves the head pats! +5 Bond XP`, 'success', '💖');
   };
 
   const quickActions = [
@@ -27,12 +43,33 @@ export function PetCard({ pet, className = '' }: PetCardProps) {
   return (
     <Card id="pet-card" className={`group hover:shadow-lg transition-all duration-300 ${className}`} padding="lg">
       <div className="flex justify-between items-start mb-4">
-        <div className="relative">
+        <div className="relative cursor-pointer" onClick={handlePetAvatarClick} title="Tap to give head pats!">
           {pet.avatarUrl ? (
-            <img src={pet.avatarUrl} alt={pet.name} className="w-20 h-20 rounded-3xl object-cover shadow-md" />
+            <motion.img
+              whileHover={{ scale: 1.08, rotate: 2 }}
+              whileTap={{ scale: 0.92 }}
+              src={pet.avatarUrl}
+              alt={pet.name}
+              className="w-20 h-20 rounded-3xl object-cover shadow-md"
+            />
           ) : (
             <PetIllustration species={pet.species} />
           )}
+          <AnimatePresence>
+            {hearts.map((h) => (
+              <motion.span
+                key={h.id}
+                initial={{ opacity: 1, y: 0, scale: 0.5 }}
+                animate={{ opacity: 0, y: -45, scale: 1.4 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute text-xl pointer-events-none select-none z-30"
+                style={{ left: h.x - 10, top: h.y - 10 }}
+              >
+                💖
+              </motion.span>
+            ))}
+          </AnimatePresence>
         </div>
         <div className="text-right">
           <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Pet ID</div>

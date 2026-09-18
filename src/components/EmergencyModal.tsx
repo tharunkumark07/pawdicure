@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PhoneCall, Phone, Share2, X, AlertTriangle, ShieldCheck, Check } from 'lucide-react';
 import { Pet } from '../types';
+import { MobileBottomSheet } from './ui/MobileBottomSheet';
 
 interface EmergencyModalProps {
   isOpen: boolean;
@@ -21,39 +22,27 @@ export function EmergencyModal({ isOpen, pet, onClose }: EmergencyModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Sheet Container */}
-      <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-red-100 z-10 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center shadow-sm">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-heading font-extrabold text-base text-slate-900 leading-tight">
-                Emergency Pet Profile
-              </h4>
-              <p className="text-[11px] font-bold text-red-600">
-                Immediate Veterinary Emergency Reference
-              </p>
-            </div>
+    <MobileBottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      fullHeight={true}
+      title={
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center shadow-sm">
+            <AlertTriangle className="w-5 h-5" />
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div>
+            <span className="font-heading font-extrabold text-base text-slate-900 leading-tight block">
+              Emergency Pet Profile
+            </span>
+            <span className="text-[11px] font-bold text-red-600 block">
+              Immediate Veterinary Emergency Reference
+            </span>
+          </div>
         </div>
-
+      }
+    >
+      <div className="mt-2 space-y-4">
         {/* Pet Basic ID card */}
         <div className="mt-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
           <img
@@ -136,6 +125,6 @@ export function EmergencyModal({ isOpen, pet, onClose }: EmergencyModalProps) {
           </button>
         </div>
       </div>
-    </div>
+    </MobileBottomSheet>
   );
 }

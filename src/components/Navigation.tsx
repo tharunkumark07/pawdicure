@@ -1,4 +1,7 @@
 import { Home, Utensils, Activity, Heart, Gift, PawPrint, Award } from 'lucide-react';
+import { motion } from 'motion/react';
+import { triggerHaptic } from '../lib/haptics';
+import { TapButton } from './ui/TapButton';
 
 export type NavTab = 'home' | 'feed' | 'health' | 'bond' | 'rewards' | 'badges';
 
@@ -38,18 +41,21 @@ export function Navigation({
                 className="relative flex flex-col items-center justify-center w-full h-full"
               >
                 {/* Elevated Central Paw Button */}
-                <button
+                <TapButton
                   id="nav-tab-care"
-                  type="button"
-                  onClick={onOpenQuickCare}
+                  scale={0.92}
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    onOpenQuickCare();
+                  }}
                   aria-label="Open Care"
-                  className="absolute -top-7 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ff6b4a] to-[#d94f2d] text-white shadow-[0_8px_20px_rgba(255,107,74,0.35),0_3px_8px_rgba(255,107,74,0.15)] flex items-center justify-center border-3 border-white ring-2 ring-orange-100 z-50 group cursor-pointer"
+                  className="absolute -top-7 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ff6b4a] to-[#d94f2d] text-white shadow-[0_8px_20px_rgba(255,107,74,0.35),0_3px_8px_rgba(255,107,74,0.15)] flex items-center justify-center border-3 border-white ring-2 ring-orange-100 z-50 cursor-pointer"
                 >
                   <PawPrint
                     className="w-5.5 h-5.5 sm:w-6 sm:h-6 text-white"
                     fill="currentColor"
                   />
-                </button>
+                </TapButton>
                 
                 {/* Spacing alignment for text label under floating button */}
                 <div className="h-5 sm:h-6" />
@@ -64,22 +70,37 @@ export function Navigation({
           const Icon = tab.icon!;
 
           return (
-            <button
+            <TapButton
               id={`nav-tab-${tab.id}`}
               key={tab.id}
-              type="button"
-              onClick={() => onSelectTab(tab.id as NavTab)}
-              className="flex flex-col items-center justify-center w-full h-full py-1.5 relative group select-none cursor-pointer"
+              scale={0.9}
+              onClick={() => {
+                triggerHaptic('light');
+                onSelectTab(tab.id as NavTab);
+              }}
+              className="flex flex-col items-center justify-center w-full h-full py-1.5 relative select-none cursor-pointer"
             >
-              {/* Static background pill */}
+              {/* Liquid Glass Shared Indicator */}
               {isActive && (
-                <div className="absolute inset-x-1 sm:inset-x-1.5 top-1 bottom-6 rounded-xl bg-orange-50/80 -z-10" />
+                <motion.div
+                  layoutId="liquid-glass-indicator"
+                  transition={{
+                    type: 'spring',
+                    stiffness: 200,
+                    damping: 20,
+                    mass: 1.0,
+                  }}
+                  className="absolute inset-x-1 sm:inset-x-1.5 top-1 bottom-5 rounded-2xl bg-gradient-to-b from-white via-orange-100/80 to-orange-200/50 backdrop-blur-xl border border-white shadow-[0_8px_20px_rgba(255,107,74,0.25),inset_0_1px_2px_rgba(255,255,255,1)] -z-10 pointer-events-none overflow-hidden"
+                >
+                  <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/90 via-white/40 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/60 via-transparent to-transparent pointer-events-none" />
+                </motion.div>
               )}
 
               {/* Icon Container */}
               <div
-                className={`p-1 flex items-center justify-center rounded-lg ${
-                  isActive ? 'text-[#ff6b4a]' : 'text-slate-400 group-hover:text-slate-600'
+                className={`p-1 flex items-center justify-center rounded-lg transition-colors ${
+                  isActive ? 'text-[#ff6b4a]' : 'text-slate-400'
                 }`}
               >
                 <Icon
@@ -91,10 +112,10 @@ export function Navigation({
 
               {/* Text labels */}
               <span
-                className={`text-[9px] sm:text-[10px] whitespace-nowrap mt-1 leading-none tracking-tight ${
+                className={`text-[9px] sm:text-[10px] whitespace-nowrap mt-1 leading-none tracking-tight transition-colors ${
                   isActive
                     ? 'text-[#ff6b4a] font-extrabold'
-                    : 'text-slate-400 font-medium group-hover:text-slate-600'
+                    : 'text-slate-400 font-medium'
                 }`}
               >
                 {tab.label}
@@ -104,7 +125,7 @@ export function Navigation({
               {isActive && (
                 <div className="w-1 h-1 rounded-full bg-[#ff6b4a] absolute bottom-1" />
               )}
-            </button>
+            </TapButton>
           );
         })}
       </div>

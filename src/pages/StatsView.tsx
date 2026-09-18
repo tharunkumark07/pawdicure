@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { D3RadarChart } from '../components/D3RadarChart';
 import {
   Activity,
   Footprints,
@@ -148,6 +149,13 @@ export function StatsView() {
           <p className="text-[10px] text-emerald-600 font-bold">
             Normal cardiac sinus
           </p>
+        </div>
+      </div>
+
+      {/* D3 Biometric Radar Chart */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-md">
+          <D3RadarChart pet={activePet} width={340} height={320} />
         </div>
       </div>
 

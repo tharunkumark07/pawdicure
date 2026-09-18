@@ -1,5 +1,6 @@
 import { Utensils, Footprints, Pill, Camera, Sparkles, Stethoscope, X } from 'lucide-react';
 import { Pet } from '../types';
+import { triggerHaptic } from '../lib/haptics';
 
 interface QuickCareSheetProps {
   isOpen: boolean;
@@ -36,7 +37,10 @@ export function QuickCareSheet({
           <button
             id="close-quick-care-btn"
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              triggerHaptic('light');
+              onClose();
+            }}
             className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition"
           >
             <X className="w-4 h-4" />
@@ -48,7 +52,10 @@ export function QuickCareSheet({
           <button
             id="quick-action-feed"
             type="button"
-            onClick={() => onQuickAction('feed')}
+            onClick={() => {
+              triggerHaptic('medium');
+              onQuickAction('feed');
+            }}
             className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-orange-50/70 hover:bg-orange-100/70 border border-orange-100 transition group"
           >
             <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-orange-500 group-hover:scale-110 transition">
@@ -61,7 +68,10 @@ export function QuickCareSheet({
           <button
             id="quick-action-walk"
             type="button"
-            onClick={() => onQuickAction('walk')}
+            onClick={() => {
+              triggerHaptic('medium');
+              onQuickAction('walk');
+            }}
             className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-100 transition group"
           >
             <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-emerald-600 group-hover:scale-110 transition">
@@ -74,7 +84,10 @@ export function QuickCareSheet({
           <button
             id="quick-action-med"
             type="button"
-            onClick={() => onQuickAction('med')}
+            onClick={() => {
+              triggerHaptic('medium');
+              onQuickAction('med');
+            }}
             className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-blue-50/70 hover:bg-blue-100/70 border border-blue-100 transition group"
           >
             <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-blue-500 group-hover:scale-110 transition">
@@ -87,7 +100,10 @@ export function QuickCareSheet({
           <button
             id="quick-action-memory"
             type="button"
-            onClick={() => onQuickAction('memory')}
+            onClick={() => {
+              triggerHaptic('medium');
+              onQuickAction('memory');
+            }}
             className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-rose-50/70 hover:bg-rose-100/70 border border-rose-100 transition group"
           >
             <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-rose-500 group-hover:scale-110 transition">
@@ -100,7 +116,10 @@ export function QuickCareSheet({
           <button
             id="quick-action-play"
             type="button"
-            onClick={() => onQuickAction('play')}
+            onClick={() => {
+              triggerHaptic('medium');
+              onQuickAction('play');
+            }}
             className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-amber-50/70 hover:bg-amber-100/70 border border-amber-100 transition group"
           >
             <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-amber-500 group-hover:scale-110 transition">
@@ -113,7 +132,10 @@ export function QuickCareSheet({
           <button
             id="quick-action-health"
             type="button"
-            onClick={() => onQuickAction('health')}
+            onClick={() => {
+              triggerHaptic('medium');
+              onQuickAction('health');
+            }}
             className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-purple-50/70 hover:bg-purple-100/70 border border-purple-100 transition group"
           >
             <div className="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-purple-500 group-hover:scale-110 transition">

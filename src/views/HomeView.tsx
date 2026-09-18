@@ -5,6 +5,9 @@ import { SpotlightCard } from '../components/ui/premium/SpotlightCard';
 import { PremiumButton } from '../components/ui/premium/PremiumButton';
 import { GlossyCard } from '../components/ui/premium/GlossyCard';
 import { AnimatedCounter } from '../components/ui/premium/AnimatedCounter';
+import { TiltedCard } from '../components/ui/reactbits/TiltedCard';
+import { GradientText } from '../components/ui/reactbits/GradientText';
+import { ShinyText } from '../components/ui/reactbits/ShinyText';
 import {
   Sparkles,
   Utensils,
@@ -56,29 +59,31 @@ export function HomeView({
   return (
     <div className="flex flex-col w-full pb-8 space-y-6 animate-in fade-in duration-500">
       {/* Hero Greeting Section */}
-      <GlossyCard className="relative p-6 sm:p-8 bg-gradient-to-br from-white/80 to-white/40">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#ff6b4a]/10 to-amber-500/10 text-[11px] font-bold text-[#ae3115] border border-[#ff6b4a]/20 shadow-xs">
-              <Sparkles className="w-3 h-3 text-[#ff6b4a]" />
-              <span>Daily Concierge Active</span>
-            </span>
-            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-slate-950 leading-tight">
-              Good morning, Tharun
-            </h1>
-            <p className="text-sm font-semibold text-slate-600">
-              How's {pet.name} doing today? ✨
-            </p>
+      <TiltedCard rotateAmplitude={6}>
+        <GlossyCard className="relative p-6 sm:p-8 bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 border border-orange-200/60 shadow-lg shadow-orange-500/5">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#ff6b4a]/15 to-amber-500/15 text-[11px] font-extrabold text-[#ae3115] border border-[#ff6b4a]/30 shadow-xs">
+                <Sparkles className="w-3 h-3 text-[#ff6b4a]" />
+                <ShinyText text="Daily Concierge Active" speed={4} />
+              </span>
+              <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-slate-950 leading-tight">
+                Good morning, <GradientText>Tharun</GradientText>
+              </h1>
+              <p className="text-sm font-semibold text-slate-600">
+                How's {pet.name} doing today? ✨
+              </p>
+            </div>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden ring-4 ring-white/80 shadow-2xl shadow-orange-500/25 shrink-0 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+              <img
+                src={pet.avatarUrl}
+                alt={pet.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
-          <div className="w-20 h-20 rounded-3xl overflow-hidden ring-4 ring-white/50 shadow-xl shadow-orange-500/20 shrink-0 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-            <img
-              src={pet.avatarUrl}
-              alt={pet.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </GlossyCard>
+        </GlossyCard>
+      </TiltedCard>
       
       {/* Pet ID Card */}
       <PetCard pet={pet} />

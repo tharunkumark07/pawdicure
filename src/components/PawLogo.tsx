@@ -27,13 +27,13 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
           height="94"
           rx="22"
           fill="#FFF9F5"
-          stroke="#C25E3E"
+          stroke="currentColor"
           strokeWidth="3.5"
         />
         {/* Central Paw Pad with Leaf / Cross element */}
         <path
           d="M32 64 C28 50 36 38 48 38 C56 38 64 45 68 54 C72 64 64 74 50 74 C38 74 34 70 32 64 Z"
-          fill="#C25E3E"
+          fill="currentColor"
         />
         {/* Inner botanical leaf incision */}
         <path
@@ -41,10 +41,10 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
           fill="#FCEADE"
         />
         {/* Paw Toes */}
-        <ellipse cx="28" cy="36" rx="7" ry="10" transform="rotate(-20 28 36)" fill="#C25E3E" />
-        <ellipse cx="43" cy="26" rx="7.5" ry="11" transform="rotate(-6 43 26)" fill="#C25E3E" />
-        <ellipse cx="59" cy="26" rx="7.5" ry="11" transform="rotate(6 59 26)" fill="#C25E3E" />
-        <ellipse cx="74" cy="36" rx="7" ry="10" transform="rotate(20 74 36)" fill="#C25E3E" />
+        <ellipse cx="28" cy="36" rx="7" ry="10" transform="rotate(-20 28 36)" fill="currentColor" />
+        <ellipse cx="43" cy="26" rx="7.5" ry="11" transform="rotate(-6 43 26)" fill="currentColor" />
+        <ellipse cx="59" cy="26" rx="7.5" ry="11" transform="rotate(6 59 26)" fill="currentColor" />
+        <ellipse cx="74" cy="36" rx="7" ry="10" transform="rotate(20 74 36)" fill="currentColor" />
       </svg>
     );
   }
@@ -84,13 +84,13 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
       <g>
         <path
           d="M17 38 L23 44 M223 38 L217 44"
-          stroke="#C25E3E"
+          stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
         />
         {/* Star sparkles */}
-        <polygon points="34,42 36,46 40,48 36,50 34,54 32,50 28,48 32,46" fill="#D47B5A" />
-        <polygon points="206,42 208,46 212,48 208,50 206,54 204,50 200,48 204,46" fill="#D47B5A" />
+        <polygon points="34,42 36,46 40,48 36,50 34,54 32,50 28,48 32,46" fill="currentColor" />
+        <polygon points="206,42 208,46 212,48 208,50 206,54 204,50 200,48 204,46" fill="currentColor" />
         
         <text
           x="120"
@@ -116,7 +116,7 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
           {/* Orange Shirt */}
           <path
             d="M39 72 C41 68 55 68 57 72 L62 98 L34 98 Z"
-            fill="#CE653E"
+            fill="currentColor"
           />
           {/* Dark Trousers */}
           <path d="M36 98 L45 138 L49 138 L51 106 L53 138 L58 138 L62 98 Z" fill="#3D4550" />
@@ -140,7 +140,7 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
           {/* Paw Base / Cross */}
           <path
             d="M102 122 C90 120 84 106 91 92 C95 84 105 80 114 84 C116 85 119 85 121 84 C129 80 140 84 144 92 C150 106 142 122 124 122 Z"
-            fill="#B85532"
+            fill="currentColor"
             stroke="#87351A"
             strokeWidth="1.5"
           />
@@ -148,7 +148,7 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
           {/* Medical Clinical Cross Extension on Right */}
           <path
             d="M136 84 L152 84 L152 94 L160 94 L160 106 L152 106 L152 116 L136 116 Z"
-            fill="#A34424"
+            fill="currentColor"
           />
 
           {/* Botanical / Leaf Centerpiece in Paw */}
@@ -157,12 +157,12 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
             fill="#F7D8C5"
           />
           {/* Leaf vein */}
-          <line x1="120" y1="88" x2="120" y2="114" stroke="#B85532" strokeWidth="1" />
+          <line x1="120" y1="88" x2="120" y2="114" stroke="currentColor" strokeWidth="1" />
 
           {/* Paw Toes */}
-          <ellipse cx="86" cy="74" rx="9" ry="13" transform="rotate(-20 86 74)" fill="#B85532" stroke="#87351A" strokeWidth="1.2" />
-          <ellipse cx="107" cy="62" rx="9.5" ry="14" transform="rotate(-6 107 62)" fill="#B85532" stroke="#87351A" strokeWidth="1.2" />
-          <ellipse cx="133" cy="62" rx="9.5" ry="14" transform="rotate(6 133 62)" fill="#B85532" stroke="#87351A" strokeWidth="1.2" />
+          <ellipse cx="86" cy="74" rx="9" ry="13" transform="rotate(-20 86 74)" fill="currentColor" stroke="#87351A" strokeWidth="1.2" />
+          <ellipse cx="107" cy="62" rx="9.5" ry="14" transform="rotate(-6 107 62)" fill="currentColor" stroke="#87351A" strokeWidth="1.2" />
+          <ellipse cx="133" cy="62" rx="9.5" ry="14" transform="rotate(6 133 62)" fill="currentColor" stroke="#87351A" strokeWidth="1.2" />
         </g>
 
         {/* Female Owner on Right */}
@@ -213,7 +213,7 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
         <text
           x="132"
           y="174"
-          fill="#B85532"
+          fill="currentColor"
           fontSize="22"
           fontStyle="italic"
           fontWeight="700"
@@ -226,7 +226,7 @@ export function PawLogo({ className = 'w-8 h-8', variant = 'full' }: PawLogoProp
         <text
           x="126"
           y="198"
-          fill="#B85532"
+          fill="currentColor"
           fontSize="28"
           fontWeight="900"
           fontFamily="Georgia, serif"

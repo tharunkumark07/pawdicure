@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Pet } from '../types';
+import { TapButton } from '../components/ui/TapButton';
 import {
   Utensils,
   Clock,
@@ -33,11 +34,13 @@ export function FeedView({
   const [isFeeding, setIsFeeding] = useState(false);
   const [justFed, setJustFed] = useState(false);
   const [showMathDetails, setShowMathDetails] = useState(false);
+  const [limitWarning, setLimitWarning] = useState<string | null>(null);
 
   useEffect(() => {
     setPortionGrams(pet.targetPortionGrams || (pet.species === 'Cat' ? 65 : 180));
     setTopperJoint(pet.species !== 'Cat');
     setJustFed(false);
+    setLimitWarning(null);
   }, [pet.id, pet.targetPortionGrams, pet.species]);
 
   // -------------------------------------------------------------
@@ -64,6 +67,8 @@ export function FeedView({
   const dailyGoalGrams = pet.dailyGramsGoal ?? 360;
   const currentDailyKcal = pet.dailyCaloriesFed ?? 620;
   const dailyGoalKcal = pet.dailyCaloriesGoal ?? 1240;
+  const maxMealsLimit = pet.maxMeals ?? 4;
+  const currentMeals = pet.mealsToday ?? 2;
 
   // Projected cumulative values after feeding this portion
   const projectedDailyGrams = currentDailyGrams + portionGrams;
@@ -84,6 +89,18 @@ export function FeedView({
   const daysOfFoodSupply = Math.max(1, Math.floor(pantryGrams / dailyGoalGrams));
 
   const handleExecuteFeeding = () => {
+    const safetyMaxGrams = dailyGoalGrams * 1.3;
+
+    if (currentMeals >= maxMealsLimit) {
+      setLimitWarning(`Daily meal frequency limit reached (${currentMeals}/${maxMealsLimit} meals today)! Additional feedings are restricted for digestive safety.`);
+      return;
+    }
+    if (projectedDailyGrams > safetyMaxGrams) {
+      setLimitWarning(`Daily feed limit exceeded (${projectedDailyGrams}g / max ${Math.round(safetyMaxGrams)}g limit). Please reduce portion size.`);
+      return;
+    }
+    setLimitWarning(null);
+
     setIsFeeding(true);
     setTimeout(() => {
       setIsFeeding(false);
@@ -271,16 +288,24 @@ export function FeedView({
         </div>
 
         {/* Primary Feed Button */}
-        <div className="mt-5">
-          <button
+        <div className="mt-5 space-y-2">
+          {limitWarning && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-start gap-2 animate-in fade-in">
+              <span className="text-base shrink-0">⚠️</span>
+              <div>
+                <span className="font-extrabold block mb-0.5">Feeding Limit Safeguard</span>
+                <span>{limitWarning}</span>
+              </div>
+            </div>
+          )}
+          <TapButton
             id="feed-milo-cta-button"
-            type="button"
             disabled={isFeeding}
             onClick={handleExecuteFeeding}
-            className={`w-full py-3.5 px-4 rounded-2xl text-white font-heading font-extrabold text-sm shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all active:scale-98 ${
+            className={`w-full py-3.5 px-4 rounded-2xl text-white font-heading font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-colors ${
               justFed
                 ? 'bg-emerald-600'
-                : 'bg-gradient-to-r from-[#ff6b4a] to-[#ae3115] hover:opacity-95'
+                : 'bg-gradient-to-r from-[#ff6b4a] to-[#ae3115]'
             }`}
           >
             <Utensils className="w-4 h-4" />
@@ -291,7 +316,7 @@ export function FeedView({
                 ? `Intake Updated to ${currentDailyGrams}g! ✨`
                 : `Feed ${pet.name} (+${portionGrams}g • +${mealKcal} kcal)`}
             </span>
-          </button>
+          </TapButton>
         </div>
 
         {justFed && (

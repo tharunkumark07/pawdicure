@@ -9,9 +9,13 @@ import {
   Sparkles,
   Smile,
   X,
+  Share2,
   Image as ImageIcon,
 } from 'lucide-react';
-import { MemoryItem } from '../types';
+import { BondMemory } from '../types';
+import { triggerHaptic } from '../lib/haptics';
+import { MobileBottomSheet } from '../components/ui/MobileBottomSheet';
+import { TapButton } from '../components/ui/TapButton';
 
 export function MemoriesView() {
   const {
@@ -34,6 +38,26 @@ export function MemoriesView() {
   const memories = (householdData.memories || []).filter(
     (m) => m.petId === activePet.id
   );
+
+  const handleShare = async (mem: any) => {
+    triggerHaptic('light');
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${activePet.name}'s Memory`,
+          text: mem.caption || mem.desc,
+          url: window.location.href,
+        });
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          showToast('Failed to share memory.', 'error');
+        }
+      }
+    } else {
+      showToast('Sharing is not supported on this device.', 'error');
+    }
+  };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,14 +104,13 @@ export function MemoriesView() {
           </p>
         </div>
 
-        <button
-          type="button"
+        <TapButton
           onClick={() => setIsAddOpen(true)}
-          className="px-3.5 py-2 rounded-2xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition active:scale-95 shrink-0"
+          className="px-3.5 py-2 rounded-2xl bg-[#ff6b4a] text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Add Moment</span>
-        </button>
+        </TapButton>
       </div>
 
       {/* Grid of Memories */}
@@ -110,7 +133,7 @@ export function MemoriesView() {
               <button
                 type="button"
                 onClick={() => deleteMemory(mem.id)}
-                className="absolute top-3 right-3 p-1.5 rounded-xl bg-black/40 hover:bg-red-600 text-white transition opacity-0 group-hover:opacity-100"
+                className="absolute top-3 right-3 p-1.5 rounded-xl bg-black/40 hover:bg-red-600 text-white transition sm:opacity-0 sm:group-hover:opacity-100 opacity-100"
                 title="Delete memory"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -128,18 +151,27 @@ export function MemoriesView() {
               </div>
 
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-[10px] font-mono text-slate-400 truncate pr-2">
                   {activePet.name} • {activePet.breed}
                 </span>
 
-                <button
-                  type="button"
-                  onClick={() => likeMemory(mem.id)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition active:scale-95"
-                >
-                  <Heart className="w-3.5 h-3.5 fill-rose-500" />
-                  <span>{mem.likes}</span>
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <TapButton
+                    onClick={() => handleShare(mem)}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 text-slate-600 text-xs font-bold transition"
+                    title="Share memory"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Share</span>
+                  </TapButton>
+                  <TapButton
+                    onClick={() => likeMemory(mem.id)}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-50 text-rose-600 text-xs font-bold transition"
+                  >
+                    <Heart className="w-3.5 h-3.5 fill-rose-500" />
+                    <span>{mem.likes}</span>
+                  </TapButton>
+                </div>
               </div>
             </div>
           </div>
@@ -147,27 +179,19 @@ export function MemoriesView() {
       </div>
 
       {/* Add Memory Modal */}
-      {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
-            onClick={() => setIsAddOpen(false)}
-          />
-          <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-100 z-10 space-y-3.5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-heading font-bold text-base text-slate-900">
-                Log New Memory
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsAddOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="space-y-3">
+      <MobileBottomSheet
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        fullHeight={true}
+        title={
+          <div className="flex items-center gap-2">
+            <h3 className="font-heading font-bold text-base text-slate-900">
+              Log New Memory
+            </h3>
+          </div>
+        }
+      >
+        <form onSubmit={handleCreate} className="mt-2 space-y-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Photo Preview / Select Preset
@@ -246,9 +270,7 @@ export function MemoriesView() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </MobileBottomSheet>
     </div>
   );
 }
