@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Pet } from '../types';
-import { Edit, X, Camera, Sparkles, Heart, Upload, RefreshCw } from 'lucide-react';
+import { Edit, X, Camera, Sparkles, Heart, Upload, RefreshCw, Trash2 } from 'lucide-react';
 import { processImageFile, PRESET_PET_AVATARS } from '../lib/imageUtils';
+import { DeletePetModal } from './DeletePetModal';
 
 interface EditPetProfileModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
   const [emergencyPhone, setEmergencyPhone] = useState(activePet.emergencyPhone || '');
   const [error, setError] = useState('');
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -384,6 +386,23 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
             </div>
           </div>
 
+          <div className="pt-3 border-t border-slate-100 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-red-600 flex items-center gap-1">
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Pet Profile</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsDeleteOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition flex items-center gap-1"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Erase {activePet.name}</span>
+              </button>
+            </div>
+          </div>
+
           <div className="pt-2 flex items-center gap-2.5">
             <button
               type="button"
@@ -400,6 +419,15 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
             </button>
           </div>
         </form>
+
+        <DeletePetModal
+          isOpen={isDeleteOpen}
+          onClose={() => {
+            setIsDeleteOpen(false);
+            onClose();
+          }}
+          pet={activePet}
+        />
       </div>
     </div>
   );

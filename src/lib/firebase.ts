@@ -60,7 +60,7 @@ export function getCachedHouseholdData(): HouseholdData {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.pets && parsed.pets.milo) {
+      if (parsed && parsed.pets && typeof parsed.pets === 'object') {
         return parsed;
       }
     }
@@ -102,7 +102,7 @@ export function subscribeToHousehold(
         // Document doesn't exist yet on Cloud Firestore, initialize it with default/local data
         const initial = getCachedHouseholdData();
         initial.householdId = householdId;
-        setDoc(docRef, initial, { merge: true }).catch((err) => {
+        setDoc(docRef, initial).catch((err) => {
           console.warn('Failed to seed cloud household:', err);
         });
         onUpdate(initial);
@@ -129,7 +129,7 @@ export async function syncHouseholdToCloud(data: HouseholdData): Promise<boolean
 
   try {
     const docRef = doc(db, 'households', updatedData.householdId || currentHouseholdId);
-    await setDoc(docRef, updatedData, { merge: true });
+    await setDoc(docRef, updatedData);
     return true;
   } catch (err) {
     console.warn('Sync to Cloud Firestore pending or offline:', err);

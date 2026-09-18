@@ -13,9 +13,11 @@ import {
   CheckCircle2,
   Camera,
   Upload,
+  Trash2,
 } from 'lucide-react';
 import { EditPetProfileModal } from '../components/EditPetProfileModal';
 import { PetPhotoUploadModal } from '../components/PetPhotoUploadModal';
+import { DeletePetModal } from '../components/DeletePetModal';
 import { PetBadgesSection } from '../components/PetBadgesSection';
 import { evaluatePetBadges } from '../lib/badgeSystem';
 import { Pet } from '../types';
@@ -33,6 +35,7 @@ export function PetProfileView() {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const evaluatedBadges = evaluatePetBadges(activePet);
   const unlockedBadges = evaluatedBadges.filter((b) => b.isUnlocked);
@@ -194,6 +197,9 @@ export function PetProfileView() {
             <Button variant="primary" className="p-2.5 h-auto" title="Edit Profile" onClick={() => setIsEditOpen(true)}>
               <Edit3 className="w-4 h-4" />
             </Button>
+            <Button variant="danger" className="p-2.5 h-auto bg-red-50 text-red-600 hover:bg-red-100 border border-red-200" title="Delete Profile" onClick={() => setIsDeleteOpen(true)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
@@ -277,6 +283,29 @@ export function PetProfileView() {
         </div>
       </Card>
 
+      {/* Danger Zone: Permanent Profile Deletion */}
+      <Card className="border border-red-100 bg-red-50/30 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-heading font-bold text-xs text-red-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Danger Zone: Permanent Profile Deletion</span>
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Permanently erase {activePet.name}'s profile and all medical records from database.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsDeleteOpen(true)}
+            className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-xs shrink-0 flex items-center gap-1"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete {activePet.name}</span>
+          </button>
+        </div>
+      </Card>
+
       <EditPetProfileModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
@@ -285,6 +314,12 @@ export function PetProfileView() {
       <PetPhotoUploadModal
         isOpen={isPhotoUploadOpen}
         onClose={() => setIsPhotoUploadOpen(false)}
+        pet={activePet}
+      />
+
+      <DeletePetModal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
         pet={activePet}
       />
     </div>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { triggerHaptic } from '../../lib/haptics';
@@ -24,7 +25,7 @@ export function MobileBottomSheet({ isOpen, onClose, title, children, fullHeight
     };
   }, [isOpen]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -33,7 +34,7 @@ export function MobileBottomSheet({ isOpen, onClose, title, children, fullHeight
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 overscroll-contain"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] overscroll-contain"
           />
           <motion.div
             initial={{ y: '100%' }}
@@ -48,7 +49,7 @@ export function MobileBottomSheet({ isOpen, onClose, title, children, fullHeight
                 onClose();
               }
             }}
-            className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl flex flex-col will-change-transform ${
+            className={`fixed bottom-0 left-0 right-0 z-[100] bg-white rounded-t-3xl shadow-2xl flex flex-col will-change-transform ${
               fullHeight ? 'h-[90vh]' : 'max-h-[90vh]'
             }`}
           >
@@ -78,6 +79,7 @@ export function MobileBottomSheet({ isOpen, onClose, title, children, fullHeight
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

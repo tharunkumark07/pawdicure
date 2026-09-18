@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Play, Cloud, Bell, ShieldAlert, User, X, Sparkles, Palette, Check, PlusCircle, Vibrate } from 'lucide-react';
+import { Settings, Play, Cloud, Bell, ShieldAlert, User, X, Sparkles, Palette, Check, PlusCircle, Vibrate, Trash2, AlertTriangle } from 'lucide-react';
 import { Pet } from '../types';
+import { useApp } from '../context/AppContext';
+import { MobileBottomSheet } from './ui/MobileBottomSheet';
+import { DeletePetModal } from './DeletePetModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -23,8 +26,6 @@ interface SettingsModalProps {
   onOpenAddPet: () => void;
 }
 
-import { MobileBottomSheet } from './ui/MobileBottomSheet';
-
 export function SettingsModal({
   isOpen,
   onClose,
@@ -45,7 +46,9 @@ export function SettingsModal({
   onSelectPet,
   onOpenAddPet,
 }: SettingsModalProps) {
+  const { deletePet } = useApp();
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('pawdicure_haptics_enabled');
@@ -148,38 +151,78 @@ export function SettingsModal({
                 <PlusCircle className="w-3.5 h-3.5" /> Add Pet
               </button>
             </div>
-            <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
+            <div className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
               {Object.values(pets).map((p) => {
                 const isActive = p.id === activePet.id;
                 return (
-                  <button
+                  <div
                     key={p.id}
-                    type="button"
-                    onClick={() => {
-                      onSelectPet(p.id);
-                    }}
-                    className={`w-full flex items-center justify-between p-2 rounded-xl transition cursor-pointer ${
+                    className={`w-full flex items-center justify-between p-2 rounded-xl transition ${
                       isActive
                         ? 'bg-orange-50 border border-[var(--primary)] text-slate-900 font-bold'
                         : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 truncate">
+                    <button
+                      type="button"
+                      onClick={() => onSelectPet(p.id)}
+                      className="flex-1 flex items-center gap-2.5 truncate text-left cursor-pointer"
+                    >
                       <img src={p.avatarUrl} alt={p.name} className="w-7 h-7 rounded-full object-cover shrink-0" />
-                      <div className="text-left truncate">
+                      <div className="truncate">
                         <div className="text-xs font-bold text-slate-900 truncate">{p.name}</div>
                         <div className="text-[10px] text-slate-500 truncate">{p.breed}</div>
                       </div>
+                    </button>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isActive && (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                          Active
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPetToDelete(p);
+                        }}
+                        className="p-1 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition cursor-pointer"
+                        title={`Permanently Remove ${p.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    {isActive && (
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                        Active
-                      </span>
-                    )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
+          </div>
+
+          {/* Dedicated Permanently Remove Pet Section in SettingsModal */}
+          <div className="p-3.5 rounded-2xl bg-red-50/60 border border-red-200/80 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-red-700">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span className="text-xs font-bold font-heading uppercase tracking-wide">Danger Zone: Delete Pet</span>
+              </div>
+              <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                Permanent
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600">
+              Permanently erase {activePet?.name || 'active pet'} from Firestore database and local storage.
+            </p>
+            {activePet && (
+              <button
+                type="button"
+                onClick={() => setPetToDelete(activePet)}
+                className="w-full py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Permanently Remove {activePet.name}</span>
+              </button>
+            )}
           </div>
 
           {/* 1. Interactive Guide Tour (Guide Me) */}
@@ -368,6 +411,14 @@ export function SettingsModal({
           <span>PAWdiCURE v2.4 Pro</span>
           <span className="font-semibold text-slate-600">Secure Cloud Environment</span>
         </div>
+
+        {petToDelete && (
+          <DeletePetModal
+            isOpen={!!petToDelete}
+            onClose={() => setPetToDelete(null)}
+            pet={petToDelete}
+          />
+        )}
     </MobileBottomSheet>
   );
 }

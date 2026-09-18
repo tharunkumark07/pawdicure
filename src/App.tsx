@@ -710,7 +710,7 @@ function AppContent() {
         )}
 
         {/* Global Toast Stack */}
-        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1.5 pointer-events-none">
+        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center gap-1.5 pointer-events-none">
           {toasts.map((t) => (
             <div
               key={t.id}

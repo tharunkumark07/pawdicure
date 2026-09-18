@@ -49,7 +49,7 @@ export function Navigation({
                     onOpenQuickCare();
                   }}
                   aria-label="Open Care"
-                  className="absolute -top-7 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ff6b4a] to-[#d94f2d] text-white shadow-[0_8px_20px_rgba(255,107,74,0.35),0_3px_8px_rgba(255,107,74,0.15)] flex items-center justify-center border-3 border-white ring-2 ring-orange-100 z-50 cursor-pointer"
+                  className="absolute -top-7 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#ff6b4a] to-[#d94f2d] text-white shadow-[0_8px_20px_rgba(255,107,74,0.35),0_3px_8px_rgba(255,107,74,0.15)] flex items-center justify-center border-3 border-white ring-2 ring-orange-100 z-10 cursor-pointer"
                 >
                   <PawPrint
                     className="w-5.5 h-5.5 sm:w-6 sm:h-6 text-white"

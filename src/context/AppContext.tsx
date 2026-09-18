@@ -19,7 +19,7 @@ import {
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
 import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db } from '../lib/firebase';
 import { dailyCycleService } from '../services/dailyCycleService';
-import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const STORAGE_KEY = 'pawdicure_household_state_v2';
 
@@ -42,6 +42,7 @@ interface AppContextType {
   setActivePetId: (petId: string) => void;
   addPet: (newPet: Pet) => void;
   updatePet: (updatedPet: Pet) => void;
+  deletePet: (petId: string) => Promise<void>;
 
   // Care & Feed Actions
   feedPet: (grams: number, toppers: string[]) => void;
@@ -213,8 +214,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ]);
 
   // Derived active pet
-  const activePetId = householdData.activePetId || 'milo';
-  const activePet: Pet = householdData.pets[activePetId] || Object.values(householdData.pets)[0];
+  const availablePetIds = Object.keys(householdData.pets || {});
+  const activePetId = availablePetIds.includes(householdData.activePetId)
+    ? householdData.activePetId
+    : availablePetIds[0] || '';
+  const activePet: Pet = householdData.pets[activePetId] || Object.values(householdData.pets || {})[0] || {
+    id: 'empty',
+    name: 'No Companion',
+    species: 'Dog',
+    breed: 'None',
+    ageYears: 0,
+    ageMonths: 0,
+    weight: 0,
+    restingBpm: 0,
+    careScore: 0,
+    microchipId: 'N/A',
+    vetClinic: 'N/A',
+    emergencyContact: 'N/A',
+    emergencyPhone: 'N/A',
+    avatarUrl: '/buddy-closed.png',
+    xp: 0,
+    level: 1,
+    nextLevelXp: 100,
+    pillars: {
+      hygiene: { level: 100, name: 'Hygiene' },
+      nutrition: { level: 100, name: 'Nutrition' },
+      hydration: { level: 100, name: 'Hydration' },
+      activity: { level: 100, name: 'Activity' },
+      medical: { level: 100, name: 'Medical' },
+    },
+    allergies: [],
+    mood: 'Happy',
+  };
 
   // Sync route with window hash
   useEffect(() => {
@@ -602,6 +633,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }));
     showToast(`Updated profile for ${updatedPet.name}!`, 'success', '✨');
+  };
+
+  const deletePet = async (petId: string) => {
+    const petToDelete = householdData.pets[petId];
+    if (!petToDelete) return;
+
+    const petName = petToDelete.name;
+
+    // Delete Firestore subcollections/documents if user is authenticated
+    if (userId) {
+      try {
+        const careSettingsRef = doc(db, 'users', userId, 'pets', petId, 'careSettings', 'default');
+        await deleteDoc(careSettingsRef).catch(() => {});
+        const petDocRef = doc(db, 'users', userId, 'pets', petId);
+        await deleteDoc(petDocRef).catch(() => {});
+      } catch (err) {
+        console.warn('Non-fatal Firestore error on pet deletion:', err);
+      }
+    }
+
+    // Update local state and trigger cloud sync
+    updateHousehold((prev) => {
+      const updatedPets = { ...prev.pets };
+      delete updatedPets[petId];
+
+      let newActivePetId = prev.activePetId;
+      if (prev.activePetId === petId) {
+        const remainingIds = Object.keys(updatedPets);
+        newActivePetId = remainingIds.length > 0 ? remainingIds[0] : '';
+      }
+
+      return {
+        ...prev,
+        activePetId: newActivePetId,
+        pets: updatedPets,
+        memories: (prev.memories || []).filter((m) => m.petId !== petId),
+        vaccines: (prev.vaccines || []).filter((v) => v.petId !== petId),
+        medications: (prev.medications || []).filter((med) => med.petId !== petId),
+        vetVisits: (prev.vetVisits || []).filter((vv) => vv.petId !== petId),
+        reminders: (prev.reminders || []).filter((rem) => rem.petId !== petId),
+        routineTasks: (prev.routineTasks || []).filter((rt) => rt.petId !== petId),
+        healthMilestones: (prev.healthMilestones || []).filter((hm) => hm.petId !== petId),
+        documents: (prev.documents || []).filter((doc) => doc.petId !== petId),
+        feedingHistory: (prev.feedingHistory || []).filter((fh) => fh.petId !== petId),
+        weightHistory: (prev.weightHistory || []).filter((wh) => wh.petId !== petId),
+        careActivities: (prev.careActivities || []).filter((ca) => ca.petId !== petId),
+      };
+    });
+
+    showToast(`Profile for ${petName} permanently erased!`, 'info', '🗑️');
+    addCareActivity(`Permanently deleted pet profile for ${petName}`, 0, 'delete');
   };
 
   const addXp = (amount: number, reason: string) => {
@@ -1371,6 +1453,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setActivePetId,
         addPet,
         updatePet,
+        deletePet,
         feedPet,
         refreshWater,
         orderFoodRefill,
