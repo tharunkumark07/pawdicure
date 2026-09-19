@@ -572,6 +572,7 @@ function AppContent() {
             showToast('Activity logged! (+30 XP) 🏃✨', 'success', '🎉');
           }}
           onOpenAi={() => navigate('/ai-assistant')}
+          memories={(householdData.memories || []).filter((m) => !m.petId || m.petId === activePet.id)}
         />
       </div>
     );
