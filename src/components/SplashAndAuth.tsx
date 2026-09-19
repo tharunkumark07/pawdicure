@@ -9,7 +9,7 @@ interface SplashAndAuthProps {
 }
 
 export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
-  const { householdData, updateUserProfile, addPet, showToast } = useApp();
+  const { householdData, updateUserProfile, loginUserWithFirebase, signupUserWithFirebase, showToast } = useApp();
 
   // Phase: 'splash' (1.2s dynamic animation) -> 'auth' (one-time profile/account setup)
   const [phase, setPhase] = useState<'splash' | 'auth'>('splash');
@@ -19,8 +19,9 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
   const [ownerName, setOwnerName] = useState(householdData.userProfile?.name || 'Sarah Miller');
   const [email, setEmail] = useState(householdData.userProfile?.email || 'sarah.miller@example.com');
   const [phone, setPhone] = useState(householdData.userProfile?.phone || '+1 (555) 019-2834');
-  const [petName, setPetName] = useState('Milo');
+  const [password, setPassword] = useState('');
   const [species, setSpecies] = useState<'Dog' | 'Cat'>('Dog');
+  const [petName, setPetName] = useState('Milo');
   const [breed, setBreed] = useState('Golden Retriever');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,32 +34,49 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSaveAndEnter = (e: React.FormEvent) => {
+  const handleSaveAndEnter = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 6) {
+      showToast('Password must be at least 6 characters.', 'warning', '🔒');
+      return;
+    }
     setIsSubmitting(true);
 
-    // 1. Update user profile
-    updateUserProfile({
-      name: ownerName.trim() || 'Companion Parent',
-      email: email.trim() || 'parent@pawdicure.app',
-      phone: phone.trim() || '+1 (555) 019-2834',
-    });
+    try {
+      if (authMode === 'signup') {
+        const res = await signupUserWithFirebase(email.trim(), password, ownerName.trim());
+        if (!res.success) {
+          setIsSubmitting(false);
+          return;
+        }
+        updateUserProfile({
+          phone: phone.trim() || '+1 (555) 019-2834',
+        });
+      } else {
+        const res = await loginUserWithFirebase(email.trim(), password);
+        if (!res.success) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
 
-    // 2. Mark permanent one-time login in localStorage
-    localStorage.setItem('PAWdiCURE_AUTH_COMPLETED_V1', 'true');
-    localStorage.setItem('PAWdiCURE_USER_NAME', ownerName.trim() || 'Sarah');
-    localStorage.setItem('PAWdiCURE_USER_EMAIL', email.trim() || 'sarah@example.com');
+      // Mark permanent one-time login in localStorage
+      localStorage.setItem('PAWdiCURE_AUTH_COMPLETED_V1', 'true');
+      localStorage.setItem('PAWdiCURE_USER_NAME', ownerName.trim() || 'Sarah');
+      localStorage.setItem('PAWdiCURE_USER_EMAIL', email.trim() || 'sarah@example.com');
 
-    showToast(`Welcome back, ${ownerName.trim() || 'Parent'}! 🐾`, 'success');
-
-    setTimeout(() => {
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onComplete();
+      }, 400);
+    } catch (err) {
+      console.error(err);
       setIsSubmitting(false);
-      onComplete();
-    }, 400);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#ff6b4a] via-[#f95738] to-[#ae3115] text-white overflow-hidden selection:bg-white selection:text-[#ff6b4a]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--primary)] text-white overflow-hidden selection:bg-white selection:text-[var(--primary)]">
       {/* Background Animated Bokeh Rings & Paw Accents */}
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
@@ -98,15 +116,15 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
             </div>
 
             {/* 3-second progress indicator bar */}
-            <div className="w-full bg-black/20 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-black/20 h-1.5 rounded-full overflow-hidden relative">
               <div
-                className="h-full bg-white rounded-full transition-all duration-[3000ms] ease-out animate-in"
+                className="absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-[3000ms] ease-out"
                 style={{ width: '100%' }}
               />
             </div>
 
-            <p className="text-[10px] text-orange-100 font-medium">
-              Synchronizing with cloud database • Loading companion vitals...
+            <p className="text-[10px] text-orange-100 font-medium animate-pulse">
+              Synchronizing with cloud database • Preparing {petName}'s concierge suite…
             </p>
           </div>
         </div>
@@ -167,22 +185,24 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
 
             {/* Form */}
             <form onSubmit={handleSaveAndEnter} className="space-y-3.5">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  Your Full Name
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                  <input
-                    type="text"
-                    required
-                    value={ownerName}
-                    onChange={(e) => setOwnerName(e.target.value)}
-                    placeholder="e.g. Sarah Miller"
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
-                  />
+              {authMode === 'signup' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                    Your Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={ownerName}
+                      onChange={(e) => setOwnerName(e.target.value)}
+                      placeholder="e.g. Sarah Miller"
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
@@ -196,6 +216,23 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. sarah@example.com"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Security Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min 6 characters"
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
                   />
                 </div>
@@ -265,10 +302,13 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#ff6b4a] to-[#ae3115] text-white font-bold text-xs shadow-lg hover:shadow-xl active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 px-4 rounded-2xl bg-[var(--primary)] text-white font-bold text-xs shadow-lg hover:brightness-105 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isSubmitting ? (
-                    <span>Saving securely to database...</span>
+                    <div className="flex items-center gap-2 animate-pulse">
+                      <PawLogo className="w-4 h-4" />
+                      <span>Securing {petName}'s profile…</span>
+                    </div>
                   ) : (
                     <>
                       <span>Enter PAWdiCURE &amp; Start Daily Care</span>
@@ -279,7 +319,17 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
               </div>
             </form>
 
-            <div className="text-center pt-1 border-t border-slate-100">
+            <div className="text-center space-y-2 pt-1 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem('PAWdiCURE_AUTH_COMPLETED_V1', 'true');
+                  onComplete();
+                }}
+                className="text-[10px] text-[#ff6b4a] hover:underline font-semibold"
+              >
+                Or enter instantly as guest (Sandbox Demo Mode)
+              </button>
               <p className="text-[10px] text-slate-400">
                 🔒 Protected by Firebase Cloud Security • One-time login persists automatically
               </p>

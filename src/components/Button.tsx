@@ -2,6 +2,8 @@ import React from 'react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger';
 
+import { PawLogo } from './PawLogo';
+
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   isLoading?: boolean;
@@ -20,7 +22,7 @@ export function Button({
   className = '', 
   ...props 
 }: ButtonProps) {
-  const baseStyles = "px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]";
   
   const variants = {
     primary: "bg-[#ff6b4a] hover:bg-[#ed4d26] text-white shadow-md",
@@ -31,7 +33,12 @@ export function Button({
 
   return (
     <button className={`${baseStyles} ${variants[variant]} ${className}`} {...props}>
-      {isLoading ? 'Loading...' : children}
+      {isLoading ? (
+        <div className="flex items-center gap-2">
+          <PawLogo className="w-4 h-4 animate-pulse" />
+          <span className="animate-pulse">Fetching…</span>
+        </div>
+      ) : children}
     </button>
   );
 }

@@ -11,7 +11,7 @@ interface PremiumButtonProps {
 export function PremiumButton({ children, onClick, className = '', variant = 'primary' }: PremiumButtonProps) {
   const baseClasses = "relative px-6 py-3 rounded-2xl font-bold text-xs transition duration-300 flex items-center justify-center gap-2 overflow-hidden shadow-xs";
   const variantClasses = variant === 'primary' 
-    ? "bg-gradient-to-r from-[#ff6b4a] to-[#ae3115] text-white hover:shadow-orange-500/30"
+    ? "bg-[var(--primary)] text-white hover:shadow-[var(--primary)]/30"
     : "bg-white border border-slate-200 text-slate-800 hover:bg-slate-50";
 
   return (

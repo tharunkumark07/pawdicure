@@ -25,7 +25,7 @@ import {
 
 interface HealthViewProps {
   pet: Pet;
-  vaccines: VaccineRecord[];
+  vaccinationHistory: VaccineRecord[];
   medications: MedicationRecord[];
   milestones: HealthMilestone[];
   documents: DocumentVaultItem[];
@@ -50,7 +50,7 @@ const AI_NURSE_PRESETS: Record<string, string> = {
 
 export function HealthView({
   pet,
-  vaccines,
+  vaccinationHistory,
   medications,
   milestones,
   documents,
@@ -94,7 +94,7 @@ export function HealthView({
       <div className="w-full flex items-center justify-between gap-2 px-1">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center justify-center w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-          <span className="text-xs font-bold text-slate-800">
+          <span className="text-xs font-bold text-[var(--text)]">
             Health &amp; Records Hub
           </span>
         </div>
@@ -145,7 +145,7 @@ export function HealthView({
             id="log-rx-btn"
             type="button"
             onClick={onOpenAddVaccine}
-            className="shrink-0 px-3 py-1.5 rounded-full bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-xs transition-transform active:scale-95 flex items-center gap-1"
+            className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-xs transition-transform active:scale-95 flex items-center gap-1"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Log Rx</span>
@@ -198,7 +198,7 @@ export function HealthView({
       <div className="rounded-3xl bg-white p-4 sm:p-5 shadow-xs border border-slate-100 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff6b4a]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--primary)]" />
             <h3 className="font-heading font-bold text-sm text-slate-900">
               Preventive &amp; Vaccines
             </h3>
@@ -209,7 +209,7 @@ export function HealthView({
         </div>
 
         <div className="space-y-2.5">
-          {vaccines.map((vac) => (
+          {(vaccinationHistory || []).map((vac) => (
             <div
               key={vac.id}
               className={`p-3 rounded-2xl border transition-all ${
@@ -226,7 +226,7 @@ export function HealthView({
                     className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition ${
                       vac.completed
                         ? 'bg-emerald-500 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 hover:border-[#ff6b4a]'
+                        : 'bg-white border border-slate-300 hover:border-[var(--primary)]'
                     }`}
                   >
                     {vac.completed && <Check className="w-3.5 h-3.5" />}
@@ -305,7 +305,7 @@ export function HealthView({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                   med.takenToday
                     ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-white border border-slate-300 hover:border-[#ff6b4a] text-slate-700'
+                    : 'bg-white border border-slate-300 hover:border-[var(--primary)] text-slate-700'
                 }`}
               >
                 {med.takenToday ? (
@@ -389,7 +389,7 @@ export function HealthView({
       <div className="rounded-3xl bg-white p-4 sm:p-5 shadow-xs border border-slate-100 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#ff6b4a]" />
+            <FileText className="w-4 h-4 text-[var(--primary)]" />
             <h3 className="font-heading font-bold text-sm text-slate-900">
               Verified Documents Vault
             </h3>
@@ -434,17 +434,17 @@ export function HealthView({
       </div>
 
       {/* PAWdiCURE AI Health Companion Widget */}
-      <div className="rounded-3xl bg-gradient-to-br from-orange-50/60 via-amber-50/40 to-white p-4 sm:p-5 border border-orange-200/70 shadow-xs space-y-3">
+      <div className="rounded-3xl bg-[var(--primary-light)] p-4 sm:p-5 border border-[var(--primary-border)] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-[#ff6b4a] text-white flex items-center justify-center shadow-2xs">
+            <div className="w-6 h-6 rounded-lg bg-[var(--primary)] text-white flex items-center justify-center shadow-2xs">
               <Bot className="w-3.5 h-3.5" />
             </div>
             <h3 className="font-heading font-bold text-sm text-slate-900">
               PAWdiCURE AI Pet Nurse
             </h3>
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-[#ae3115] font-bold">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] font-bold">
             24/7 Companion
           </span>
         </div>
@@ -483,11 +483,11 @@ export function HealthView({
             value={aiQuery}
             onChange={(e) => setAiQuery(e.target.value)}
             placeholder={`Ask anything about ${pet.name}'s health...`}
-            className="w-full h-10 pl-3.5 pr-10 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 shadow-2xs focus:outline-none focus:border-[#ff6b4a]"
+            className="w-full h-10 pl-3.5 pr-10 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 shadow-2xs focus:outline-none focus:border-[var(--primary)]"
           />
           <button
             type="submit"
-            className="absolute right-1 w-8 h-8 rounded-lg bg-[#ff6b4a] hover:bg-[#ed4d26] text-white flex items-center justify-center transition active:scale-95"
+            className="absolute right-1 w-8 h-8 rounded-lg bg-[var(--primary)] hover:opacity-90 text-white flex items-center justify-center transition active:scale-95"
           >
             <Send className="w-3.5 h-3.5" />
           </button>
@@ -496,14 +496,19 @@ export function HealthView({
         {/* Response Box */}
         {(aiAnswer || isAiLoading) && (
           <div className="p-3.5 rounded-2xl bg-white border border-orange-100 shadow-xs space-y-1 animate-in fade-in">
-            <div className="flex items-center gap-1.5 text-[#ae3115]">
+            <div className="flex items-center gap-1.5 text-[var(--primary)]">
               <Sparkles className="w-3.5 h-3.5" />
               <span className="text-[11px] font-bold">
                 {pet.name}'s Personalized Guidance
               </span>
             </div>
-            <p className="text-xs text-slate-700 leading-relaxed">
-              {isAiLoading ? "Reviewing Milo's medical history..." : aiAnswer}
+            <p className="text-xs text-slate-700 leading-relaxed min-h-[3rem] flex items-center">
+              {isAiLoading ? (
+                <span className="flex items-center gap-2 italic text-slate-500 animate-pulse">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Reviewing {pet.name}'s medical history & care data…
+                </span>
+              ) : aiAnswer}
             </p>
           </div>
         )}

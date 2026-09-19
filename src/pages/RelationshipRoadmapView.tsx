@@ -14,9 +14,18 @@ import {
 export function RelationshipRoadmapView() {
   const { activePet, householdData, navigate, showToast } = useApp();
 
-  const currentLevel = activePet.relationshipLevel || 3;
-  const currentXp = householdData.currentXp || 340;
-  const nextLevelXp = householdData.nextLevelXp || 500;
+  const getRelationshipLevel = (level: number) => {
+    if (level <= 3) return 1;
+    if (level <= 7) return 2;
+    if (level <= 11) return 3;
+    if (level <= 15) return 4;
+    return 5;
+  };
+
+  const currentLevel = getRelationshipLevel(activePet.level || 1);
+  const currentXp = activePet.xp || 0;
+  const nextLevelXp = activePet.nextLevelXp || 1000;
+  const userRank = activePet.levelTitle || 'Best Buddies';
 
   const milestones = [
     {
@@ -61,6 +70,8 @@ export function RelationshipRoadmapView() {
     },
   ];
 
+  const currentMilestone = milestones.find((m) => m.level === currentLevel) || milestones[0];
+
   return (
     <div className="flex flex-col w-full pb-14 space-y-4 animate-in fade-in duration-200">
       {/* Top Bar */}
@@ -68,20 +79,20 @@ export function RelationshipRoadmapView() {
         <button
           type="button"
           onClick={() => navigate('/relationship')}
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 transition"
+          className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--card-bg)] px-3 py-1.5 rounded-xl border border-[var(--card-border)] transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Relationship</span>
         </button>
 
-        <span className="text-xs font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full flex items-center gap-1">
+        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-full flex items-center gap-1">
           <Award className="w-3.5 h-3.5" />
-          <span>{householdData.userRank}</span>
+          <span>{userRank}</span>
         </span>
       </div>
 
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-purple-600 via-rose-500 to-amber-500 text-white p-5 rounded-3xl shadow-xl shadow-purple-600/15 space-y-3">
+      <div className="bg-[var(--primary)] text-white p-5 rounded-3xl shadow-xl shadow-[var(--primary)]/15 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-xl">
@@ -92,7 +103,7 @@ export function RelationshipRoadmapView() {
                 COMPANION ROADMAP
               </span>
               <h1 className="font-heading font-black text-xl">
-                Level {currentLevel}: Inseparable Duo
+                Level {activePet.level || 1}: {currentMilestone.title}
               </h1>
             </div>
           </div>
@@ -112,7 +123,7 @@ export function RelationshipRoadmapView() {
               className="bg-white h-full rounded-full transition-all"
             />
           </div>
-          <div className="text-[11px] text-purple-100 text-right">
+          <div className="text-[11px] text-white/80 text-right">
             {nextLevelXp - currentXp} XP remaining until Level {currentLevel + 1}
           </div>
         </div>
@@ -158,7 +169,7 @@ export function RelationshipRoadmapView() {
                         {m.title}
                       </h4>
                       {m.level === currentLevel && (
-                        <span className="text-[9px] font-bold text-purple-700 bg-purple-100 px-2 py-0.2 rounded-full">
+                        <span className="text-[9px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.2 rounded-full">
                           Current Status
                         </span>
                       )}
@@ -175,8 +186,8 @@ export function RelationshipRoadmapView() {
 
                 {/* Perk Badge */}
                 <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="text-[11px] font-semibold text-purple-800 flex items-center gap-1">
-                    <Gift className="w-3 h-3 text-purple-600" />
+                  <span className="text-[11px] font-semibold text-[var(--primary)] flex items-center gap-1">
+                    <Gift className="w-3 h-3 text-[var(--primary)]" />
                     <span>{m.perk}</span>
                   </span>
 

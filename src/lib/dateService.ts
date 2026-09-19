@@ -1,21 +1,14 @@
-export const getTodayKey = (timezone: string = 'Asia/Kolkata'): string => {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date());
+import { getUserLocalDate, getUserTimezone, isToday as checkIsToday } from './timeUtils';
+
+export const getTodayKey = (timezone: string = getUserTimezone()): string => {
+  return getUserLocalDate(new Date(), timezone);
 };
 
-export const getDateKey = (date: Date, timezone: string = 'Asia/Kolkata'): string => {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(date);
+export const getDateKey = (date: Date, timezone: string = getUserTimezone()): string => {
+  return getUserLocalDate(date, timezone);
 };
 
-export const isToday = (dateKey: string, timezone: string = 'Asia/Kolkata'): boolean => {
-  return dateKey === getTodayKey(timezone);
+export const isToday = (dateKey: string, timezone: string = getUserTimezone()): boolean => {
+  return checkIsToday(dateKey, timezone);
 };
+

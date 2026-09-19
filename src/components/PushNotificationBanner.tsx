@@ -38,16 +38,16 @@ export function PushNotificationBanner({ petName }: PushNotificationBannerProps)
   }
 
   return (
-    <div className="mx-3 sm:mx-4 mt-2 mb-1 p-3 rounded-2xl bg-gradient-to-r from-orange-100/90 via-amber-50 to-orange-50 border border-orange-200 shadow-xs flex items-center justify-between gap-3 animate-in fade-in">
+    <div className="mx-3 sm:mx-4 mt-2 mb-1 p-3 rounded-2xl bg-[var(--primary-light)] border border-[var(--primary-border)] shadow-xs flex items-center justify-between gap-3 animate-in fade-in">
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff6b4a] to-[#ae3115] text-white flex items-center justify-center shadow-xs shrink-0">
+        <div className="w-8 h-8 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center shadow-xs shrink-0">
           <Bell className="w-4 h-4" />
         </div>
         <div className="min-w-0">
-          <h4 className="font-heading font-bold text-xs text-orange-950 truncate">
+          <h4 className="font-heading font-bold text-xs text-[var(--text)] truncate">
             Enable Push Notifications
           </h4>
-          <p className="text-[11px] text-orange-800/90 truncate">
+          <p className="text-[11px] text-[var(--text-muted)] truncate">
             Get instant alerts for {petName}'s meals, meds &amp; vaccines
           </p>
         </div>
@@ -65,7 +65,7 @@ export function PushNotificationBanner({ petName }: PushNotificationBannerProps)
           type="button"
           disabled={isRequesting}
           onClick={handleEnablePush}
-          className="px-3 py-1.5 rounded-xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-xs hover:scale-105 active:scale-95 transition"
+          className="px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white text-xs font-bold shadow-xs hover:scale-105 active:scale-95 transition"
         >
           {isRequesting ? 'Enabling...' : 'Enable'}
         </button>

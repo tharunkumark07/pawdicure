@@ -111,14 +111,14 @@ export function PetPhotoUploadModal({
         </div>
 
         {/* Live Preview Card */}
-        <div className="mt-4 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-orange-50/50 to-amber-50/30 rounded-3xl border border-orange-100/60">
+        <div className="mt-4 flex flex-col items-center justify-center p-4 bg-[var(--primary-light)] rounded-3xl border border-[var(--primary-border)]">
           <div className="relative group">
             <img
               src={previewUrl}
               alt={currentPet.name}
               className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover ring-4 ring-white shadow-xl"
             />
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#ff6b4a] text-white flex items-center justify-center shadow-md">
+            <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center shadow-md">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>
@@ -308,7 +308,7 @@ export function PetPhotoUploadModal({
           <button
             type="button"
             onClick={handleSavePhoto}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff6b4a] to-[#ae3115] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-orange-500/20 active:scale-95 transition flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-[var(--primary)] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 active:scale-95 transition flex items-center gap-1.5"
           >
             <Check className="w-4 h-4" />
             <span>Set Profile Picture</span>

@@ -21,6 +21,7 @@ export function RemindersView() {
     toggleReminder,
     snoozeReminder,
     deleteReminder,
+    navigate,
   } = useApp();
 
   const [filterType, setFilterType] = useState<string>('all');
@@ -52,16 +53,16 @@ export function RemindersView() {
   return (
     <div className="flex flex-col w-full pb-12 space-y-4 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-3xl p-4 sm:p-5 border border-amber-100 flex items-center justify-between">
+      <div className="bg-[var(--primary-light)] rounded-3xl p-4 sm:p-5 border border-[var(--primary-border)] flex items-center justify-between">
         <div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-[10px] font-bold text-amber-900 shadow-2xs mb-1">
-            <Bell className="w-3 h-3 text-amber-600" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--primary)]/20 text-[10px] font-bold text-[var(--primary)] shadow-2xs mb-1">
+            <Bell className="w-3 h-3" />
             <span>Smart Care Schedules</span>
           </span>
-          <h1 className="font-heading font-black text-xl sm:text-2xl text-slate-900">
+          <h1 className="font-heading font-black text-xl sm:text-2xl text-[var(--text)]">
             Reminders Center
           </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             {pendingCount} pending task{pendingCount !== 1 ? 's' : ''} for {activePet.name}
           </p>
         </div>
@@ -69,10 +70,32 @@ export function RemindersView() {
         <button
           type="button"
           onClick={() => setIsAddReminderOpen(true)}
-          className="px-3.5 py-2 rounded-2xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition active:scale-95 shrink-0"
+          className="px-3.5 py-2 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[var(--primary)]/20 transition active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>New Reminder</span>
+        </button>
+      </div>
+
+      {/* Custom Care Routines Card */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/20 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-xl">🗓️</span>
+          <div className="min-w-0">
+            <h4 className="text-xs font-bold text-[var(--text)] truncate">
+              Daily Care Schedules & Custom Routines
+            </h4>
+            <p className="text-[10px] text-[var(--text-muted)] truncate">
+              Personalized routines with calibrated meals, walks, and automated timeline tracking
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/routines')}
+          className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition shrink-0 cursor-pointer shadow-xs"
+        >
+          Open Routines
         </button>
       </div>
 
@@ -87,14 +110,14 @@ export function RemindersView() {
           { id: 'walk', label: 'Walks 🐕' },
           { id: 'vaccination', label: 'Vaccines 💉' },
         ].map((tab) => (
-          <button
+            <button
             key={tab.id}
             type="button"
             onClick={() => setFilterType(tab.id)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
               filterType === tab.id
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-[var(--text)] text-[var(--background)] shadow-2xs'
+                : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:bg-[var(--background-alt)]'
             }`}
           >
             {tab.label}
@@ -105,18 +128,18 @@ export function RemindersView() {
       {/* Reminders List */}
       <div className="space-y-2.5">
         {filtered.length === 0 ? (
-          <div className="bg-white p-8 rounded-3xl border border-dashed border-slate-200 text-center space-y-2">
+          <div className="bg-[var(--card-bg)] p-8 rounded-3xl border border-dashed border-[var(--card-border)] text-center space-y-2">
             <span className="text-3xl">🔔</span>
-            <h3 className="font-heading font-bold text-sm text-slate-800">
+            <h3 className="font-heading font-bold text-sm text-[var(--text)]">
               No reminders in this view
             </h3>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto">
+            <p className="text-xs text-[var(--text-muted)] max-w-xs mx-auto">
               Stay ahead of feeding times, medication schedules, and wellness routines.
             </p>
             <button
               type="button"
               onClick={() => setIsAddReminderOpen(true)}
-              className="mt-2 px-4 py-2 rounded-xl bg-[#ff6b4a] text-white text-xs font-bold"
+              className="mt-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold"
             >
               + Create First Reminder
             </button>
@@ -127,8 +150,8 @@ export function RemindersView() {
               key={rem.id}
               className={`p-4 rounded-3xl border transition-all ${
                 rem.completed
-                  ? 'bg-slate-50/80 border-slate-200/60 opacity-80'
-                  : 'bg-white border-slate-100 shadow-xs hover:border-orange-100'
+                  ? 'bg-[var(--background-alt)] border-[var(--card-border)] opacity-80'
+                  : 'bg-[var(--card-bg)] border-[var(--card-border)] shadow-xs hover:border-[var(--primary)]/30'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -139,7 +162,7 @@ export function RemindersView() {
                     className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center transition shrink-0 ${
                       rem.completed
                         ? 'bg-emerald-500 text-white shadow-2xs'
-                        : 'border-2 border-slate-300 text-transparent hover:border-[#ff6b4a]'
+                        : 'border-2 border-[var(--card-border)] text-transparent hover:border-[var(--primary)]'
                     }`}
                     title={rem.completed ? 'Mark pending' : 'Complete reminder (+25 XP)'}
                   >
@@ -169,9 +192,9 @@ export function RemindersView() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-500">
-                      <span className="flex items-center gap-1 font-semibold text-slate-700">
-                        <Clock className="w-3 h-3 text-[#ff6b4a]" />
+                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-[var(--text-muted)]">
+                      <span className="flex items-center gap-1 font-semibold text-[var(--text)]">
+                        <Clock className="w-3 h-3 text-[var(--primary)]" />
                         <span>{rem.time}</span>
                       </span>
 
@@ -189,7 +212,7 @@ export function RemindersView() {
                     </div>
 
                     {rem.notes && (
-                      <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl mt-2 border border-slate-100">
+                      <p className="text-[11px] text-[var(--text-muted)] bg-[var(--background-alt)] p-2 rounded-xl mt-2 border border-[var(--card-border)]">
                         {rem.notes}
                       </p>
                     )}

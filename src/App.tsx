@@ -17,7 +17,7 @@ import { PushNotificationBanner } from './components/PushNotificationBanner';
 import { PetGuide } from './components/pet-guide/PetGuide';
 import { usePetGuide } from './hooks/usePetGuide';
 import { WelcomeAnimation } from './components/WelcomeAnimation';
-import { MainContentSkeleton } from './components/MainContentSkeleton';
+import { PAWdiCURELoading } from './components/PAWdiCURELoading';
 
 // Views
 import { HomeView } from './views/HomeView';
@@ -46,6 +46,8 @@ import { NotificationsView } from './pages/NotificationsView';
 import { SettingsView } from './pages/SettingsView';
 import { OnboardingView } from './pages/OnboardingView';
 import { BadgesView } from './pages/BadgesView';
+import { VaccinePassportView } from './pages/VaccinePassportView';
+import { RoutinesView } from './pages/RoutinesView';
 
 import { AffinityPillar } from './types';
 import { SplashAndAuth } from './components/SplashAndAuth';
@@ -89,6 +91,8 @@ function AppContent() {
     pushPermissionStatus,
     registerPushNotifications,
     triggerTestPushNotification,
+    currentTheme,
+    setCurrentTheme,
   } = useApp();
 
   const {
@@ -118,22 +122,6 @@ function AppContent() {
   const [isAddPetOpen, setIsAddPetOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    return localStorage.getItem('pawdicure_app_theme') || 'sunset';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('pawdicure_app_theme', currentTheme);
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    const themeColors: Record<string, string> = {
-      sunset: '#ff6b4a',
-      forest: '#059669',
-      royal: '#2563eb',
-      purple: '#7c3aed',
-    };
-    const color = themeColors[currentTheme] || '#ff6b4a';
-    document.documentElement.style.setProperty('--primary', color);
-  }, [currentTheme]);
   const [inspectedPillar, setInspectedPillar] = useState<AffinityPillar | null>(null);
 
   // One-time login / entrance animation state
@@ -227,8 +215,8 @@ function AppContent() {
 
     const matches: Array<{ title: string; sub: string; route: string }> = [];
 
-    // Search in vaccines
-    (householdData.vaccines || []).forEach((v) => {
+    // Search in vaccine history
+    (householdData.vaccinationHistory || []).forEach((v) => {
       if (v.name.toLowerCase().includes(q) || v.status.toLowerCase().includes(q)) {
         matches.push({
           title: v.name,
@@ -302,7 +290,7 @@ function AppContent() {
 
   // Quick Action trigger from floating dock
   const handleQuickCareAction = (
-    action: 'feed' | 'walk' | 'med' | 'memory' | 'play' | 'health'
+    action: 'feed' | 'walk' | 'med' | 'memory' | 'play' | 'health' | 'water' | 'reminder' | 'routine'
   ) => {
     setIsQuickCareOpen(false);
     if (action === 'feed') {
@@ -310,6 +298,8 @@ function AppContent() {
     } else if (action === 'walk') {
       addXp(30, 'Completed 25m energetic walk loop');
       showToast('Walk completed! (+30 XP)', 'success', '🏃');
+    } else if (action === 'routine') {
+      navigate('/routines');
     } else if (action === 'med') {
       const pendingMed = (householdData.medications || []).find(
         (m) => !m.takenToday
@@ -326,6 +316,8 @@ function AppContent() {
       showToast('Playtime recorded! (+25 XP)', 'success', '🎾');
     } else if (action === 'health') {
       navigate('/health');
+    } else if (action === 'reminder') {
+      navigate('/reminders');
     }
   };
 
@@ -353,6 +345,10 @@ function AppContent() {
 
     if (currentRoute === '/health/clinics') {
       return <NearbyCareView />;
+    }
+
+    if (currentRoute === '/health/passport') {
+      return <VaccinePassportView />;
     }
 
     if (currentRoute.startsWith('/health')) {
@@ -386,36 +382,36 @@ function AppContent() {
             <button
               type="button"
               onClick={() => navigate('/relationship')}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold shrink-0"
+              className="px-3 py-1.5 rounded-xl bg-[var(--text)] text-white text-xs font-bold shrink-0"
             >
               Bond Hub
             </button>
             <button
               type="button"
               onClick={() => navigate('/relationship/roadmap')}
-              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 shrink-0"
+              className="px-3 py-1.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text)] text-xs font-bold hover:bg-[var(--primary)]/5 shrink-0"
             >
               Roadmap 🗺️
             </button>
             <button
               type="button"
               onClick={() => navigate('/badges')}
-              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-300 text-[#ae3115] text-xs font-bold hover:bg-amber-100/50 shrink-0 flex items-center gap-1"
+              className="px-3 py-1.5 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/30 text-[var(--primary)] text-xs font-bold hover:bg-[var(--primary)]/20 shrink-0 flex items-center gap-1"
             >
-              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <Award className="w-3.5 h-3.5" />
               <span>Digital Badges 🏅</span>
             </button>
             <button
               type="button"
               onClick={() => navigate('/relationship/levels')}
-              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 shrink-0"
+              className="px-3 py-1.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text)] text-xs font-bold hover:bg-[var(--primary)]/5 shrink-0"
             >
               All Tiers 🏆
             </button>
             <button
               type="button"
               onClick={() => navigate('/memories')}
-              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 shrink-0"
+              className="px-3 py-1.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text)] text-xs font-bold hover:bg-[var(--primary)]/5 shrink-0"
             >
               Pet Journal 📖
             </button>
@@ -481,6 +477,10 @@ function AppContent() {
       return <BadgesView />;
     }
 
+    if (currentRoute === '/routines' || currentRoute.startsWith('/routine')) {
+      return <RoutinesView />;
+    }
+
     if (currentRoute === '/settings') {
       return <SettingsView />;
     }
@@ -489,97 +489,41 @@ function AppContent() {
       return <OnboardingView />;
     }
 
-    // Default: HomeView with full interactive quick routing
+    // Default: HomeView
     return (
-      <div className="space-y-4">
-        {/* Quick Route Shortcuts Carousel */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          <button
-            type="button"
-            onClick={() => navigate('/badges')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#ff6b4a]/10 border border-orange-300 text-[#ae3115] text-xs font-bold shadow-2xs hover:bg-orange-100/60 transition shrink-0"
-          >
-            <Award className="w-3.5 h-3.5 text-[#ff6b4a]" />
-            <span>Digital Badges 🏅</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/stats')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
-          >
-            <Activity className="w-3.5 h-3.5 text-[#ff6b4a]" />
-            <span>Biometrics &amp; Telemetry</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/reminders')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
-          >
-            <Calendar className="w-3.5 h-3.5 text-amber-500" />
-            <span>Care Reminders</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/ai-assistant')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-            <span>AI Pet Concierge</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/explore')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
-          >
-            <Compass className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Parks &amp; Places</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/health/clinics')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
-          >
-            <span className="text-xs">🏥</span>
-            <span>Clinics &amp; Hospitals</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/family')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold shadow-2xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ae3115] transition shrink-0"
-          >
-            <Users className="w-3.5 h-3.5 text-purple-500" />
-            <span>Household Sync</span>
-          </button>
-        </div>
-
-        <HomeView
-          pet={activePet}
-          tasks={(householdData.routineTasks || []).filter((t) => !t.petId || t.petId === activePet.id)}
-          streakDays={activePet.streakDays ?? householdData.streakDays ?? 5}
-          lastCheckInDate={activePet.lastCheckInDate ?? householdData.lastCheckInDate}
-          onDailyCheckIn={performDailyCheckIn}
-          onNavigate={(tab) => handleSelectTab(tab)}
-          onToggleTask={(tId) => toggleTask(tId)}
-          onLogExercise={() => {
-            triggerConfetti();
-            addXp(30, 'Completed 20m agility loop');
-            showToast('Activity logged! (+30 XP) 🏃✨', 'success', '🎉');
-          }}
-          onOpenAi={() => navigate('/ai-assistant')}
-          memories={(householdData.memories || []).filter((m) => !m.petId || m.petId === activePet.id)}
-        />
-      </div>
+      <HomeView
+        pet={activePet}
+        tasks={(householdData.routineTasks || []).filter((t) => !t.petId || t.petId === activePet.id)}
+        streakDays={activePet.streakDays ?? householdData.streakDays ?? 5}
+        lastCheckInDate={activePet.lastCheckInDate ?? householdData.lastCheckInDate}
+        onDailyCheckIn={performDailyCheckIn}
+        onNavigate={(route) => {
+          if (['home', 'feed', 'health', 'bond', 'rewards', 'badges'].includes(route)) {
+            handleSelectTab(route as NavTab);
+          } else {
+            navigate(route.startsWith('/') ? route : '/' + route);
+          }
+        }}
+        onToggleTask={(tId) => toggleTask(tId)}
+        onLogExercise={() => {
+          triggerConfetti();
+          addXp(30, 'Completed 20m agility loop');
+          showToast('Activity logged! (+30 XP) 🏃✨', 'success', '🎉');
+        }}
+        memories={(householdData.memories || []).filter((m) => !m.petId || m.petId === activePet.id)}
+      />
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#fffaf5] flex flex-col items-center justify-start text-[#2c1810]">
+    <motion.div
+      animate={{ 
+        backgroundColor: 'var(--background)',
+        color: 'var(--text)'
+      }}
+      transition={{ duration: 1.5, ease: "easeInOut" }}
+      className="min-h-screen flex flex-col items-center justify-start"
+    >
       {showAnimation && <WelcomeAnimation onComplete={() => setShowAnimation(false)} />}
       {isVisible && step && (
         <PetGuide 
@@ -601,7 +545,7 @@ function AppContent() {
 
       <div
         id="app-mobile-shell"
-        className="w-full max-w-md md:max-w-lg min-h-screen bg-[#fffaf5] flex flex-col relative shadow-2xl border-x border-orange-200/50 overflow-hidden"
+        className="w-full max-w-md md:max-w-lg min-h-screen bg-transparent flex flex-col relative shadow-2xl border-x border-[var(--card-border)] overflow-hidden"
         style={{ paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }}
       >
         {/* Dynamic Route-Specific Background with Interactive Pets & Ambient Light */}
@@ -636,14 +580,14 @@ function AppContent() {
         {/* Global Interactive Search Bar */}
         <div className="relative z-20 px-3 sm:px-4 pt-2 pb-1">
           <div className="relative">
-            <Search className="w-4 h-4 text-orange-400 absolute left-3.5 top-3" />
+            <Search className="w-4 h-4 text-[var(--primary)] absolute left-3.5 top-3" />
             <input
               id="global-search-input"
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={`Search ${activePet.name}'s vaccines, meds, places, store...`}
-              className="w-full pl-10 pr-9 py-2.5 bg-white/90 backdrop-blur-xs rounded-2xl border border-orange-200 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#ff6b4a] focus:ring-2 focus:ring-orange-200 shadow-2xs transition"
+              className="w-full pl-10 pr-9 py-2.5 bg-[var(--card-bg)] backdrop-blur-xs rounded-2xl border border-[var(--card-border)] text-xs font-medium text-[var(--text)] placeholder:text-[var(--text-muted)] opacity-80 focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 shadow-2xs transition"
             />
             {searchQuery && (
               <button
@@ -652,7 +596,7 @@ function AppContent() {
                   setSearchQuery('');
                   setSearchResults([]);
                 }}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-3 text-[var(--text-muted)] hover:text-[var(--text)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -661,7 +605,7 @@ function AppContent() {
 
           {/* Live Search Results Drawer */}
           {searchResults.length > 0 && (
-            <div className="mt-2 p-2 bg-white rounded-2xl shadow-xl border border-slate-100 text-xs z-40 animate-in fade-in">
+            <div className="mt-2 p-2 bg-[var(--card-bg)] rounded-2xl shadow-xl border border-[var(--card-border)] text-xs z-40 animate-in fade-in">
               {searchResults.map((res, i) => (
                 <button
                   key={i}
@@ -671,13 +615,13 @@ function AppContent() {
                     setSearchQuery('');
                     setSearchResults([]);
                   }}
-                  className="w-full p-2 rounded-xl hover:bg-orange-50/70 text-left flex items-center justify-between border-b border-slate-50 last:border-none transition"
+                  className="w-full p-2 rounded-xl hover:bg-[var(--primary)]/5 text-left flex items-center justify-between border-b border-[var(--primary)]/5 last:border-none transition"
                 >
                   <div>
-                    <div className="font-bold text-slate-900">{res.title}</div>
-                    <div className="text-[10px] text-slate-500">{res.sub}</div>
+                    <div className="font-bold text-[var(--text)]">{res.title}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] opacity-70">{res.sub}</div>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#ff6b4a]" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[var(--primary)]" />
                 </button>
               ))}
             </div>
@@ -689,16 +633,7 @@ function AppContent() {
           <div className="w-full flex flex-col items-stretch">
             <AnimatePresence mode="wait">
               {isPageTransitioning ? (
-                <motion.div
-                  key={`skeleton-${currentRoute}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.12 }}
-                  className="w-full"
-                >
-                  <MainContentSkeleton route={currentRoute} />
-                </motion.div>
+                <PAWdiCURELoading key={`loading-${currentRoute}`} route={currentRoute} fullscreen={false} />
               ) : (
                 <motion.div
                   key={currentRoute}
@@ -753,56 +688,7 @@ function AppContent() {
           onClose={() => setIsQuickCareOpen(false)}
           onAction={handleQuickCareAction}
         />
-
-        <AddMemoryModal
-          isOpen={isAddMemoryOpen}
-          petName={activePet.name}
-          onClose={() => setIsAddMemoryOpen(false)}
-          onSave={handleSaveMemory}
-        />
-
-        <EmergencyModal
-          isOpen={isEmergencyOpen}
-          pet={activePet}
-          onClose={() => setIsEmergencyOpen(false)}
-        />
-
-        <CloudSyncModal
-          isOpen={isCloudSyncOpen}
-          householdData={householdData}
-          isOnline={isOnline}
-          isSyncing={isSyncing}
-          onClose={() => setIsCloudSyncOpen(false)}
-          onDataUpdated={() => {
-            showToast('Household data synced from cloud!', 'success');
-          }}
-          onShowToast={(msg, icon) => showToast(msg, 'info', icon)}
-        />
-
-        <AddPetModal
-          isOpen={isAddPetOpen}
-          onClose={() => setIsAddPetOpen(false)}
-          onAddPet={(newPet) => {
-            addPet(newPet);
-          }}
-        />
-
-        <PillarDetailModal
-          pillar={inspectedPillar}
-          petName={activePet.name}
-          onClose={() => setInspectedPillar(null)}
-          onBoostPillar={(pId) => boostPillar(pId)}
-        />
-
-        <ProfileModal
-          isOpen={isProfileOpen}
-          activePet={activePet}
-          householdData={householdData}
-          onClose={() => setIsProfileOpen(false)}
-          onOpenSync={() => setIsCloudSyncOpen(true)}
-          onOpenAddPet={() => setIsAddPetOpen(true)}
-        />
-
+        
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
@@ -823,14 +709,14 @@ function AppContent() {
           onSelectPet={(pId) => setActivePetId(pId)}
           onOpenAddPet={() => setIsAddPetOpen(true)}
         />
-
+        
         <NotificationsModal
           isOpen={false}
           onClose={() => {}}
           onNavigate={(tab) => handleSelectTab(tab as NavTab)}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }
 

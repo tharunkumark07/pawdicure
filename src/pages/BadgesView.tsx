@@ -130,7 +130,7 @@ export function BadgesView() {
       case 'Mythic':
         return 'bg-purple-100 text-purple-900 border-purple-200';
       case 'Transcendent':
-        return 'bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-purple-500/20 text-slate-900 border-amber-400 shadow-xs';
+        return 'bg-purple-200 text-purple-900 border-purple-400 shadow-xs';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -305,9 +305,9 @@ export function BadgesView() {
                   onClick={() => setSelectedBadge(badge)}
                   className={`p-4 rounded-3xl border transition cursor-pointer relative overflow-hidden ${
                     badge.isUnlocked
-                      ? 'bg-gradient-to-br from-amber-50/70 via-orange-50/30 to-white border-amber-300 shadow-2xs hover:shadow-md'
+                      ? 'bg-[var(--primary-light)] border-[var(--primary-border)] shadow-2xs hover:shadow-md'
                       : 'bg-white border-slate-200/80 opacity-85 hover:opacity-100'
-                  } ${isSelected ? 'ring-2 ring-amber-500 border-transparent' : ''}`}
+                  } ${isSelected ? 'ring-2 ring-[var(--primary)] border-transparent' : ''}`}
                 >
                   {badge.showcase && (
                     <div className="absolute right-3 top-3" title="Pinned to pet profile">
@@ -319,7 +319,7 @@ export function BadgesView() {
                     <div
                       className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 border relative ${
                         badge.isUnlocked
-                          ? 'bg-gradient-to-tr from-amber-100 to-orange-100 border-amber-300 shadow-2xs'
+                          ? 'bg-white border-[var(--primary-border)] shadow-2xs'
                           : 'bg-slate-50 border-slate-200 grayscale contrast-75'
                       }`}
                     >
@@ -370,8 +370,8 @@ export function BadgesView() {
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             badge.isUnlocked
-                              ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
-                              : 'bg-gradient-to-r from-amber-400 to-[#ff6b4a]'
+                              ? 'bg-emerald-500'
+                              : 'bg-[var(--primary)]'
                           }`}
                           style={{ width: `${badge.progressPercent}%` }}
                         />
@@ -400,7 +400,7 @@ export function BadgesView() {
                   key={mission.id}
                   className={`bg-white rounded-3xl p-5 border shadow-2xs space-y-4 relative overflow-hidden ${
                     isCompleted
-                      ? 'border-emerald-200 bg-gradient-to-br from-emerald-50/10 to-white'
+                      ? 'border-emerald-200 bg-emerald-50/20'
                       : 'border-slate-100'
                   }`}
                 >
@@ -481,8 +481,8 @@ export function BadgesView() {
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           isCompleted
-                            ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
-                            : 'bg-gradient-to-r from-amber-400 to-[#ff6b4a]'
+                            ? 'bg-emerald-500'
+                            : 'bg-[var(--primary)]'
                         }`}
                         style={{ width: `${mission.progressPercent}%` }}
                       />
@@ -520,7 +520,7 @@ export function BadgesView() {
               <div
                 className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl border shadow-xs ${
                   selectedBadge.isUnlocked
-                    ? 'bg-gradient-to-tr from-amber-100 to-orange-100 border-amber-300'
+                    ? 'bg-white border-[var(--primary-border)]'
                     : 'bg-slate-100 border-slate-200 grayscale'
                 }`}
               >
@@ -567,8 +567,8 @@ export function BadgesView() {
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     selectedBadge.isUnlocked
-                      ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
-                      : 'bg-gradient-to-r from-amber-400 to-[#ff6b4a]'
+                      ? 'bg-emerald-500'
+                      : 'bg-[var(--primary)]'
                   }`}
                   style={{ width: `${selectedBadge.progressPercent}%` }}
                 />

@@ -50,16 +50,6 @@ export function D3WeeklyActivityChart({ pet }: D3WeeklyActivityChartProps) {
       <div className="absolute -top-16 -left-16 w-40 h-40 bg-amber-400/15 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
       <div className="absolute -bottom-16 -right-16 w-40 h-40 bg-orange-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
 
-      {/* ReactBits Spotlight overlay */}
-      {isCardHovered && (
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-100"
-          style={{
-            background: `radial-gradient(350px circle at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(245, 158, 11, 0.08), transparent 80%)`,
-          }}
-        />
-      )}
-
       <div className="flex items-center justify-between z-10">
         <div>
           <div className="flex items-center gap-2">
@@ -112,8 +102,8 @@ export function D3WeeklyActivityChart({ pet }: D3WeeklyActivityChartProps) {
                     style={{ height: `${heightPercent}%` }}
                     className={`w-full transition-all duration-500 rounded-t-2xl ${
                       hitGoal
-                        ? 'bg-gradient-to-t from-orange-500 via-amber-500 to-amber-300 shadow-md shadow-orange-500/20'
-                        : 'bg-gradient-to-t from-slate-300 to-slate-400/80'
+                        ? 'bg-[var(--primary)] shadow-md shadow-[var(--primary)]/20'
+                        : 'bg-slate-300'
                     } ${isHovered ? 'brightness-110 scale-105 shadow-lg' : ''}`}
                   />
                 </div>
@@ -121,7 +111,7 @@ export function D3WeeklyActivityChart({ pet }: D3WeeklyActivityChartProps) {
                 {/* Day Label */}
                 <span
                   className={`text-[10px] sm:text-[11px] font-bold mt-2.5 transition-colors ${
-                    index === 6 ? 'text-[#ff6b4a] font-black' : 'text-slate-500'
+                    index === 6 ? 'text-[var(--primary)] font-black' : 'text-slate-500'
                   }`}
                 >
                   {d.day}

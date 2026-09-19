@@ -62,7 +62,7 @@ export function OnboardingView() {
           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
             <div
               style={{ width: `${(step / 3) * 100}%` }}
-              className="bg-[#ff6b4a] h-full rounded-full transition-all"
+              className="bg-[var(--primary)] h-full rounded-full transition-all"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export function OnboardingView() {
                   value={petName}
                   onChange={(e) => setPetName(e.target.value)}
                   placeholder="e.g. Milo"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
 
@@ -103,7 +103,7 @@ export function OnboardingView() {
                   value={breed}
                   onChange={(e) => setBreed(e.target.value)}
                   placeholder="e.g. Golden Retriever"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
             </div>
@@ -111,7 +111,7 @@ export function OnboardingView() {
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="w-full py-3 rounded-2xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 transition active:scale-95"
+              className="w-full py-3 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 flex items-center justify-center gap-2 transition active:scale-95"
             >
               <span>Next: Biometrics</span>
               <ArrowRight className="w-4 h-4" />
@@ -142,7 +142,7 @@ export function OnboardingView() {
                   step="0.1"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
 
@@ -154,7 +154,7 @@ export function OnboardingView() {
                   type="text"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
             </div>
@@ -166,7 +166,7 @@ export function OnboardingView() {
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -185,7 +185,7 @@ export function OnboardingView() {
               <button
                 type="button"
                 onClick={() => setStep(3)}
-                className="flex-1 py-3 rounded-2xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 transition active:scale-95"
+                className="flex-1 py-3 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 flex items-center justify-center gap-2 transition active:scale-95"
               >
                 <span>Next: Goals</span>
                 <ArrowRight className="w-4 h-4" />
@@ -216,7 +216,7 @@ export function OnboardingView() {
                   type="number"
                   value={targetPortion}
                   onChange={(e) => setTargetPortion(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
 
@@ -228,7 +228,7 @@ export function OnboardingView() {
                   type="number"
                   value={stepsGoal}
                   onChange={(e) => setStepsGoal(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
             </div>
@@ -242,7 +242,7 @@ export function OnboardingView() {
                 value={allergies}
                 onChange={(e) => setAllergies(e.target.value)}
                 placeholder="e.g. Chicken byproduct, Dairy"
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
             </div>
 

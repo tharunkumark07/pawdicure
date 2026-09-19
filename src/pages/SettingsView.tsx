@@ -24,6 +24,8 @@ export function SettingsView() {
     forceCloudSync,
     showToast,
     navigate,
+    currentTheme,
+    setCurrentTheme,
   } = useApp();
 
   const rawSettings = householdData.settings || {};
@@ -83,17 +85,17 @@ export function SettingsView() {
   return (
     <div className="flex flex-col w-full pb-14 space-y-4 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-xs flex items-center justify-between">
+      <div className="bg-[var(--card-bg)] p-4 sm:p-5 rounded-3xl border border-[var(--card-border)] shadow-xs flex items-center justify-between">
         <div>
-          <h1 className="font-heading font-black text-xl text-slate-900">
+          <h1 className="font-heading font-black text-xl text-[var(--text)]">
             Household Settings
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             Cloud persistence, pet profile management &amp; notifications
           </p>
         </div>
 
-        <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[#ff6b4a] flex items-center justify-center font-bold">
+        <div className="w-10 h-10 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
           <SettingsIcon className="w-5 h-5" />
         </div>
       </div>
@@ -160,7 +162,7 @@ export function SettingsView() {
       </div>
 
       {/* Cloud Sync Status */}
-      <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-teal-500/10 p-4 sm:p-5 rounded-3xl border border-blue-100 flex items-center justify-between gap-3">
+      <div className="bg-[var(--primary-light)] p-4 sm:p-5 rounded-3xl border border-[var(--primary-border)] flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-white border border-blue-100 text-blue-600 flex items-center justify-center shadow-2xs shrink-0">
             <Cloud className="w-5 h-5" />
@@ -187,10 +189,53 @@ export function SettingsView() {
         </button>
       </div>
 
+      {/* Theme Picker - Change Dynamically */}
+      <div className="bg-[var(--card-bg)] p-4 sm:p-5 rounded-3xl border border-[var(--card-border)] shadow-xs space-y-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+          <h3 className="font-heading font-bold text-sm text-slate-900">
+            Dynamic Appearance &amp; Themes
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          {[
+            { id: 'sunset', label: 'Sunset', icon: '🌇', color: 'bg-[#ff6b4a]' },
+            { id: 'forest', label: 'Forest', icon: '🌲', color: 'bg-[#059669]' },
+            { id: 'royal', label: 'Royal', icon: '👑', color: 'bg-[#2563eb]' },
+            { id: 'purple', label: 'Purple', icon: '🔮', color: 'bg-[#7c3aed]' },
+            { id: 'glossy-black', label: 'Glossy Black', icon: '✨', color: 'bg-[#09090b] text-white shadow-xs border border-black/10' },
+          ].map((theme) => (
+            <button
+              key={theme.id}
+              onClick={() => {
+                setCurrentTheme(theme.id);
+                showToast(`Switched to ${theme.label} theme!`, 'success');
+              }}
+              className={`p-3 rounded-2xl border flex flex-col items-center gap-2 transition-all active:scale-95 cursor-pointer ${
+                currentTheme === theme.id
+                  ? 'border-[var(--primary)] bg-[var(--primary-light)] ring-2 ring-[var(--primary)]/20'
+                  : 'border-slate-200 hover:border-slate-300 bg-white'
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-xl ${theme.color} flex items-center justify-center text-white text-lg shadow-sm`}>
+                {theme.icon}
+              </div>
+              <span className={`text-[11px] font-bold ${currentTheme === theme.id ? 'text-[var(--primary)]' : 'text-slate-600'}`}>
+                {theme.label}
+              </span>
+            </button>
+          ))}
+        </div>
+        <p className="text-[10px] text-slate-500 font-medium italic text-center">
+          Themes sync automatically with the current time of day by default.
+        </p>
+      </div>
+
       {/* Notification Preferences */}
       <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-xs space-y-3">
         <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 text-[#ff6b4a]" />
+          <Bell className="w-4 h-4 text-[var(--primary)]" />
           <h3 className="font-heading font-bold text-sm text-slate-900">
             Smart Alerts &amp; Notifications
           </h3>
@@ -209,7 +254,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.notifyFeeding}
               onChange={() => toggleSetting('notifyFeeding')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
 
@@ -225,7 +270,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.notifyMeds}
               onChange={() => toggleSetting('notifyMeds')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
 
@@ -241,7 +286,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.notifyVaccinations}
               onChange={() => toggleSetting('notifyVaccinations')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
 
@@ -257,7 +302,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.notifyVet}
               onChange={() => toggleSetting('notifyVet')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
 
@@ -273,7 +318,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.notifyAchievements}
               onChange={() => toggleSetting('notifyAchievements')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
 
@@ -289,7 +334,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.activityReminders}
               onChange={() => toggleSetting('activityReminders')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
         </div>
@@ -310,7 +355,7 @@ export function SettingsView() {
               type="checkbox"
               checked={settings.quietHoursEnabled}
               onChange={() => toggleSetting('quietHoursEnabled')}
-              className="w-4 h-4 text-[#ff6b4a] accent-[#ff6b4a] rounded cursor-pointer"
+              className="w-4 h-4 text-[var(--primary)] accent-[var(--primary)] rounded cursor-pointer"
             />
           </div>
 
@@ -322,7 +367,7 @@ export function SettingsView() {
                   type="time"
                   value={settings.quietHoursStart}
                   onChange={(e) => updateTimeSetting('quietHoursStart', e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[#ff6b4a]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[var(--primary)]"
                 />
               </div>
               <div className="space-y-1">
@@ -331,7 +376,7 @@ export function SettingsView() {
                   type="time"
                   value={settings.quietHoursEnd}
                   onChange={(e) => updateTimeSetting('quietHoursEnd', e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[#ff6b4a]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-[var(--primary)]"
                 />
               </div>
             </div>
@@ -381,7 +426,7 @@ export function SettingsView() {
               showToast('Logged out! Reloading...', 'info');
               setTimeout(() => window.location.reload(), 500);
             }}
-            className="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold border border-orange-200 transition"
+            className="px-3 py-1.5 rounded-xl bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/20 transition"
           >
             Sign Out
           </button>

@@ -57,7 +57,6 @@ export function WeeklyHealthChart({ petName, species }: WeeklyHealthChartProps) 
           label: 'Active Playtime',
           unit: 'mins',
           color: '#f43f5e',
-          gradientId: 'rose-area-grad',
           icon: <Activity className="w-4 h-4 text-rose-500" />
         };
       case 'hydration':
@@ -66,7 +65,6 @@ export function WeeklyHealthChart({ petName, species }: WeeklyHealthChartProps) 
           label: 'Hydration Intake',
           unit: 'ml',
           color: '#0284c7',
-          gradientId: 'sky-area-grad',
           icon: <Droplet className="w-4 h-4 text-sky-500" />
         };
       default:
@@ -75,7 +73,6 @@ export function WeeklyHealthChart({ petName, species }: WeeklyHealthChartProps) 
           label: 'Wellness Quotient',
           unit: '%',
           color: '#10b981',
-          gradientId: 'emerald-area-grad',
           icon: <Sparkles className="w-4 h-4 text-emerald-500" />
         };
     }
@@ -189,22 +186,6 @@ export function WeeklyHealthChart({ petName, species }: WeeklyHealthChartProps) 
       {/* Main SVG Area Chart Canvas */}
       <div ref={containerRef} className="w-full h-[180px] sm:h-[200px] relative mt-2 select-none">
         <svg width="100%" height="100%" className="overflow-visible">
-          <defs>
-            {/* Soft area color gradients */}
-            <linearGradient id="emerald-area-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-            </linearGradient>
-            <linearGradient id="rose-area-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
-            </linearGradient>
-            <linearGradient id="sky-area-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0284c7" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
-
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
             const lineY = paddingY + p * chartHeight;
@@ -222,10 +203,11 @@ export function WeeklyHealthChart({ petName, species }: WeeklyHealthChartProps) 
             );
           })}
 
-          {/* Glowing Area Fill */}
+          {/* Solid Area Fill */}
           <path
             d={getAreaPath()}
-            fill={metric.gradientId ? `url(#${metric.gradientId})` : 'none'}
+            fill={metric.color}
+            fillOpacity="0.15"
             className="transition-all duration-350 ease-out"
           />
 

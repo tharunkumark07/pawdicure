@@ -22,7 +22,7 @@ export function EmergencyView() {
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const petVaccines = householdData.vaccines.filter((v) => v.petId === activePet.id);
+  const petVaccines = (householdData.vaccinationHistory || []).filter((v) => v.petId === activePet.id);
   const petMeds = householdData.medications.filter((m) => m.petId === activePet.id);
 
   const handleCopyPass = () => {
@@ -128,8 +128,8 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
         </div>
 
         {/* CRITICAL ALLERGIES IN HIGH VISIBILITY RED */}
-        <div className="bg-white text-slate-900 p-3.5 rounded-2xl space-y-1">
-          <div className="flex items-center gap-1.5 text-red-600 font-black text-xs uppercase tracking-wide">
+        <div className="bg-[var(--card-bg)] text-[var(--text)] p-3.5 rounded-2xl space-y-1 border border-[var(--card-border)]">
+          <div className="flex items-center gap-1.5 text-red-500 font-black text-xs uppercase tracking-wide">
             <AlertTriangle className="w-4 h-4" />
             <span>KNOWN ALLERGIES &amp; CONTRAINDICATIONS</span>
           </div>
@@ -159,7 +159,7 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
         {/* Owner Contact */}
         <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#ff6b4a] flex items-center justify-center font-bold text-xs">
+            <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold text-xs">
               <User className="w-4 h-4" />
             </div>
             <div>
@@ -174,7 +174,7 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
 
           <a
             href={`tel:${activePet.emergencyPhone || '+15550192834'}`}
-            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition active:scale-95"
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/10 transition active:scale-95"
           >
             <Phone className="w-3.5 h-3.5" />
             <span>Call</span>

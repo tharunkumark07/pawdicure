@@ -52,26 +52,26 @@ export function NotificationsView() {
       case 'reward':
         return <Gift className="w-4 h-4 text-purple-600" />;
       default:
-        return <Sparkles className="w-4 h-4 text-[#ff6b4a]" />;
+        return <Sparkles className="w-4 h-4 text-[var(--primary)]" />;
     }
   };
 
   return (
     <div className="flex flex-col w-full pb-14 space-y-4 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-xs flex items-center justify-between">
+      <div className="bg-[var(--card-bg)] p-4 sm:p-5 rounded-3xl border border-[var(--card-border)] shadow-xs flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-heading font-black text-xl text-slate-900">
+            <h1 className="font-heading font-black text-xl text-[var(--text)]">
               Notification Center
             </h1>
             {unreadNotificationCount > 0 && (
-              <span className="text-[10px] font-bold text-white bg-[#ff6b4a] px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold text-white bg-[var(--primary)] px-2 py-0.5 rounded-full">
                 {unreadNotificationCount} new
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             Vital alerts, upcoming care schedules &amp; rewards
           </p>
         </div>
@@ -81,7 +81,7 @@ export function NotificationsView() {
             <button
               type="button"
               onClick={markAllNotificationsRead}
-              className="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold transition"
+              className="p-2 text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--background-alt)] hover:opacity-80 rounded-xl text-xs font-bold transition"
               title="Mark all as read"
             >
               <CheckCheck className="w-4 h-4" />
@@ -95,7 +95,7 @@ export function NotificationsView() {
                 notifications.forEach((n) => deleteNotification(n.id));
                 showToast('All notifications cleared', 'info');
               }}
-              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl text-xs font-bold transition"
+              className="p-2 text-[var(--text-muted)] opacity-40 hover:text-red-500 hover:bg-red-500/10 rounded-xl text-xs font-bold transition"
               title="Clear all"
             >
               <Trash2 className="w-4 h-4" />
@@ -124,7 +124,7 @@ export function NotificationsView() {
             <button
               type="button"
               onClick={registerPushNotifications}
-              className="px-4 py-2 bg-white text-slate-950 rounded-xl text-xs font-bold hover:bg-slate-100 transition shadow-xs flex items-center gap-1.5"
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-xs font-bold hover:opacity-90 transition shadow-xs flex items-center gap-1.5"
             >
               <span>🔔 Enable Native Push Alerts</span>
             </button>
@@ -136,7 +136,7 @@ export function NotificationsView() {
               <button
                 type="button"
                 onClick={triggerTestPushNotification}
-                className="px-3.5 py-1.5 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+                className="px-3.5 py-1.5 bg-[var(--background-alt)] text-[var(--text-muted)] hover:text-[var(--text)] rounded-xl text-xs font-bold transition flex items-center gap-1"
               >
                 <span>📲 Send Test Push</span>
               </button>
@@ -153,14 +153,14 @@ export function NotificationsView() {
           { id: 'health', label: 'Health & Vet 🩺' },
           { id: 'reminder', label: 'Reminders ⏰' },
         ].map((tab) => (
-          <button
+            <button
             key={tab.id}
             type="button"
             onClick={() => setFilter(tab.id as any)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
               filter === tab.id
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-[var(--text)] text-[var(--background)] shadow-2xs'
+                : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:bg-[var(--background-alt)]'
             }`}
           >
             {tab.label}
@@ -177,13 +177,13 @@ export function NotificationsView() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white p-8 rounded-3xl border border-dashed border-slate-200 text-center space-y-2"
+              className="bg-[var(--card-bg)] p-8 rounded-3xl border border-dashed border-[var(--card-border)] text-center space-y-2"
             >
-              <Bell className="w-10 h-10 text-slate-300 mx-auto" />
-              <h3 className="font-heading font-bold text-sm text-slate-800">
+              <Bell className="w-10 h-10 text-[var(--text-muted)] opacity-30 mx-auto" />
+              <h3 className="font-heading font-bold text-sm text-[var(--text)]">
                 No notifications here
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[var(--text-muted)]">
                 You are completely caught up on your pet care routines!
               </p>
             </motion.div>
@@ -204,27 +204,27 @@ export function NotificationsView() {
                 onClick={() => handleNotificationClick(n)}
                 className={`p-4 rounded-3xl border transition cursor-pointer flex items-start justify-between gap-3 select-none active:scale-99 ${
                   n.read
-                    ? 'bg-white border-slate-100 shadow-2xs opacity-80 hover:opacity-100'
-                    : 'bg-orange-50/50 border-orange-200 shadow-xs hover:border-orange-300'
+                    ? 'bg-[var(--card-bg)] border-[var(--card-border)] shadow-2xs opacity-80 hover:opacity-100'
+                    : 'bg-[var(--primary)]/5 border-[var(--primary)]/20 shadow-xs hover:border-[var(--primary)]/30'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-2xs shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shadow-2xs shrink-0 mt-0.5">
                     {getIcon(n.type)}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-slate-900">
+                      <h4 className="text-xs font-bold text-[var(--text)]">
                         {n.title}
                       </h4>
                       {!n.read && (
-                        <span className="w-2 h-2 rounded-full bg-[#ff6b4a]" />
+                        <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                    <p className="text-[11px] text-[var(--text-muted)] mt-0.5 leading-relaxed">
                       {n.message}
                     </p>
-                    <span className="text-[9px] text-slate-400 font-mono mt-1 block">
+                    <span className="text-[9px] text-[var(--text-muted)] opacity-50 font-mono mt-1 block">
                       {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -233,7 +233,7 @@ export function NotificationsView() {
                 {n.actionRoute && (
                   <button
                     type="button"
-                    className="text-slate-400 hover:text-[#ff6b4a] p-1 shrink-0"
+                    className="text-[var(--text-muted)] opacity-50 hover:text-[var(--primary)] hover:opacity-100 p-1 shrink-0"
                   >
                     <ArrowRight className="w-4 h-4" />
                   </button>

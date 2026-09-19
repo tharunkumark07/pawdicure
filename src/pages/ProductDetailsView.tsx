@@ -47,7 +47,7 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
         <button
           type="button"
           onClick={() => navigate('/store')}
-          className="px-4 py-2 bg-[#ff6b4a] text-white text-xs font-bold rounded-xl"
+          className="px-4 py-2 bg-[var(--primary)] text-white text-xs font-bold rounded-xl"
         >
           Return to Store
         </button>
@@ -71,7 +71,7 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
         <button
           type="button"
           onClick={() => navigate('/store')}
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 transition"
+          className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--card-bg)] px-3 py-1.5 rounded-xl border border-[var(--card-border)] transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Store</span>
@@ -92,8 +92,8 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
       </div>
 
       {/* Main Product Card */}
-      <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-xs space-y-5">
-        <div className="aspect-4/3 w-full rounded-2xl overflow-hidden bg-slate-50 relative">
+      <div className="bg-[var(--card-bg)] rounded-3xl p-4 sm:p-6 border border-[var(--card-border)] shadow-xs space-y-5">
+        <div className="aspect-4/3 w-full rounded-2xl overflow-hidden bg-[var(--background-alt)] relative">
           <img
             src={product.image}
             alt={product.title}
@@ -122,11 +122,11 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
           <p className="text-xs text-slate-500">{product.subtitle}</p>
 
           <div className="flex items-baseline justify-between pt-1">
-            <div className="text-2xl font-black font-heading text-slate-900">
+            <div className="text-2xl font-black font-heading text-[var(--text)]">
               ${product.price.toFixed(2)}
             </div>
             {product.points && (
-              <div className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/80 flex items-center gap-1">
+              <div className="text-xs font-bold text-amber-700 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 <span>or {product.points.toLocaleString()} Paw Points</span>
               </div>
@@ -135,17 +135,17 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
         </div>
 
         {/* In Stock & Fast Shipping Badges */}
-        <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 text-[11px] text-slate-600">
+        <div className="grid grid-cols-3 gap-2 py-3 border-y border-[var(--card-border)] text-[11px] text-[var(--text-muted)]">
           <div className="flex items-center gap-1.5">
-            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="font-bold text-emerald-700">In Stock</span>
+            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span className="font-bold text-emerald-500">In Stock</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Truck className="w-4 h-4 text-blue-600 shrink-0" />
+            <Truck className="w-4 h-4 text-blue-500 shrink-0" />
             <span>Free 2-Day Delivery</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-purple-600 shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-purple-500 shrink-0" />
             <span>Vet Certified</span>
           </div>
         </div>
@@ -158,11 +158,11 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
           </div>
 
           {product.ingredients && (
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <h4 className="font-bold text-slate-900 text-[11px] mb-0.5">
+            <div className="p-3 bg-[var(--background-alt)] rounded-2xl border border-[var(--card-border)]">
+              <h4 className="font-bold text-[var(--text)] text-[11px] mb-0.5">
                 Active Nutritional Components
               </h4>
-              <p className="text-[11px] text-slate-600 font-mono">
+              <p className="text-[11px] text-[var(--text-muted)] opacity-80 font-mono">
                 {product.ingredients}
               </p>
             </div>
@@ -172,22 +172,22 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
         {/* Quantity and Purchase CTA */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700">Quantity</span>
-            <div className="flex items-center gap-3 bg-slate-100 p-1 rounded-xl">
+            <span className="text-xs font-bold text-[var(--text-muted)]">Quantity</span>
+            <div className="flex items-center gap-3 bg-[var(--background-alt)] p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-7 h-7 rounded-lg bg-white font-bold text-slate-700 flex items-center justify-center hover:bg-slate-200 transition"
+                className="w-7 h-7 rounded-lg bg-[var(--card-bg)] font-bold text-[var(--text)] flex items-center justify-center hover:bg-[var(--background-alt)] transition"
               >
                 -
               </button>
-              <span className="text-xs font-extrabold w-4 text-center">
+              <span className="text-xs font-extrabold w-4 text-center text-[var(--text)]">
                 {quantity}
               </span>
               <button
                 type="button"
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-7 h-7 rounded-lg bg-white font-bold text-slate-700 flex items-center justify-center hover:bg-slate-200 transition"
+                className="w-7 h-7 rounded-lg bg-[var(--card-bg)] font-bold text-[var(--text)] flex items-center justify-center hover:bg-[var(--background-alt)] transition"
               >
                 +
               </button>

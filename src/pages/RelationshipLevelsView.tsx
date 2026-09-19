@@ -13,46 +13,56 @@ import {
 export function RelationshipLevelsView() {
   const { activePet, householdData, navigate } = useApp();
 
+  const getRelationshipLevel = (level: number) => {
+    if (level <= 3) return 1;
+    if (level <= 7) return 2;
+    if (level <= 11) return 3;
+    if (level <= 15) return 4;
+    return 5;
+  };
+
+  const activeTier = getRelationshipLevel(activePet.level || 1);
+
   const levels = [
     {
       level: 1,
       title: 'Acquaintance',
-      xp: '0 - 100 XP',
+      xp: 'Level 1 - 3',
       icon: '🐾',
       benefits: ['Access to daily feeding log', 'Water intake tracker', 'Basic reminders'],
-      current: activePet.relationshipLevel === 1,
+      current: activeTier === 1,
     },
     {
       level: 2,
       title: 'Companion',
-      xp: '101 - 250 XP',
+      xp: 'Level 4 - 7',
       icon: '🐶',
       benefits: ['Medical passport & vaccine logs', 'Allergy tracking', 'Custom reminder sounds'],
-      current: activePet.relationshipLevel === 2,
+      current: activeTier === 2,
     },
     {
       level: 3,
       title: 'Soulbound Friend',
-      xp: '251 - 500 XP',
+      xp: 'Level 8 - 11',
       icon: '💖',
       benefits: ['15% discount across pet store', 'PAWdiCURE AI personalized assistant', 'Family sharing access'],
-      current: activePet.relationshipLevel === 3,
+      current: activeTier === 3,
     },
     {
       level: 4,
       title: 'Pack Alpha Guardian',
-      xp: '501 - 900 XP',
+      xp: 'Level 12 - 15',
       icon: '👑',
       benefits: ['Exclusive silver badge & avatars', 'Priority store deliveries', 'Custom nutritional formulation'],
-      current: activePet.relationshipLevel === 4,
+      current: activeTier === 4,
     },
     {
       level: 5,
       title: 'Eternal Bond',
-      xp: '901+ XP',
+      xp: 'Level 16+',
       icon: '✨',
       benefits: ['VIP Golden profile passport', 'Free annual telemedicine check', 'Immortalized companion plaque'],
-      current: activePet.relationshipLevel === 5,
+      current: activeTier === 5,
     },
   ];
 
@@ -63,23 +73,23 @@ export function RelationshipLevelsView() {
         <button
           type="button"
           onClick={() => navigate('/relationship')}
-          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 transition"
+          className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--card-bg)] px-3 py-1.5 rounded-xl border border-[var(--card-border)] transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Relationship</span>
         </button>
 
-        <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
-          Level {activePet.relationshipLevel || 3} Active
+        <span className="text-xs font-bold text-[var(--text)] bg-[var(--background-alt)] px-3 py-1 rounded-full">
+          {activePet.name}: Level {activePet.level || 1} • Tier {activeTier} Active
         </span>
       </div>
 
       {/* Header */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-xs space-y-2">
-        <h1 className="font-heading font-black text-xl text-slate-900">
+      <div className="bg-[var(--card-bg)] p-4 sm:p-5 rounded-3xl border border-[var(--card-border)] shadow-xs space-y-2">
+        <h1 className="font-heading font-black text-xl text-[var(--text)]">
           Relationship Tiers &amp; Echelons
         </h1>
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
           Leveling up your companionship unlocks deeper clinical features, discounts on premium nutrition, and specialized care badges.
         </p>
       </div>
@@ -91,7 +101,7 @@ export function RelationshipLevelsView() {
             key={lvl.level}
             className={`p-4 rounded-3xl border transition-all ${
               lvl.current
-                ? 'bg-gradient-to-r from-orange-50/70 to-rose-50/70 border-orange-200 shadow-sm ring-2 ring-[#ff6b4a]/20'
+                ? 'bg-[var(--primary-light)] border-[var(--primary-border)] shadow-sm ring-2 ring-[var(--primary)]/10'
                 : 'bg-white border-slate-100 shadow-xs'
             }`}
           >
@@ -106,7 +116,7 @@ export function RelationshipLevelsView() {
                       Tier {lvl.level}: {lvl.title}
                     </h3>
                     {lvl.current && (
-                      <span className="text-[10px] font-bold text-[#ae3115] bg-orange-100 px-2 py-0.2 rounded-full">
+                      <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.2 rounded-full">
                         Your Rank
                       </span>
                     )}

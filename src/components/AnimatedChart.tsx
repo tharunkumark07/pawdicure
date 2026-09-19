@@ -39,7 +39,6 @@ export function AnimatedChart({
   const colorThemes = {
     orange: {
       stroke: '#ff6b4a',
-      gradient: 'url(#area-grad-orange)',
       glow: 'rgba(249, 115, 22, 0.2)',
       bg: 'bg-orange-50/50',
       text: 'text-orange-600',
@@ -47,7 +46,6 @@ export function AnimatedChart({
     },
     rose: {
       stroke: '#f43f5e',
-      gradient: 'url(#area-grad-rose)',
       glow: 'rgba(244, 63, 94, 0.2)',
       bg: 'bg-rose-50/50',
       text: 'text-rose-600',
@@ -55,7 +53,6 @@ export function AnimatedChart({
     },
     indigo: {
       stroke: '#6366f1',
-      gradient: 'url(#area-grad-indigo)',
       glow: 'rgba(99, 102, 241, 0.2)',
       bg: 'bg-indigo-50/50',
       text: 'text-indigo-600',
@@ -63,7 +60,6 @@ export function AnimatedChart({
     },
     emerald: {
       stroke: '#10b981',
-      gradient: 'url(#area-grad-emerald)',
       glow: 'rgba(16, 185, 129, 0.2)',
       bg: 'bg-emerald-50/50',
       text: 'text-emerald-600',
@@ -135,16 +131,6 @@ export function AnimatedChart({
       <div className="absolute -top-16 -left-16 w-40 h-40 bg-orange-400/10 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
       <div className="absolute -bottom-16 -right-16 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
 
-      {/* Spotlight overlay from ReactBits style */}
-      {isCardHovered && (
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-100 z-0"
-          style={{
-            background: `radial-gradient(350px circle at ${spotlightPos.x}px ${spotlightPos.y}px, ${currentTheme.glow}, transparent 80%)`,
-          }}
-        />
-      )}
-
       {/* Header Info */}
       <div className="flex items-center justify-between z-10">
         <div>
@@ -179,23 +165,6 @@ export function AnimatedChart({
       <div className="relative pt-4 pb-2 z-10 my-auto">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible select-none">
           <defs>
-            <linearGradient id="area-grad-orange" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ff6b4a" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#ff6b4a" stopOpacity="0.0" />
-            </linearGradient>
-            <linearGradient id="area-grad-rose" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.0" />
-            </linearGradient>
-            <linearGradient id="area-grad-indigo" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
-            </linearGradient>
-            <linearGradient id="area-grad-emerald" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-            </linearGradient>
-
             <filter id="curved-line-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="3.5" result="blur" />
               <feMerge>
@@ -260,7 +229,8 @@ export function AnimatedChart({
           {points.length > 0 && (
             <motion.path
               d={areaD}
-              fill={currentTheme.gradient}
+              fill={currentTheme.stroke}
+              fillOpacity={0.12}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}

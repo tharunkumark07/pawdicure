@@ -15,11 +15,23 @@ import {
   AppNotification,
   RewardItem,
   DailyCycle,
+  PetActivityRecord,
+  ActivityType,
+  ActivityIntensity,
+  CustomRoutine,
+  RoutineItem,
+  RoutineItemExecution,
+  ScheduledRoutineItem,
 } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
-import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db } from '../lib/firebase';
+import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db, auth } from '../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { dailyCycleService } from '../services/dailyCycleService';
+import { activityService } from '../services/activityService';
+import { routineService } from '../services/routineService';
+import { getUserLocalDate, getUserLocalTime } from '../lib/timeUtils';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { updateDocumentFavicon } from '../lib/favicon';
 
 const STORAGE_KEY = 'pawdicure_household_state_v2';
 
@@ -89,6 +101,11 @@ interface AppContextType {
   // Family & Care Activities
   inviteFamilyMember: (member: { name: string; email: string; role: 'Owner' | 'Family Member' | 'Caregiver' }) => void;
   addCareActivity: (action: string, xp?: number, icon?: string) => void;
+  activities: PetActivityRecord[];
+  logPetActivity: (activity: Omit<PetActivityRecord, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => Promise<PetActivityRecord>;
+  updatePetActivity: (activityId: string, updates: Partial<PetActivityRecord>) => Promise<void>;
+  deletePetActivity: (activityId: string) => Promise<void>;
+  logActivity: (type: ActivityType, duration: number, notes?: string, intensity?: ActivityIntensity) => void;
 
   // Places / Explorer
   togglePlaceFavorite: (placeId: string) => void;
@@ -99,6 +116,11 @@ interface AppContextType {
   resetDemoData: () => void;
   exportData: () => void;
   performDailyCheckIn: () => { success: boolean; message: string; pointsEarned: number };
+  verifyVaccine: (vaccineId: string) => Promise<boolean>;
+
+  // Realtime Firebase Auth Actions
+  loginUserWithFirebase: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
+  signupUserWithFirebase: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: any }>;
 
   // Notifications
   notifications: AppNotification[];
@@ -119,11 +141,32 @@ interface AppContextType {
   dailyCycle: DailyCycle | null;
   refreshDailyCycle: () => Promise<void>;
 
+  // Custom Routines Orchestration
+  routines: CustomRoutine[];
+  routineExecutions: RoutineItemExecution[];
+  todayScheduledRoutineItems: ScheduledRoutineItem[];
+  activePetRoutines: CustomRoutine[];
+  createRoutine: (routine: Partial<CustomRoutine>) => Promise<CustomRoutine>;
+  updateRoutine: (routineId: string, updates: Partial<CustomRoutine>) => Promise<void>;
+  deleteRoutine: (routineId: string) => Promise<void>;
+  duplicateRoutine: (routineId: string) => Promise<CustomRoutine>;
+  toggleRoutineActive: (routineId: string, active: boolean) => Promise<void>;
+  completeRoutineItem: (
+    routineItemId: string,
+    options?: { quantity?: number; duration?: number; notes?: string }
+  ) => Promise<void>;
+  skipRoutineItem: (routineItemId: string, reason?: string) => Promise<void>;
+  uncompleteRoutineItem: (routineItemId: string) => Promise<void>;
+  refreshRoutines: () => Promise<void>;
+
   // Push Notifications State & Operations
   isPushEnabled: boolean;
   pushPermissionStatus: 'default' | 'granted' | 'denied';
   registerPushNotifications: () => Promise<boolean>;
   triggerTestPushNotification: () => Promise<boolean>;
+  currentTheme: string;
+  setCurrentTheme: (theme: string) => void;
+  updateFavicon: (color: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -412,33 +455,101 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Sync real-time badge and mission collections from Firestore
+  // Theme state
+  const [currentTheme, setCurrentTheme] = useState<string>(() => {
+    const saved = localStorage.getItem('pawdicure_app_theme');
+    if (saved) return saved;
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'forest';
+    if (hour >= 12 && hour < 18) return 'royal';
+    return 'sunset';
+  });
+
   useEffect(() => {
-    if (!userId) return;
-
-    const badgesRef = collection(db, 'users', userId, 'badgeProgress');
-    const unsubBadges = onSnapshot(badgesRef, (snap) => {
-      const items: any[] = [];
-      snap.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() });
-      });
-      setBadgeProgress(items);
-    });
-
-    const missionsRef = collection(db, 'users', userId, 'missionProgress');
-    const unsubMissions = onSnapshot(missionsRef, (snap) => {
-      const items: any[] = [];
-      snap.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() });
-      });
-      setMissionProgress(items);
-    });
-
-    return () => {
-      unsubBadges();
-      unsubMissions();
+    localStorage.setItem('pawdicure_app_theme', currentTheme);
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    const themeStyles: Record<string, { primary: string; background: string; text: string; primaryLight: string; primaryBorder: string; textMuted: string; cardBg: string; cardBorder: string }> = {
+      sunset: { 
+        primary: '#ff6b4a', 
+        background: '#fffaf5', 
+        text: '#2c1810',
+        primaryLight: 'rgba(255, 107, 74, 0.1)',
+        primaryBorder: 'rgba(255, 107, 74, 0.2)',
+        textMuted: '#574e4a',
+        cardBg: 'rgba(255, 255, 255, 0.92)',
+        cardBorder: 'rgba(254, 215, 170, 0.6)'
+      },
+      forest: { 
+        primary: '#059669', 
+        background: '#f0fdf4', 
+        text: '#064e3b',
+        primaryLight: 'rgba(5, 150, 105, 0.1)',
+        primaryBorder: 'rgba(5, 150, 105, 0.2)',
+        textMuted: '#1e3a34',
+        cardBg: 'rgba(255, 255, 255, 0.92)',
+        cardBorder: 'rgba(187, 247, 208, 0.6)'
+      },
+      royal: { 
+        primary: '#2563eb', 
+        background: '#eff6ff', 
+        text: '#1e3a8a',
+        primaryLight: 'rgba(37, 99, 235, 0.1)',
+        primaryBorder: 'rgba(37, 99, 235, 0.2)',
+        textMuted: '#334155',
+        cardBg: 'rgba(255, 255, 255, 0.92)',
+        cardBorder: 'rgba(191, 219, 254, 0.6)'
+      },
+      purple: { 
+        primary: '#7c3aed', 
+        background: '#f5f3ff', 
+        text: '#5b21b6',
+        primaryLight: 'rgba(124, 58, 237, 0.1)',
+        primaryBorder: 'rgba(124, 58, 237, 0.2)',
+        textMuted: '#4c1d95',
+        cardBg: 'rgba(255, 255, 255, 0.92)',
+        cardBorder: 'rgba(221, 214, 254, 0.6)'
+      },
+      'glossy-black': {
+        primary: '#09090b',
+        background: '#f8fafc',
+        text: '#09090b',
+        primaryLight: 'rgba(9, 9, 11, 0.08)',
+        primaryBorder: 'rgba(9, 9, 11, 0.2)',
+        textMuted: '#64748b',
+        cardBg: 'rgba(255, 255, 255, 0.95)',
+        cardBorder: 'rgba(226, 232, 240, 0.9)'
+      },
     };
-  }, [userId]);
+    const style = themeStyles[currentTheme] || themeStyles.sunset;
+    document.documentElement.style.setProperty('--primary', style.primary);
+    document.documentElement.style.setProperty('--primary-rgb', style.primary.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '255, 107, 74');
+    document.documentElement.style.setProperty('--primary-light', style.primaryLight);
+    document.documentElement.style.setProperty('--primary-border', style.primaryBorder);
+    document.documentElement.style.setProperty('--background', style.background);
+    document.documentElement.style.setProperty('--background-rgb', style.background.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '255, 250, 245');
+    document.documentElement.style.setProperty('--text', style.text);
+    document.documentElement.style.setProperty('--text-rgb', style.text.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '44, 24, 16');
+    document.documentElement.style.setProperty('--text-muted', style.textMuted);
+    document.documentElement.style.setProperty('--card-bg', style.cardBg);
+    document.documentElement.style.setProperty('--card-border', style.cardBorder);
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    // Update document favicon and browser theme-color to match active theme
+    updateDocumentFavicon(style.primary);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Respect user's explicit theme choice if saved
+      if (localStorage.getItem('pawdicure_app_theme')) return;
+      const hour = new Date().getHours();
+      let newTheme = 'sunset';
+      if (hour >= 5 && hour < 12) newTheme = 'forest';
+      else if (hour >= 12 && hour < 18) newTheme = 'royal';
+      setCurrentTheme(newTheme);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Firebase real-time subscription
   useEffect(() => {
@@ -669,7 +780,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activePetId: newActivePetId,
         pets: updatedPets,
         memories: (prev.memories || []).filter((m) => m.petId !== petId),
-        vaccines: (prev.vaccines || []).filter((v) => v.petId !== petId),
+        vaccinationHistory: (prev.vaccinationHistory || []).filter((v) => v.petId !== petId),
         medications: (prev.medications || []).filter((med) => med.petId !== petId),
         vetVisits: (prev.vetVisits || []).filter((vv) => vv.petId !== petId),
         reminders: (prev.reminders || []).filter((rem) => rem.petId !== petId),
@@ -935,7 +1046,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     updateHousehold((prev) => ({
       ...prev,
-      vaccines: [...prev.vaccines, newVac],
+      vaccinationHistory: [...prev.vaccinationHistory, newVac],
     }));
     triggerConfetti();
     addXp(50, `Recorded vaccination: ${vaccine.name}`);
@@ -946,8 +1057,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const toggleVaccine = (id: string) => {
     updateHousehold((prev) => ({
       ...prev,
-      vaccines: prev.vaccines.map((v) =>
-        v.id === id ? { ...v, completed: !v.completed, status: !v.completed ? 'Verified Current' : 'Pending Booster' } : v
+      vaccinationHistory: prev.vaccinationHistory.map((v) =>
+        v.id === id ? { ...v, completed: !v.completed, status: !v.completed ? 'Administered' : 'Due' } : v
       ),
     }));
     showToast('Vaccination status updated', 'success', '💉');
@@ -956,7 +1067,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteVaccine = (id: string) => {
     updateHousehold((prev) => ({
       ...prev,
-      vaccines: prev.vaccines.filter((v) => v.id !== id),
+      vaccinationHistory: prev.vaccinationHistory.filter((v) => v.id !== id),
     }));
     showToast('Vaccine record deleted', 'info');
   };
@@ -1294,6 +1405,467 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const logPetActivity = async (
+    activityData: Omit<PetActivityRecord, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
+  ): Promise<PetActivityRecord> => {
+    const targetPetId = activityData.petId || activePet.id;
+    const savedRecord = await activityService.saveActivity(
+      userId || 'local_user',
+      targetPetId,
+      activityData
+    );
+
+    updateHousehold((prev) => {
+      const existing = prev.activities || [];
+      const updatedList = [savedRecord, ...existing.filter((a) => a.id !== savedRecord.id)];
+      return {
+        ...prev,
+        activities: updatedList,
+        pawPoints: (prev.pawPoints || 0) + (savedRecord.xpEarned || 20),
+        currentXp: (prev.currentXp || 0) + (savedRecord.xpEarned || 20),
+      };
+    });
+
+    // Mirror to careActivities for legacy components
+    addCareActivity(
+      `${savedRecord.title}${savedRecord.durationMinutes ? ` (${savedRecord.durationMinutes}m)` : ''}`,
+      savedRecord.xpEarned,
+      savedRecord.icon || 'pets'
+    );
+
+    triggerConfetti();
+    showToast(
+      `${savedRecord.title} recorded! +${savedRecord.xpEarned} XP`,
+      'success',
+      savedRecord.icon || '🐾'
+    );
+
+    refreshDailyCycle();
+    evaluateAchievements();
+
+    return savedRecord;
+  };
+
+  const updatePetActivity = async (
+    activityId: string,
+    updates: Partial<PetActivityRecord>
+  ): Promise<void> => {
+    await activityService.updateActivity(
+      userId || 'local_user',
+      activePet.id,
+      activityId,
+      updates
+    );
+
+    updateHousehold((prev) => ({
+      ...prev,
+      activities: (prev.activities || []).map((act) =>
+        act.id === activityId ? { ...act, ...updates, updatedAt: Date.now() } : act
+      ),
+    }));
+
+    showToast('Activity updated successfully', 'success', '✏️');
+    refreshDailyCycle();
+    evaluateAchievements();
+  };
+
+  const deletePetActivity = async (activityId: string): Promise<void> => {
+    const target = (householdData.activities || []).find((a) => a.id === activityId);
+    const date = target?.date || getUserLocalDate();
+
+    await activityService.deleteActivity(
+      userId || 'local_user',
+      activePet.id,
+      activityId
+    );
+
+    updateHousehold((prev) => {
+      const xpToDeduct = target?.xpEarned || 0;
+      return {
+        ...prev,
+        activities: (prev.activities || []).filter((act) => act.id !== activityId),
+        pawPoints: Math.max(0, (prev.pawPoints || 0) - xpToDeduct),
+        currentXp: Math.max(0, (prev.currentXp || 0) - xpToDeduct),
+      };
+    });
+
+    showToast('Activity removed and care statistics updated', 'info', '🗑️');
+    refreshDailyCycle();
+    evaluateAchievements();
+  };
+
+  // -------------------------------------------------------------
+  // CUSTOM ROUTINES ORCHESTRATION ENGINE
+  // -------------------------------------------------------------
+
+  const activePetRoutines: CustomRoutine[] = (householdData.routines || []).filter(
+    (r) => r.petId === activePet.id
+  );
+
+  const todayDateKey = getUserLocalDate();
+  const todayScheduledRoutineItems: ScheduledRoutineItem[] = routineService.getScheduledRoutineItemsForDate(
+    activePetRoutines,
+    householdData.routineExecutions || [],
+    todayDateKey
+  );
+
+  const refreshRoutines = async () => {
+    if (userId && activePet.id) {
+      try {
+        const fetchedRoutines = await routineService.fetchPetRoutines(userId, activePet.id);
+        const fetchedExecutions = await routineService.fetchRoutineExecutions(userId, activePet.id, todayDateKey);
+        updateHousehold((prev) => {
+          const otherPetRoutines = (prev.routines || []).filter((r) => r.petId !== activePet.id);
+          const otherPetExecutions = (prev.routineExecutions || []).filter((e) => e.petId !== activePet.id);
+          return {
+            ...prev,
+            routines: [...otherPetRoutines, ...fetchedRoutines],
+            routineExecutions: [...otherPetExecutions, ...fetchedExecutions],
+          };
+        });
+      } catch (err) {
+        console.warn('Could not refresh routines from Firestore:', err);
+      }
+    }
+  };
+
+  const createRoutine = async (routineData: Partial<CustomRoutine>): Promise<CustomRoutine> => {
+    const routineId = routineData.id || `routine-${Date.now()}`;
+    const newRoutine: CustomRoutine = {
+      id: routineId,
+      userId: userId || 'default-user',
+      petId: routineData.petId || activePet.id,
+      name: routineData.name || `${activePet.name}'s Daily Care`,
+      description: routineData.description || '',
+      icon: routineData.icon || '🐾',
+      accent: routineData.accent || '#3b82f6',
+      active: routineData.active !== false,
+      items: (routineData.items || []).map((item, idx) => ({
+        ...item,
+        id: item.id || `item-${routineId}-${idx + 1}-${Date.now()}`,
+        routineId,
+        petId: routineData.petId || activePet.id,
+        userId: userId || 'default-user',
+        category: item.category || routineService.getActivityCategory(item.activityType),
+        scheduledTime: item.scheduledTime || '08:00 AM',
+        repeatType: item.repeatType || 'every_day',
+        priority: item.priority || 'medium',
+        reminderEnabled: item.reminderEnabled !== false,
+        reminderOffset: typeof item.reminderOffset === 'number' ? item.reminderOffset : 0,
+        active: item.active !== false,
+        createdAt: item.createdAt || Date.now(),
+        updatedAt: Date.now(),
+      })),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    await routineService.savePetRoutine(userId || 'default-user', newRoutine.petId, newRoutine);
+
+    updateHousehold((prev) => ({
+      ...prev,
+      routines: [...(prev.routines || []).filter((r) => r.id !== newRoutine.id), newRoutine],
+    }));
+
+    triggerConfetti();
+    showToast(`Routine "${newRoutine.name}" created! ✨`, 'success', newRoutine.icon || '🗓️');
+    addCareActivity(`Created custom routine "${newRoutine.name}" with ${newRoutine.items.length} activities`, 40);
+    return newRoutine;
+  };
+
+  const updateRoutine = async (routineId: string, updates: Partial<CustomRoutine>): Promise<void> => {
+    const existing = (householdData.routines || []).find((r) => r.id === routineId);
+    if (!existing) return;
+
+    const updatedRoutine: CustomRoutine = {
+      ...existing,
+      ...updates,
+      items: updates.items
+        ? updates.items.map((item, idx) => ({
+            ...item,
+            id: item.id || `item-${routineId}-${idx + 1}-${Date.now()}`,
+            routineId,
+            petId: existing.petId,
+            userId: userId || 'default-user',
+            category: item.category || routineService.getActivityCategory(item.activityType),
+            scheduledTime: item.scheduledTime || '08:00 AM',
+            active: item.active !== false,
+            createdAt: item.createdAt || Date.now(),
+            updatedAt: Date.now(),
+          }))
+        : existing.items,
+      updatedAt: Date.now(),
+    };
+
+    await routineService.savePetRoutine(userId || 'default-user', updatedRoutine.petId, updatedRoutine);
+
+    updateHousehold((prev) => ({
+      ...prev,
+      routines: (prev.routines || []).map((r) => (r.id === routineId ? updatedRoutine : r)),
+    }));
+
+    showToast(`Routine "${updatedRoutine.name}" updated!`, 'success', '✏️');
+  };
+
+  const deleteRoutine = async (routineId: string): Promise<void> => {
+    const target = (householdData.routines || []).find((r) => r.id === routineId);
+    const routineName = target?.name || 'Routine';
+
+    await routineService.deletePetRoutine(userId || 'default-user', target?.petId || activePet.id, routineId);
+
+    updateHousehold((prev) => ({
+      ...prev,
+      routines: (prev.routines || []).filter((r) => r.id !== routineId),
+    }));
+
+    showToast(`Routine "${routineName}" deleted. Completed activity history is preserved.`, 'info', '🗑️');
+  };
+
+  const duplicateRoutine = async (routineId: string): Promise<CustomRoutine> => {
+    const target = (householdData.routines || []).find((r) => r.id === routineId);
+    if (!target) throw new Error('Routine not found');
+
+    const duplicated = await routineService.duplicatePetRoutine(
+      userId || 'default-user',
+      target.petId,
+      target
+    );
+
+    updateHousehold((prev) => ({
+      ...prev,
+      routines: [...(prev.routines || []), duplicated],
+    }));
+
+    triggerConfetti();
+    showToast(`Routine duplicated as "${duplicated.name}"!`, 'success', '📋');
+    return duplicated;
+  };
+
+  const toggleRoutineActive = async (routineId: string, active: boolean): Promise<void> => {
+    const target = (householdData.routines || []).find((r) => r.id === routineId);
+    if (!target) return;
+
+    await routineService.togglePetRoutineActive(
+      userId || 'default-user',
+      target.petId,
+      routineId,
+      active
+    );
+
+    updateHousehold((prev) => ({
+      ...prev,
+      routines: (prev.routines || []).map((r) => (r.id === routineId ? { ...r, active, updatedAt: Date.now() } : r)),
+    }));
+
+    showToast(
+      active ? `Routine "${target.name}" resumed!` : `Routine "${target.name}" paused.`,
+      active ? 'success' : 'info',
+      active ? '▶️' : '⏸️'
+    );
+  };
+
+  const completeRoutineItem = async (
+    routineItemId: string,
+    options?: { quantity?: number; duration?: number; notes?: string }
+  ): Promise<void> => {
+    let foundItem: RoutineItem | null = null;
+    let parentRoutine: CustomRoutine | null = null;
+
+    for (const r of householdData.routines || []) {
+      const match = (r.items || []).find((it) => it.id === routineItemId);
+      if (match) {
+        foundItem = match;
+        parentRoutine = r;
+        break;
+      }
+    }
+
+    if (!foundItem) {
+      showToast('Scheduled task not found', 'warning');
+      return;
+    }
+
+    const today = getUserLocalDate();
+    const existingExec = (householdData.routineExecutions || []).find(
+      (e) => e.routineItemId === routineItemId && e.date === today
+    );
+
+    if (existingExec && existingExec.status === 'completed') {
+      showToast(`"${foundItem.title}" was already completed today!`, 'info', '✅');
+      return;
+    }
+
+    const targetPetId = foundItem.petId || activePet.id;
+    const petObj = householdData.pets[targetPetId] || activePet;
+    const execId = `exec-${routineItemId}-${today}-${Date.now()}`;
+    const xpReward = foundItem.priority === 'high' ? 35 : foundItem.priority === 'medium' ? 25 : 20;
+
+    let linkedRecordId: string | undefined = undefined;
+
+    // Single source of truth system linking
+    if (foundItem.activityType === 'feeding') {
+      const grams = options?.quantity || foundItem.quantity || petObj.targetPortionGrams || 180;
+      feedPet(grams, [foundItem.title]);
+      linkedRecordId = `feed-routine-${Date.now()}`;
+    } else if (foundItem.activityType === 'water') {
+      refreshWater();
+      linkedRecordId = `water-routine-${Date.now()}`;
+    } else if (
+      ['walk', 'play', 'exercise', 'training', 'outdoor', 'indoor_play', 'bonding'].includes(
+        foundItem.activityType
+      )
+    ) {
+      const duration = options?.duration || foundItem.durationMinutes || 25;
+      const rec = await logPetActivity({
+        petId: targetPetId,
+        activityType: foundItem.activityType as any,
+        title: foundItem.title,
+        durationMinutes: duration,
+        intensity: foundItem.priority === 'high' ? 'high' : 'moderate',
+        date: today,
+        startTime: getUserLocalTime(),
+        notes: options?.notes || foundItem.notes,
+        location: foundItem.location,
+        source: 'routine',
+        xpEarned: xpReward,
+        icon: foundItem.icon || '🐾',
+      });
+      linkedRecordId = rec.id;
+    } else if (foundItem.activityType === 'medication') {
+      addCareActivity(`Administered scheduled dose: "${foundItem.title}"`, xpReward, 'medication');
+      addXp(xpReward, `Completed routine medication: ${foundItem.title}`);
+      linkedRecordId = `med-routine-${Date.now()}`;
+    } else {
+      addCareActivity(`Completed routine care: "${foundItem.title}"`, xpReward, foundItem.icon || 'task_alt');
+      addXp(xpReward, `Completed scheduled routine task: ${foundItem.title}`);
+      linkedRecordId = `care-routine-${Date.now()}`;
+    }
+
+    const executionRecord: RoutineItemExecution = {
+      id: execId,
+      routineId: foundItem.routineId,
+      routineItemId,
+      petId: targetPetId,
+      userId: userId || 'default-user',
+      date: today,
+      status: 'completed',
+      completedAt: Date.now(),
+      completedBy: householdData.userProfile?.name?.split(' ')[0] || 'You',
+      linkedRecordId,
+      notes: options?.notes || foundItem.notes,
+      xpEarned: xpReward,
+      createdAt: Date.now(),
+    };
+
+    await routineService.saveRoutineExecution(userId || 'default-user', targetPetId, executionRecord);
+
+    updateHousehold((prev) => {
+      const filtered = (prev.routineExecutions || []).filter(
+        (e) => !(e.routineItemId === routineItemId && e.date === today)
+      );
+      return {
+        ...prev,
+        routineExecutions: [...filtered, executionRecord],
+        pawPoints: (prev.pawPoints || 0) + xpReward,
+        currentXp: (prev.currentXp || 0) + xpReward,
+      };
+    });
+
+    triggerConfetti();
+    showToast(`✓ Completed "${foundItem.title}"! +${xpReward} XP`, 'success', foundItem.icon || '🎉');
+    refreshDailyCycle();
+    evaluateAchievements();
+  };
+
+  const skipRoutineItem = async (routineItemId: string, reason?: string): Promise<void> => {
+    let foundItem: RoutineItem | null = null;
+    for (const r of householdData.routines || []) {
+      const match = (r.items || []).find((it) => it.id === routineItemId);
+      if (match) {
+        foundItem = match;
+        break;
+      }
+    }
+
+    const today = getUserLocalDate();
+    const targetPetId = foundItem?.petId || activePet.id;
+    const execId = `exec-skip-${routineItemId}-${today}-${Date.now()}`;
+
+    const executionRecord: RoutineItemExecution = {
+      id: execId,
+      routineId: foundItem?.routineId || '',
+      routineItemId,
+      petId: targetPetId,
+      userId: userId || 'default-user',
+      date: today,
+      status: 'skipped',
+      notes: reason || 'Skipped by user',
+      createdAt: Date.now(),
+    };
+
+    await routineService.saveRoutineExecution(userId || 'default-user', targetPetId, executionRecord);
+
+    updateHousehold((prev) => {
+      const filtered = (prev.routineExecutions || []).filter(
+        (e) => !(e.routineItemId === routineItemId && e.date === today)
+      );
+      return {
+        ...prev,
+        routineExecutions: [...filtered, executionRecord],
+      };
+    });
+
+    showToast(`Skipped "${foundItem?.title || 'task'}" for today.`, 'info', '⏭️');
+  };
+
+  const uncompleteRoutineItem = async (routineItemId: string): Promise<void> => {
+    const today = getUserLocalDate();
+    const existingExec = (householdData.routineExecutions || []).find(
+      (e) => e.routineItemId === routineItemId && e.date === today
+    );
+
+    if (existingExec) {
+      await routineService.removeRoutineExecution(
+        userId || 'default-user',
+        existingExec.petId,
+        existingExec.id
+      );
+
+      updateHousehold((prev) => {
+        const xpDeduct = existingExec.xpEarned || 0;
+        return {
+          ...prev,
+          routineExecutions: (prev.routineExecutions || []).filter((e) => e.id !== existingExec.id),
+          pawPoints: Math.max(0, (prev.pawPoints || 0) - xpDeduct),
+          currentXp: Math.max(0, (prev.currentXp || 0) - xpDeduct),
+        };
+      });
+
+      showToast('Activity marked as pending.', 'info', '↩️');
+      refreshDailyCycle();
+    }
+  };
+
+  const logActivity = (
+    type: ActivityType,
+    duration: number,
+    notes?: string,
+    intensity: ActivityIntensity = 'moderate'
+  ) => {
+    logPetActivity({
+      petId: activePet.id,
+      activityType: type,
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Session`,
+      durationMinutes: duration,
+      intensity,
+      date: getUserLocalDate(),
+      startTime: getUserLocalTime(),
+      notes,
+      source: 'manual',
+      xpEarned: 25,
+    });
+  };
+
   // Places / Explorer
   const togglePlaceFavorite = (placeId: string) => {
     updateHousehold((prev) => ({
@@ -1358,10 +1930,98 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginUserWithFirebase = async (emailStr: string, passwordStr: string) => {
+    try {
+      setIsSyncing(true);
+      const cred = await signInWithEmailAndPassword(auth, emailStr, passwordStr);
+      setUserId(cred.user.uid);
+      
+      const customHouseholdId = `household-${cred.user.uid}`;
+      updateHousehold((prev) => ({
+        ...prev,
+        householdId: customHouseholdId,
+        userProfile: {
+          ...prev.userProfile,
+          email: emailStr,
+          name: cred.user.displayName || prev.userProfile?.name || 'Companion Parent',
+        }
+      }));
+      showToast('Real-time login successful! Syncing cloud data... ✨', 'success', '🔐');
+      return { success: true };
+    } catch (err: any) {
+      console.error('Firebase sign-in error:', err);
+      showToast(err.message || 'Login failed. Please check credentials.', 'error', '❌');
+      return { success: false, error: err };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const signupUserWithFirebase = async (emailStr: string, passwordStr: string, nameStr: string) => {
+    try {
+      setIsSyncing(true);
+      const cred = await createUserWithEmailAndPassword(auth, emailStr, passwordStr);
+      await updateProfile(cred.user, { displayName: nameStr });
+      setUserId(cred.user.uid);
+
+      const customHouseholdId = `household-${cred.user.uid}`;
+      updateHousehold((prev) => ({
+        ...prev,
+        householdId: customHouseholdId,
+        userProfile: {
+          ...prev.userProfile,
+          name: nameStr,
+          email: emailStr,
+        }
+      }));
+      showToast('Account created successfully! Real-time sync enabled. ✨', 'success', '🎉');
+      return { success: true };
+    } catch (err: any) {
+      console.error('Firebase sign-up error:', err);
+      showToast(err.message || 'Account creation failed.', 'error', '❌');
+      return { success: false, error: err };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const resetDemoData = () => {
     localStorage.removeItem(STORAGE_KEY);
     setHouseholdData(INITIAL_HOUSEHOLD_DATA);
     showToast('Demo data reset to factory default', 'info', '🔄');
+  };
+
+  const verifyVaccine = async (vaccineId: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/verify-vaccine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          householdId: householdData.householdId,
+          vaccineId
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        showToast('Clinical record verified by backend!', 'success', '🛡️');
+        // The real-time listener will pick up the changes from Firestore, 
+        // but we can also update local state immediately for better UX
+        updateHousehold((prev) => ({
+          ...prev,
+          vaccinationHistory: prev.vaccinationHistory.map(v => v.id === vaccineId ? result.vaccine : v)
+        }));
+        triggerConfetti();
+        return true;
+      } else {
+        showToast(result.error || 'Verification failed.', 'error', '❌');
+        return false;
+      }
+    } catch (err) {
+      console.error('Vaccine verification request failed', err);
+      showToast('Backend verification service unavailable.', 'error', '⚠️');
+      return false;
+    }
   };
 
   const exportData = () => {
@@ -1501,12 +2161,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         claimDailyQuest,
         inviteFamilyMember,
         addCareActivity,
+        activities: householdData.activities || [],
+        logPetActivity,
+        updatePetActivity,
+        deletePetActivity,
+        logActivity,
         togglePlaceFavorite,
         updateUserProfile,
         updateHouseholdSettings,
         resetDemoData,
         exportData,
         performDailyCheckIn,
+        verifyVaccine,
+        loginUserWithFirebase,
+        signupUserWithFirebase,
         notifications,
         unreadNotificationCount,
         markNotificationRead,
@@ -1520,10 +2188,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
         evaluateAchievements,
         dailyCycle,
         refreshDailyCycle,
+        routines: householdData.routines || [],
+        routineExecutions: householdData.routineExecutions || [],
+        todayScheduledRoutineItems,
+        activePetRoutines,
+        createRoutine,
+        updateRoutine,
+        deleteRoutine,
+        duplicateRoutine,
+        toggleRoutineActive,
+        completeRoutineItem,
+        skipRoutineItem,
+        uncompleteRoutineItem,
+        refreshRoutines,
         isPushEnabled,
         pushPermissionStatus,
         registerPushNotifications,
         triggerTestPushNotification,
+        currentTheme,
+        setCurrentTheme,
+        updateFavicon: updateDocumentFavicon,
       }}
     >
       {children}
@@ -1546,3 +2230,5 @@ export function useAuth() {
   }
   return { userId: context.userId };
 }
+
+export { updateDocumentFavicon };

@@ -14,11 +14,9 @@ function SkeletonPulse({
 }) {
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-r from-orange-100/80 via-amber-50/90 to-orange-100/80 rounded-2xl animate-pulse ${className}`}
+      className={`overflow-hidden bg-[var(--primary)]/10 rounded-2xl animate-pulse ${className}`}
       style={style}
-    >
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.6s_infinite]" />
-    </div>
+    />
   );
 }
 
@@ -53,7 +51,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
           </div>
 
           {/* Pet ID & Care Card Skeleton */}
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-4">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-4">
             <div className="flex items-center gap-4">
               <SkeletonPulse className="w-16 h-16 rounded-full shrink-0" />
               <div className="flex-1 space-y-2">
@@ -66,8 +64,8 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             </div>
 
             {/* Vital Care Metric Progress Bars */}
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-orange-50">
-              <div className="space-y-1.5 p-2 rounded-2xl bg-orange-50/40">
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--primary)]/5">
+              <div className="space-y-1.5 p-2 rounded-2xl bg-[var(--primary)]/5">
                 <SkeletonPulse className="h-3 w-12 rounded" />
                 <SkeletonPulse className="h-2 w-full rounded-full" />
               </div>
@@ -83,7 +81,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
           </div>
 
           {/* Daily Streak Card Skeleton */}
-          <div className="p-4 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs flex items-center justify-between">
+          <div className="p-4 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs flex items-center justify-between">
             <div className="flex items-center gap-3">
               <SkeletonPulse className="w-10 h-10 rounded-2xl shrink-0" />
               <div className="space-y-1.5">
@@ -95,7 +93,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
           </div>
 
           {/* Routine Daily Tasks Skeleton */}
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-3">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-3">
             <div className="flex items-center justify-between mb-2">
               <SkeletonPulse className="h-4 w-28 rounded-md" />
               <SkeletonPulse className="h-3.5 w-14 rounded-full" />
@@ -103,7 +101,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="flex items-center justify-between p-3 rounded-2xl bg-orange-50/30 border border-orange-100/40"
+                className="flex items-center justify-between p-3 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10"
               >
                 <div className="flex items-center gap-3">
                   <SkeletonPulse className="w-5 h-5 rounded-lg shrink-0" />
@@ -119,7 +117,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
       {/* 2. FEED & CARE VIEW SKELETON */}
       {isFeed && (
         <>
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-4">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <SkeletonPulse className="h-5 w-36 rounded-md" />
               <SkeletonPulse className="h-5 w-20 rounded-full" />
@@ -136,7 +134,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="p-4 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs flex flex-col items-center space-y-2"
+                className="p-4 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs flex flex-col items-center space-y-2"
               >
                 <SkeletonPulse className="w-12 h-12 rounded-2xl" />
                 <SkeletonPulse className="h-4 w-20 rounded-md" />
@@ -146,7 +144,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
           </div>
 
           {/* Feeding Log Card */}
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-3">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-3">
             <SkeletonPulse className="h-4 w-32 rounded-md" />
             <SkeletonPulse className="h-12 w-full rounded-2xl" />
             <SkeletonPulse className="h-12 w-full rounded-2xl" />
@@ -158,7 +156,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
       {isHealth && (
         <>
           {/* Health Score Overview */}
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs flex items-center justify-between">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs flex items-center justify-between">
             <div className="space-y-2">
               <SkeletonPulse className="h-5 w-32 rounded-md" />
               <SkeletonPulse className="h-3 w-44 rounded" />
@@ -168,7 +166,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
           </div>
 
           {/* Vaccine Checklist */}
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-3">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-3">
             <div className="flex items-center justify-between mb-1">
               <SkeletonPulse className="h-4 w-36 rounded-md" />
               <SkeletonPulse className="h-4 w-16 rounded-full" />
@@ -176,7 +174,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="p-3 rounded-2xl bg-orange-50/30 border border-orange-100/40 flex items-center justify-between"
+                className="p-3 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10 flex items-center justify-between"
               >
                 <div className="space-y-1.5">
                   <SkeletonPulse className="h-3.5 w-28 rounded" />
@@ -192,7 +190,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
       {/* 4. BOND & RELATIONSHIP VIEW SKELETON */}
       {isBond && (
         <>
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-3">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-3">
             <div className="flex items-center gap-3">
               <SkeletonPulse className="w-14 h-14 rounded-2xl shrink-0" />
               <div className="space-y-2 flex-1">
@@ -208,7 +206,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="aspect-square rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs p-2 flex flex-col justify-end"
+                className="aspect-square rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs p-2 flex flex-col justify-end"
               >
                 <SkeletonPulse className="w-full h-full rounded-2xl" />
               </div>
@@ -220,7 +218,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
       {/* 5. BADGES & ACHIEVEMENTS VIEW SKELETON */}
       {isBadges && (
         <>
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-2">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-2">
             <SkeletonPulse className="h-5 w-40 rounded-md" />
             <SkeletonPulse className="h-3.5 w-56 rounded" />
             <SkeletonPulse className="h-3 w-full rounded-full mt-2" />
@@ -230,7 +228,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="p-3.5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs flex flex-col items-center space-y-2"
+                className="p-3.5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs flex flex-col items-center space-y-2"
               >
                 <SkeletonPulse className="w-12 h-12 rounded-full" />
                 <SkeletonPulse className="h-3 w-16 rounded" />
@@ -243,7 +241,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
       {/* 6. REWARDS & STORE VIEW SKELETON */}
       {isRewards && (
         <>
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs flex items-center justify-between">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs flex items-center justify-between">
             <div className="space-y-2">
               <SkeletonPulse className="h-4 w-28 rounded-md" />
               <SkeletonPulse className="h-7 w-32 rounded-lg" />
@@ -255,7 +253,7 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="p-3.5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-2.5"
+                className="p-3.5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-2.5"
               >
                 <SkeletonPulse className="w-full h-28 rounded-2xl" />
                 <SkeletonPulse className="h-4 w-24 rounded-md" />
@@ -272,12 +270,12 @@ export function MainContentSkeleton({ route = '/home' }: MainContentSkeletonProp
       {/* 7. GENERIC FALLBACK FOR SUB-PAGES */}
       {!isHome && !isFeed && !isHealth && !isBond && !isBadges && !isRewards && (
         <>
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-3">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-3">
             <SkeletonPulse className="h-5 w-44 rounded-md" />
             <SkeletonPulse className="h-3.5 w-64 rounded" />
             <SkeletonPulse className="h-20 w-full rounded-2xl mt-2" />
           </div>
-          <div className="p-5 rounded-3xl bg-white/90 border border-orange-100/80 shadow-xs space-y-3">
+          <div className="p-5 rounded-3xl bg-white/90 border border-[var(--primary)]/10 shadow-xs space-y-3">
             <SkeletonPulse className="h-4 w-36 rounded-md" />
             <SkeletonPulse className="h-10 w-full rounded-xl" />
             <SkeletonPulse className="h-10 w-full rounded-xl" />

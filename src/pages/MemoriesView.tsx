@@ -90,10 +90,10 @@ export function MemoriesView() {
   return (
     <div className="flex flex-col w-full pb-14 space-y-4 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-amber-500/10 rounded-3xl p-4 sm:p-5 border border-rose-100 flex items-center justify-between">
+      <div className="bg-[var(--primary-light)] rounded-3xl p-4 sm:p-5 border border-[var(--primary-border)] flex items-center justify-between">
         <div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-100 text-[10px] font-bold text-rose-900 shadow-2xs mb-1">
-            <Camera className="w-3 h-3 text-rose-600" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--primary)]/20 text-[10px] font-bold text-[var(--primary)] shadow-2xs mb-1">
+            <Camera className="w-3 h-3" />
             <span>Companion Journal</span>
           </span>
           <h1 className="font-heading font-black text-xl sm:text-2xl text-slate-900">
@@ -106,7 +106,7 @@ export function MemoriesView() {
 
         <TapButton
           onClick={() => setIsAddOpen(true)}
-          className="px-3.5 py-2 rounded-2xl bg-[#ff6b4a] text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition shrink-0"
+          className="px-3.5 py-2 rounded-2xl bg-[var(--primary)] text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Add Moment</span>
@@ -127,7 +127,7 @@ export function MemoriesView() {
                 className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
               />
               <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-xl text-white text-[10px] font-bold flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-orange-400" />
+                <Calendar className="w-3 h-3 text-[var(--primary)]" />
                 <span>{mem.date}</span>
               </div>
               <button
@@ -204,7 +204,7 @@ export function MemoriesView() {
                       onClick={() => setImageUrl(url)}
                       className={`w-14 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition ${
                         imageUrl === url
-                          ? 'border-[#ff6b4a] ring-2 ring-orange-200 scale-105'
+                          ? 'border-[var(--primary)] ring-2 ring-[var(--primary)]/20 scale-105'
                           : 'border-slate-200 opacity-70 hover:opacity-100'
                       }`}
                     >
@@ -237,7 +237,7 @@ export function MemoriesView() {
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   />
                 </div>
 
@@ -249,7 +249,7 @@ export function MemoriesView() {
                     type="text"
                     value={mood}
                     onChange={(e) => setMood(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ export function MemoriesView() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition"
+                  className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 transition"
                 >
                   Save to Journal (+35 XP)
                 </button>

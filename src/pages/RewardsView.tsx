@@ -76,16 +76,16 @@ export function RewardsView() {
   return (
     <div className="flex flex-col w-full pb-20 space-y-4 animate-in fade-in duration-200">
       {/* Hero Points & Exclusivity Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#1e1b4b] text-white p-5 shadow-xl border border-slate-700/60">
-        <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-[#ff6b4a]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-8 -top-8 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-5 shadow-xl border border-slate-700/60">
+        <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-[var(--primary)]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-8 -top-8 w-40 h-40 bg-[var(--primary)]/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">
                   PAWdiCURE Clinical &amp; Partner Rewards
                 </span>
               </div>
@@ -107,7 +107,7 @@ export function RewardsView() {
                 className={`px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-xs ${
                   isCheckedInToday
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-default'
-                    : 'bg-gradient-to-r from-amber-500 to-[#ff6b4a] text-white hover:brightness-110 shadow-amber-500/20'
+                    : 'bg-[var(--primary)] text-white hover:brightness-110 shadow-[var(--primary)]/20'
                 }`}
               >
                 {isCheckedInToday ? (
@@ -163,12 +163,12 @@ export function RewardsView() {
           onClick={() => setActiveCategory('my-vouchers')}
           className={`p-3.5 rounded-2xl border transition text-left flex items-center justify-between ${
             activeCategory === 'my-vouchers'
-              ? 'bg-orange-50 border-[#ff6b4a] text-orange-950 shadow-2xs'
+              ? 'bg-[var(--primary-light)] border-[var(--primary)] text-[var(--text)] shadow-2xs'
               : 'bg-white border-slate-200/80 hover:border-slate-300 text-slate-800'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#ff6b4a] flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center font-bold">
               <Ticket className="w-4 h-4" />
             </div>
             <div>
@@ -215,7 +215,7 @@ export function RewardsView() {
           onClick={() => setActiveCategory('clinical')}
           className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
             activeCategory === 'clinical'
-              ? 'bg-[#ff6b4a] text-white shadow-xs'
+              ? 'bg-[var(--primary)] text-white shadow-xs'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -226,7 +226,7 @@ export function RewardsView() {
           onClick={() => setActiveCategory('diagnostic')}
           className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
             activeCategory === 'diagnostic'
-              ? 'bg-[#ff6b4a] text-white shadow-xs'
+              ? 'bg-[var(--primary)] text-white shadow-xs'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -237,7 +237,7 @@ export function RewardsView() {
           onClick={() => setActiveCategory('therapeutic')}
           className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
             activeCategory === 'therapeutic'
-              ? 'bg-[#ff6b4a] text-white shadow-xs'
+              ? 'bg-[var(--primary)] text-white shadow-xs'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -248,7 +248,7 @@ export function RewardsView() {
           onClick={() => setActiveCategory('wellness')}
           className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
             activeCategory === 'wellness'
-              ? 'bg-[#ff6b4a] text-white shadow-xs'
+              ? 'bg-[var(--primary)] text-white shadow-xs'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -259,7 +259,7 @@ export function RewardsView() {
           onClick={() => setActiveCategory('gear')}
           className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
             activeCategory === 'gear'
-              ? 'bg-[#ff6b4a] text-white shadow-xs'
+              ? 'bg-[var(--primary)] text-white shadow-xs'
               : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -297,7 +297,7 @@ export function RewardsView() {
               <button
                 type="button"
                 onClick={() => setActiveCategory('all')}
-                className="px-4 py-2 rounded-full bg-[#ff6b4a] text-white text-xs font-bold shadow-md hover:bg-[#ed4d26] transition"
+                className="px-4 py-2 rounded-full bg-[var(--primary)] text-white text-xs font-bold shadow-md hover:opacity-90 transition"
               >
                 View Available Rewards
               </button>
@@ -391,7 +391,7 @@ export function RewardsView() {
                     isLocked
                       ? 'border-slate-200/70 opacity-90'
                       : canAfford
-                      ? 'border-orange-200 hover:border-[#ff6b4a] hover:shadow-md'
+                      ? 'border-[var(--primary-border)] hover:border-[var(--primary)] hover:shadow-md'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -437,7 +437,7 @@ export function RewardsView() {
 
                       <h4
                         onClick={() => setSelectedReward(rew)}
-                        className="font-heading font-bold text-xs sm:text-sm text-slate-900 mt-1 cursor-pointer hover:text-[#ff6b4a] transition line-clamp-1"
+                        className="font-heading font-bold text-xs sm:text-sm text-slate-900 mt-1 cursor-pointer hover:text-[var(--primary)] transition line-clamp-1"
                       >
                         {rew.title}
                       </h4>
@@ -473,7 +473,7 @@ export function RewardsView() {
                     <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          canAfford ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-400 to-[#ff6b4a]'
+                          canAfford ? 'bg-emerald-500' : 'bg-[var(--primary)]'
                         }`}
                         style={{ width: `${pointsProgress}%` }}
                       />
@@ -501,7 +501,7 @@ export function RewardsView() {
                         <button
                           type="button"
                           onClick={() => handleRedeemClick(rew)}
-                          className="flex-1 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-[#ff6b4a] hover:from-orange-600 hover:to-[#ed4d26] text-white text-xs font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 transition active:scale-98"
+                          className="flex-1 py-2 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 flex items-center justify-center gap-1.5 transition active:scale-98"
                         >
                           <Gift className="w-3.5 h-3.5" />
                           <span>Redeem Exclusive Voucher</span>

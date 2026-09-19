@@ -51,7 +51,7 @@ export function WishlistView() {
           <button
             type="button"
             onClick={() => navigate('/store')}
-            className="mt-2 px-4 py-2 rounded-xl bg-[#ff6b4a] text-white text-xs font-bold shadow-md shadow-orange-500/20"
+            className="mt-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20"
           >
             Explore Essentials
           </button>
@@ -72,7 +72,7 @@ export function WishlistView() {
                 />
                 <div>
                   <h4
-                    className="font-heading font-bold text-xs text-slate-900 line-clamp-1 cursor-pointer hover:text-[#ff6b4a]"
+                    className="font-heading font-bold text-xs text-slate-900 line-clamp-1 cursor-pointer hover:text-[var(--primary)]"
                     onClick={() => navigate(`/store/product/${p.id}`)}
                   >
                     {p.title}
@@ -93,7 +93,7 @@ export function WishlistView() {
                     addToCart(p, 1);
                     toggleWishlist(p.id);
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold flex items-center gap-1 shadow-2xs transition active:scale-95"
+                  className="px-3 py-1.5 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold flex items-center gap-1 shadow-2xs transition active:scale-95"
                 >
                   <ShoppingCart className="w-3.5 h-3.5" />
                   <span>Move to Cart</span>

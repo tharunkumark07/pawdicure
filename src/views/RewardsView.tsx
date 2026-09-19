@@ -32,7 +32,7 @@ export function RewardsView({
   return (
     <div className="flex flex-col w-full pb-8 space-y-4 animate-in fade-in duration-200">
       {/* Vault Points Hero Header */}
-      <div className="bg-gradient-to-tr from-[#ae3115] via-[#ff6b4a] to-amber-500 rounded-3xl p-5 text-white shadow-md">
+      <div className="bg-[var(--primary)] rounded-3xl p-5 text-white shadow-md">
         <div className="flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-orange-100 uppercase tracking-wider">

@@ -50,16 +50,6 @@ export function D3WeightChart({ pet }: D3WeightChartProps) {
       <div className="absolute -top-16 -right-16 w-40 h-40 bg-indigo-400/15 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
       <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
 
-      {/* ReactBits Spotlight overlay */}
-      {isCardHovered && (
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-100"
-          style={{
-            background: `radial-gradient(350px circle at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(99, 102, 241, 0.08), transparent 80%)`,
-          }}
-        />
-      )}
-
       <div className="flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-2xl bg-indigo-100/80 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">

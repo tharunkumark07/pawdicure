@@ -109,7 +109,7 @@ export function EmergencyModal({ isOpen, pet, onClose }: EmergencyModalProps) {
           <button
             type="button"
             onClick={handleSharePass}
-            className="w-full py-2.5 rounded-2xl bg-orange-50 hover:bg-orange-100 text-[#ff6b4a] font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+            className="w-full py-2.5 rounded-2xl bg-[var(--primary-light)] hover:opacity-90 text-[var(--primary)] font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
           >
             {copied ? (
               <>

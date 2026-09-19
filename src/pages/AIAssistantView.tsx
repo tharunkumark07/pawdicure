@@ -129,19 +129,19 @@ If lethargy persists beyond 24 hours, contact your clinic (${activePet.vetClinic
   return (
     <div className="flex flex-col w-full h-[calc(100vh-140px)] min-h-[500px] pb-4 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="bg-white p-3 sm:p-4 rounded-3xl border border-slate-100 shadow-xs flex items-center justify-between shrink-0 mb-3">
+      <div className="bg-[var(--card-bg)] p-3 sm:p-4 rounded-3xl border border-[var(--card-border)] shadow-xs flex items-center justify-between shrink-0 mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff6b4a] to-[#ae3115] text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+          <div className="w-10 h-10 rounded-2xl bg-[var(--primary)] text-white flex items-center justify-center shadow-md shadow-[var(--primary)]/20">
             <Bot className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="font-heading font-black text-base text-slate-900">
+              <h1 className="font-heading font-black text-base text-[var(--primary)]">
                 PAWdiCURE AI
               </h1>
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-[var(--text-muted)]">
               Personalized for {activePet.name} ({activePet.breed})
             </p>
           </div>
@@ -150,7 +150,7 @@ If lethargy persists beyond 24 hours, contact your clinic (${activePet.vetClinic
         <button
           type="button"
           onClick={handleClear}
-          className="p-2 text-slate-400 hover:text-red-500 rounded-xl hover:bg-slate-100 transition"
+          className="p-2 text-[var(--text-muted)] hover:text-red-500 rounded-xl hover:bg-[var(--background-alt)] transition"
           title="Clear chat"
         >
           <Trash2 className="w-4 h-4" />
@@ -169,14 +169,14 @@ If lethargy persists beyond 24 hours, contact your clinic (${activePet.vetClinic
             <div
               className={`max-w-[85%] sm:max-w-[75%] p-3.5 rounded-3xl text-xs leading-relaxed ${
                 msg.sender === 'user'
-                  ? 'bg-gradient-to-r from-[#ff6b4a] to-[#ed4d26] text-white rounded-tr-xs shadow-md shadow-orange-500/15'
-                  : 'bg-white text-slate-800 border border-slate-100 rounded-tl-xs shadow-2xs'
+                  ? 'bg-[var(--primary)] text-white rounded-tr-xs shadow-md shadow-[var(--primary)]/15'
+                  : 'bg-[var(--card-bg)] text-[var(--text)] border border-[var(--card-border)] rounded-tl-xs shadow-2xs'
               }`}
             >
               <div className="whitespace-pre-line font-normal">{msg.text}</div>
               <span
                 className={`text-[9px] mt-1.5 block font-mono ${
-                  msg.sender === 'user' ? 'text-orange-200 text-right' : 'text-slate-400'
+                  msg.sender === 'user' ? 'text-white/70 text-right' : 'text-[var(--text-muted)]'
                 }`}
               >
                 {msg.time}
@@ -186,8 +186,8 @@ If lethargy persists beyond 24 hours, contact your clinic (${activePet.vetClinic
         ))}
 
         {isTyping && (
-          <div className="flex items-center gap-2 p-3 rounded-2xl bg-white border border-slate-100 w-fit text-xs text-slate-500 animate-pulse">
-            <Bot className="w-4 h-4 text-[#ff6b4a]" />
+          <div className="flex items-center gap-2 p-3 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] w-fit text-xs text-[var(--text-muted)] animate-pulse">
+            <Bot className="w-4 h-4 text-[var(--primary)]" />
             <span>PAWdiCURE AI is analyzing {activePet.name}'s records...</span>
           </div>
         )}
@@ -227,7 +227,7 @@ If lethargy persists beyond 24 hours, contact your clinic (${activePet.vetClinic
         <button
           type="submit"
           disabled={!input.trim()}
-          className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff6b4a] to-[#ae3115] text-white flex items-center justify-center shadow-md shadow-orange-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition active:scale-95 shrink-0"
+          className="w-12 h-12 rounded-2xl bg-[var(--primary)] text-white flex items-center justify-center shadow-md shadow-[var(--primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed transition active:scale-95 shrink-0"
         >
           <Send className="w-4 h-4" />
         </button>

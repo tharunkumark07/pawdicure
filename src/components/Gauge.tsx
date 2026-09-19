@@ -113,16 +113,6 @@ export function Gauge({
       onMouseLeave={() => setIsHovered(false)}
       className="flex flex-col items-center justify-between p-5 sm:p-6 lg:p-7 bg-white/70 backdrop-blur-[12px] rounded-3xl border border-white/50 shadow-lg shadow-slate-200/30 ring-1 ring-slate-900/5 relative overflow-hidden w-full h-full min-h-[370px] transition-all duration-300 hover:shadow-xl group"
     >
-      {/* Dynamic spotlight hover glow */}
-      {isHovered && (
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-100 z-0"
-          style={{
-            background: `radial-gradient(300px circle at ${spotlightPos.x}px ${spotlightPos.y}px, ${currentTheme.glow}, transparent 80%)`,
-          }}
-        />
-      )}
-
       {/* Title block */}
       <div className="w-full flex items-center justify-between z-10">
         <h4 className="font-heading font-black text-xs sm:text-sm text-slate-800 flex items-center gap-2">

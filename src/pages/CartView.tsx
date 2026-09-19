@@ -71,20 +71,20 @@ export function CartView() {
 
   if (orderComplete) {
     return (
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xs text-center space-y-4 animate-in zoom-in-95 duration-200 my-4">
-        <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-inner">
+      <div className="bg-[var(--card-bg)] rounded-3xl p-6 sm:p-8 border border-[var(--card-border)] shadow-xs text-center space-y-4 animate-in zoom-in-95 duration-200 my-4">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto text-2xl shadow-inner">
           <CheckCircle2 className="w-8 h-8" />
         </div>
 
-        <h1 className="font-heading font-black text-2xl text-slate-900">
+        <h1 className="font-heading font-black text-2xl text-[var(--text)]">
           Order Dispatched!
         </h1>
 
-        <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+        <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed">
           Your order <strong>#{orderId}</strong> is being freshly packed at the PAWdiCURE fulfillment center. Standard 2-day delivery tracking has been sent to your registered email.
         </p>
 
-        <div className="p-3.5 bg-orange-50 rounded-2xl border border-orange-200 text-xs font-bold text-[#ae3115]">
+        <div className="p-3.5 bg-[var(--primary)]/10 rounded-2xl border border-[var(--primary)]/20 text-xs font-bold text-[var(--primary)]">
           🎉 You earned +150 Paw Points with this order!
         </div>
 
@@ -138,7 +138,7 @@ export function CartView() {
           <button
             type="button"
             onClick={() => navigate('/store')}
-            className="mt-2 px-4 py-2 rounded-xl bg-[#ff6b4a] text-white text-xs font-bold shadow-md shadow-orange-500/20"
+            className="mt-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20"
           >
             Explore Pet Store
           </button>
@@ -219,7 +219,7 @@ export function CartView() {
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
                   placeholder="Promo code (e.g. PAW15)"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 uppercase focus:outline-none focus:ring-2 focus:ring-[#ff6b4a]"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[var(--card-border)] text-xs text-[var(--text)] uppercase focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
                 />
               </div>
               <button
@@ -273,7 +273,7 @@ export function CartView() {
               type="button"
               disabled={isCheckingOut}
               onClick={handleCheckout}
-              className="w-full py-3 rounded-2xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 transition active:scale-95 flex items-center justify-center gap-2"
             >
               <CreditCard className="w-4 h-4" />
               <span>

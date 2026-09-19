@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Utensils, Footprints, Pill, Camera, Sparkles, Stethoscope, Droplets, X } from 'lucide-react';
+import { Utensils, Footprints, Camera, Stethoscope, Calendar, Sparkles, X } from 'lucide-react';
 import { triggerHaptic } from '../lib/haptics';
 
 interface RadialQuickCareProps {
   isOpen: boolean;
   onClose: () => void;
-  onAction: (action: 'feed' | 'walk' | 'med' | 'memory' | 'play' | 'health' | 'water') => void;
+  onAction: (action: 'feed' | 'walk' | 'med' | 'memory' | 'play' | 'health' | 'water' | 'reminder' | 'routine') => void;
 }
 
 export function RadialQuickCare({ isOpen, onClose, onAction }: RadialQuickCareProps) {
@@ -20,13 +20,12 @@ export function RadialQuickCare({ isOpen, onClose, onAction }: RadialQuickCarePr
   }, [isOpen]);
 
   const actions = [
-    { id: 'feed', icon: Utensils, label: 'Feed', color: 'text-orange-500', bg: 'bg-orange-100' },
-    { id: 'water', icon: Droplets, label: 'Water', color: 'text-blue-500', bg: 'bg-blue-100' },
-    { id: 'walk', icon: Footprints, label: 'Walk', color: 'text-emerald-600', bg: 'bg-emerald-100' },
-    { id: 'play', icon: Sparkles, label: 'Play', color: 'text-violet-500', bg: 'bg-violet-100' },
-    { id: 'memory', icon: Camera, label: 'Memory', color: 'text-pink-500', bg: 'bg-pink-100' },
-    { id: 'health', icon: Stethoscope, label: 'Health', color: 'text-teal-600', bg: 'bg-teal-100' },
-    { id: 'med', icon: Pill, label: 'Med', color: 'text-indigo-500', bg: 'bg-indigo-100' },
+    { id: 'feed' as const, icon: Utensils, label: 'Feed Pet', color: 'text-orange-500', bg: 'bg-orange-100' },
+    { id: 'walk' as const, icon: Footprints, label: 'Activity', color: 'text-emerald-600', bg: 'bg-emerald-100' },
+    { id: 'routine' as const, icon: Sparkles, label: 'Routine', color: 'text-amber-500', bg: 'bg-amber-100' },
+    { id: 'memory' as const, icon: Camera, label: 'Memory', color: 'text-pink-500', bg: 'bg-pink-100' },
+    { id: 'health' as const, icon: Stethoscope, label: 'Health', color: 'text-teal-600', bg: 'bg-teal-100' },
+    { id: 'reminder' as const, icon: Calendar, label: 'Reminder', color: 'text-indigo-500', bg: 'bg-indigo-100' },
   ];
 
   // Calculate positions for a semi-circle/fan above the center bottom

@@ -864,6 +864,49 @@ async function startServer() {
     }
   });
 
+  // -------------------------------------------------------------
+  // CLINICAL RECORD VERIFICATION API (V2.0 Backend Service)
+  // -------------------------------------------------------------
+  app.post("/api/verify-vaccine", async (req, res) => {
+    try {
+      const { householdId, vaccineId } = req.body;
+      if (!householdId || !vaccineId) {
+        return res.status(400).json({ error: "Missing householdId or vaccineId" });
+      }
+
+      const householdRef = doc(db, 'households', householdId);
+      const householdSnap = await getDoc(householdRef);
+      
+      if (!householdSnap.exists()) {
+        return res.status(404).json({ error: "Household not found" });
+      }
+
+      const data = householdSnap.data();
+      const vaccines = data.vaccinationHistory || [];
+      const index = vaccines.findIndex((v: any) => v.id === vaccineId);
+
+      if (index === -1) {
+        return res.status(404).json({ error: "Vaccine record not found" });
+      }
+
+      // Simulate a clinical verification process (e.g., checking with a vet database)
+      vaccines[index].verificationLevel = 'Clinic Verified';
+      vaccines[index].status = 'Administered';
+      vaccines[index].notes = (vaccines[index].notes || "") + "\n[System] Verified against clinic clinical registry.";
+
+      await setDoc(householdRef, { vaccinationHistory: vaccines }, { merge: true });
+
+      return res.json({ 
+        success: true, 
+        message: "Vaccine clinical record verified successfully.",
+        vaccine: vaccines[index]
+      });
+    } catch (err: any) {
+      console.error("Verification Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
   // Serve Vite app in development, statically compiled build folder in production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

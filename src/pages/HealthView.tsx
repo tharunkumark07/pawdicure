@@ -48,7 +48,7 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
   const [newAllergyInput, setNewAllergyInput] = useState('');
   const [showAllergyInput, setShowAllergyInput] = useState(false);
 
-  const petVaccines = householdData.vaccines.filter((v) => v.petId === activePet.id);
+  const petVaccines = (householdData.vaccinationHistory || []).filter((v) => v.petId === activePet.id);
   const petMeds = householdData.medications.filter((m) => m.petId === activePet.id);
   const petVisits = (householdData.vetVisits || []).filter((v) => v.petId === activePet.id);
   const weightPoints = (householdData.weightHistory || []).filter((w) => w.petId === activePet.id);
@@ -56,7 +56,7 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
   return (
     <div className="flex flex-col w-full pb-10 space-y-4 animate-in fade-in duration-200">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 rounded-3xl p-4 sm:p-5 border border-emerald-100 flex items-center justify-between">
+      <div className="bg-[var(--primary-light)] rounded-3xl p-4 sm:p-5 border border-[var(--primary-border)] flex items-center justify-between">
         <div>
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-800 shadow-2xs mb-1">
             <Activity className="w-3 h-3 text-emerald-600" />
@@ -86,7 +86,6 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
           type="button"
           onClick={() => {
             setActiveTab('overview');
-            navigate('/health');
           }}
           className={`py-2 text-xs font-bold rounded-xl transition ${
             activeTab === 'overview'
@@ -101,7 +100,6 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
           type="button"
           onClick={() => {
             setActiveTab('vaccinations');
-            navigate('/health/vaccinations');
           }}
           className={`py-2 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 ${
             activeTab === 'vaccinations'
@@ -119,7 +117,6 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
           type="button"
           onClick={() => {
             setActiveTab('medications');
-            navigate('/health/medications');
           }}
           className={`py-2 text-xs font-bold rounded-xl transition ${
             activeTab === 'medications'
@@ -134,7 +131,6 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
           type="button"
           onClick={() => {
             setActiveTab('vet-visits');
-            navigate('/health/vet-visits');
           }}
           className={`py-2 text-xs font-bold rounded-xl transition ${
             activeTab === 'vet-visits'
@@ -214,10 +210,7 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
                   <div className="mt-2 flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setActiveTab('vaccinations');
-                        navigate('/health/vaccinations');
-                      }}
+                      onClick={() => navigate('/health/passport')}
                       className="px-3 py-1 rounded-xl bg-amber-600 text-white text-[11px] font-bold hover:bg-amber-700 transition"
                     >
                       View Vaccine Passport
@@ -297,7 +290,7 @@ export function HealthView({ initialSubTab = 'overview' }: HealthViewProps) {
                       style={{ height: `${heightPct}%` }}
                       className={`w-full rounded-t-lg transition-all ${
                         idx === weightPoints.length - 1
-                          ? 'bg-gradient-to-t from-[#ff6b4a] to-[#ff937b]'
+                          ? 'bg-[var(--primary)]'
                           : 'bg-slate-200 hover:bg-slate-300'
                       }`}
                     />

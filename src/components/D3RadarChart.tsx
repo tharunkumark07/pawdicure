@@ -138,18 +138,7 @@ export function D3RadarChart({ pet }: D3RadarChartProps) {
 
     const initialData = data.map((d) => ({ ...d, value: 0 }));
 
-    // Radial gradient & drop shadow definition
     const defs = svg.append('defs');
-    const gradient = defs
-      .append('linearGradient')
-      .attr('id', 'radar-gradient-v3')
-      .attr('x1', '0%')
-      .attr('y1', '0%')
-      .attr('x2', '100%')
-      .attr('y2', '100%');
-
-    gradient.append('stop').attr('offset', '0%').attr('stop-color', '#ff6b4a').attr('stop-opacity', 0.55);
-    gradient.append('stop').attr('offset', '100%').attr('stop-color', '#f59e0b').attr('stop-opacity', 0.25);
 
     // Filter for glow effect
     const filter = defs.append('filter').attr('id', 'radar-glow').attr('x', '-20%').attr('y', '-20%').attr('width', '140%').attr('height', '140%');
@@ -158,13 +147,13 @@ export function D3RadarChart({ pet }: D3RadarChartProps) {
     feMerge.append('feMergeNode').attr('in', 'coloredBlur');
     feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
-    // Filled polygon path
+    // Filled polygon path with solid dynamic primary fill
     const polygonPath = svg
       .append('path')
       .datum(initialData)
       .attr('d', radarLine)
-      .attr('fill', 'url(#radar-gradient-v3)')
-      .attr('stroke', '#ff6b4a')
+      .attr('fill', 'var(--primary-light)')
+      .attr('stroke', 'var(--primary)')
       .attr('stroke-width', 2.5)
       .attr('filter', 'url(#radar-glow)');
 
@@ -249,16 +238,6 @@ export function D3RadarChart({ pet }: D3RadarChartProps) {
       {/* Background ambient glass glows */}
       <div className="absolute -top-16 -right-16 w-40 h-40 bg-orange-400/15 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
       <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-indigo-400/10 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-
-      {/* ReactBits Spotlight overlay */}
-      {isHovered && (
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-100"
-          style={{
-            background: `radial-gradient(350px circle at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(255, 107, 74, 0.09), transparent 80%)`,
-          }}
-        />
-      )}
 
       <div className="w-full flex items-center justify-between mb-2 z-10">
         <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2">

@@ -59,16 +59,16 @@ export function StoreView() {
   return (
     <div className="flex flex-col w-full pb-14 space-y-4 animate-in fade-in duration-200">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-rose-500/10 rounded-3xl p-4 sm:p-5 border border-orange-100 flex items-center justify-between">
+      <div className="bg-[var(--primary-light)] rounded-3xl p-4 sm:p-5 border border-[var(--primary-border)] flex items-center justify-between">
         <div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-100 text-[10px] font-bold text-orange-900 shadow-2xs mb-1">
-            <ShoppingBag className="w-3 h-3 text-[#ff6b4a]" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--primary)]/20 text-[10px] font-bold text-[var(--text)] shadow-2xs mb-1">
+            <ShoppingBag className="w-3 h-3 text-[var(--primary)]" />
             <span>PAWdiCURE Nutrition &amp; Care Store</span>
           </span>
-          <h1 className="font-heading font-black text-xl sm:text-2xl text-slate-900">
+          <h1 className="font-heading font-black text-xl sm:text-2xl text-[var(--text)]">
             Veterinary Essentials
           </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             Formulated for optimal vitality, joint preservation &amp; coat radiance
           </p>
         </div>
@@ -77,7 +77,7 @@ export function StoreView() {
           <button
             type="button"
             onClick={() => navigate('/store/wishlist')}
-            className="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-red-500 hover:border-red-200 shadow-2xs transition relative"
+            className="p-2.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-red-500 hover:border-red-500/20 shadow-2xs transition relative"
             title="Wishlist"
           >
             <Heart className="w-4 h-4" />
@@ -91,7 +91,7 @@ export function StoreView() {
           <button
             type="button"
             onClick={() => navigate('/store/cart')}
-            className="px-3.5 py-2 rounded-2xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition active:scale-95"
+            className="px-3.5 py-2 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[var(--primary)]/20 transition active:scale-95"
           >
             <ShoppingCart className="w-4 h-4" />
             <span>Cart ({totalCartCount})</span>
@@ -109,14 +109,14 @@ export function StoreView() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search kibble, joint chews, salmon oil..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a] shadow-xs"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] shadow-xs"
             />
           </div>
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#ff6b4a] shadow-xs"
+            className="px-3 py-2.5 rounded-2xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] shadow-xs"
           >
             <option value="featured">Featured</option>
             <option value="price-low">Price: Low to High</option>
@@ -134,7 +134,7 @@ export function StoreView() {
               onClick={() => setCategoryFilter(cat.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
                 categoryFilter === cat.id
-                  ? 'bg-slate-900 text-white shadow-2xs'
+                  ? 'bg-[var(--text)] text-white shadow-2xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -198,7 +198,7 @@ export function StoreView() {
                     <span className="text-slate-400">({product.reviewsCount})</span>
                   </div>
 
-                  <h3 className="font-heading font-bold text-xs text-slate-900 line-clamp-1 group-hover:text-[#ff6b4a] transition">
+                  <h3 className="font-heading font-bold text-xs text-slate-900 line-clamp-1 group-hover:text-[var(--primary)] transition">
                     {product.title}
                   </h3>
 
@@ -215,7 +215,7 @@ export function StoreView() {
                   <button
                     type="button"
                     onClick={() => addToCart(product, 1)}
-                    className="p-2 rounded-xl bg-orange-50 hover:bg-[#ff6b4a] text-[#ff6b4a] hover:text-white transition active:scale-95 shadow-2xs"
+                    className="p-2 rounded-xl bg-[var(--primary)]/10 hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white transition active:scale-95 shadow-2xs"
                     title="Add to cart"
                   >
                     <Plus className="w-4 h-4" />

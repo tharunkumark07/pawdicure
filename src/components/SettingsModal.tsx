@@ -71,6 +71,7 @@ export function SettingsModal({
     { id: 'forest', name: 'Forest Green', color: '#059669', bgClass: 'bg-emerald-600' },
     { id: 'royal', name: 'Royal Blue', color: '#2563eb', bgClass: 'bg-blue-600' },
     { id: 'purple', name: 'Purple Dream', color: '#7c3aed', bgClass: 'bg-violet-600' },
+    { id: 'glossy-black', name: 'Glossy Black', color: '#09090b', bgClass: 'bg-zinc-950' },
   ];
 
   return (
@@ -80,7 +81,7 @@ export function SettingsModal({
       fullHeight={true}
       title={
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-2xl bg-orange-100 text-[var(--primary)] flex items-center justify-center shadow-xs">
+          <div className="w-8 h-8 rounded-2xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center shadow-xs">
             <Settings className="w-4 h-4 animate-spin-slow" />
           </div>
           <div>
@@ -111,16 +112,16 @@ export function SettingsModal({
                     onClick={() => onSelectTheme(t.id)}
                     className={`flex items-center justify-between p-2.5 rounded-xl border transition cursor-pointer ${
                       isSelected
-                        ? 'border-[var(--primary)] bg-orange-50/70 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-orange-200'
+                        ? 'border-[var(--primary)] bg-[var(--primary-light)] shadow-xs ring-1 ring-[var(--primary)]/20'
+                        : 'border-slate-200 bg-white hover:border-[var(--primary-border)]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-4 h-4 rounded-full shadow-2xs shrink-0"
+                        className="w-4 h-4 rounded-full shadow-2xs shrink-0 border border-black/10 dark:border-white/30"
                         style={{ backgroundColor: t.color }}
                       />
-                      <span className={`text-xs ${isSelected ? 'font-extrabold text-slate-900' : 'font-medium text-slate-700'}`}>
+                      <span className={`text-xs ${isSelected ? 'font-extrabold text-[var(--text)]' : 'font-medium text-slate-700'}`}>
                         {t.name}
                       </span>
                     </div>
@@ -159,7 +160,7 @@ export function SettingsModal({
                     key={p.id}
                     className={`w-full flex items-center justify-between p-2 rounded-xl transition ${
                       isActive
-                        ? 'bg-orange-50 border border-[var(--primary)] text-slate-900 font-bold'
+                        ? 'bg-[var(--primary-light)] border border-[var(--primary)] text-slate-900 font-bold'
                         : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium'
                     }`}
                   >
@@ -232,7 +233,7 @@ export function SettingsModal({
               onClose();
               onRestartGuide();
             }}
-            className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[var(--primary)] to-[#ae3115] text-white hover:brightness-105 flex items-center justify-between shadow-md transition cursor-pointer group"
+            className="w-full p-3.5 rounded-2xl bg-[var(--primary)] text-white hover:brightness-105 flex items-center justify-between shadow-md transition cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-xl">
@@ -243,7 +244,7 @@ export function SettingsModal({
                   <span>Interactive Guide Tour</span>
                   <Sparkles className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
                 </div>
-                <div className="text-[11px] text-orange-100">
+                <div className="text-[11px] text-white/80">
                   Restart step-by-step app walkthrough
                 </div>
               </div>
@@ -352,10 +353,10 @@ export function SettingsModal({
               onClose();
               onOpenProfile();
             }}
-            className="w-full p-3.5 rounded-2xl bg-slate-50 hover:bg-orange-50/60 border border-slate-200 hover:border-orange-200 flex items-center justify-between transition cursor-pointer"
+            className="w-full p-3.5 rounded-2xl bg-slate-50 hover:bg-[var(--primary-light)] border border-slate-200 hover:border-[var(--primary-border)] flex items-center justify-between transition cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-orange-50 text-[var(--primary)] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center">
                 <User className="w-4 h-4" />
               </div>
               <div className="text-left">

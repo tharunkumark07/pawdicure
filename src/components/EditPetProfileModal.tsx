@@ -413,7 +413,7 @@ export function EditPetProfileModal({ isOpen, onClose }: EditPetProfileModalProp
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-[#ff6b4a] hover:bg-[#ed4d26] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition"
+              className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 transition"
             >
               Save Changes
             </button>

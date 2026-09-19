@@ -39,7 +39,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
       case 'Mythic':
         return 'bg-purple-100 text-purple-900 border-purple-200';
       case 'Transcendent':
-        return 'bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-purple-500/20 text-slate-900 border-amber-400 shadow-xs';
+        return 'bg-purple-200 text-purple-900 border-purple-400 shadow-xs';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
@@ -65,7 +65,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-2xl bg-gradient-to-tr from-amber-500 to-[#ff6b4a] flex items-center justify-center text-white shadow-2xs">
+          <div className="w-8 h-8 rounded-2xl bg-[var(--primary)] flex items-center justify-center text-white shadow-2xs">
             <Award className="w-4 h-4" />
           </div>
           <div>
@@ -121,9 +121,9 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
               onClick={() => setSelectedBadge(badge)}
               className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border transition relative text-center group ${
                 badge.isUnlocked
-                  ? 'bg-gradient-to-b from-amber-500/10 to-orange-500/5 border-amber-300/80 shadow-2xs hover:scale-105 active:scale-95'
+                  ? 'bg-[var(--primary-light)] border-[var(--primary-border)] shadow-2xs hover:scale-105 active:scale-95'
                   : 'bg-slate-50/80 border-slate-200/80 opacity-60 hover:opacity-100'
-              } ${isSelected ? 'ring-2 ring-amber-500 border-transparent' : ''}`}
+              } ${isSelected ? 'ring-2 ring-[var(--primary)] border-transparent' : ''}`}
             >
               {badge.showcase && (
                 <div className="absolute right-1 top-1">
@@ -151,7 +151,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     badge.isUnlocked
-                      ? 'bg-gradient-to-r from-amber-400 to-[#ff6b4a]'
+                      ? 'bg-[var(--primary)]'
                       : 'bg-slate-400'
                   }`}
                   style={{ width: `${badge.progressPercent}%` }}
@@ -170,7 +170,7 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
               <div
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border ${
                   selectedBadge.isUnlocked
-                    ? 'bg-gradient-to-tr from-amber-100 to-orange-100 border-amber-300 shadow-xs'
+                    ? 'bg-[var(--primary-light)] border-[var(--primary-border)] shadow-xs'
                     : 'bg-slate-200/60 border-slate-300 grayscale'
                 }`}
               >
@@ -235,8 +235,8 @@ export function PetBadgesSection({ pet }: PetBadgesSectionProps) {
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
                   selectedBadge.isUnlocked
-                    ? 'bg-gradient-to-r from-emerald-400 to-teal-500'
-                    : 'bg-gradient-to-r from-amber-400 to-[#ff6b4a]'
+                    ? 'bg-emerald-500'
+                    : 'bg-[var(--primary)]'
                 }`}
                 style={{ width: `${selectedBadge.progressPercent}%` }}
               />

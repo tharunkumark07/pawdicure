@@ -107,7 +107,7 @@ export function PetProfileView() {
               onClick={() => setActivePetId(p.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl transition ${
                 p.id === activePet.id
-                  ? 'bg-orange-50 border border-orange-200 text-[#ae3115] font-bold shadow-2xs'
+                  ? 'bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] font-bold shadow-2xs'
                   : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -135,11 +135,11 @@ export function PetProfileView() {
               <img
                 src={activePet.avatarUrl}
                 alt={activePet.name}
-                className="w-20 h-20 rounded-3xl object-cover ring-4 ring-orange-100 shadow-md group-hover:opacity-90 transition"
+                className="w-20 h-20 rounded-3xl object-cover ring-4 ring-[var(--primary)]/20 shadow-md group-hover:opacity-90 transition"
               />
               <button
                 type="button"
-                className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-[#ff6b4a] text-white flex items-center justify-center shadow-md ring-2 ring-white hover:scale-110 active:scale-95 transition"
+                className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-[var(--primary)] text-white flex items-center justify-center shadow-md ring-2 ring-white hover:scale-110 active:scale-95 transition"
                 title="Upload pet photo"
               >
                 <Camera className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ export function PetProfileView() {
                 <h1 className="font-heading font-black text-2xl text-slate-900">
                   {activePet.name}
                 </h1>
-                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full">
                   Level {activePet.level}
                 </span>
 
@@ -181,7 +181,7 @@ export function PetProfileView() {
                 <button
                   type="button"
                   onClick={() => setIsPhotoUploadOpen(true)}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#ff6b4a] hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] hover:underline"
                 >
                   <Upload className="w-3 h-3" />
                   <span>Change Profile Photo</span>
@@ -231,6 +231,20 @@ export function PetProfileView() {
               {activePet.careScore}%
             </span>
           </div>
+        </div>
+
+        {/* Custom Care Rhythm Shortcut */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🗓️</span>
+            <div>
+              <h4 className="text-xs font-bold text-slate-900">{activePet.name}'s Custom Care Rhythm</h4>
+              <p className="text-[10px] text-slate-500">Calibrated daily feeding, walks, and wellness timeline</p>
+            </div>
+          </div>
+          <Button variant="secondary" className="text-xs py-1.5 px-3 h-auto" onClick={() => navigate('/routines')}>
+            Manage
+          </Button>
         </div>
       </Card>
 

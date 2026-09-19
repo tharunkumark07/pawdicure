@@ -5,19 +5,107 @@
     --font-outfit: 'Outfit', sans-serif;
     --font-sans: 'Plus Jakarta Sans', sans-serif;
     --primary: #ff6b4a;
-    --color-orange-primary: var(--primary);
-    --color-orange-deep: #ae3115;
-    --color-orange-light: #fff7ed;
-    --color-orange-subtle: #fffaf5;
+    --primary-rgb: 255, 107, 74;
+    --primary-light: rgba(255, 107, 74, 0.1);
+    --primary-border: rgba(255, 107, 74, 0.2);
+    --background: #fffaf5;
+    --background-rgb: 255, 250, 245;
+    --background-alt: #ffffff;
+    --text: #2c1810;
+    --text-rgb: 44, 24, 16;
+    --text-muted: #574e4a;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --card-border: rgba(254, 215, 170, 0.6);
+  }
+
+  [data-theme='forest'] {
+    --primary: #059669;
+    --primary-rgb: 5, 150, 105;
+    --primary-light: rgba(5, 150, 105, 0.1);
+    --primary-border: rgba(5, 150, 105, 0.2);
+    --background: #f0fdf4;
+    --background-rgb: 240, 253, 244;
+    --background-alt: #ffffff;
+    --text: #064e3b;
+    --text-rgb: 6, 78, 59;
+    --text-muted: #1e3a34;
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(187, 247, 208, 0.6);
+  }
+
+  [data-theme='royal'] {
+    --primary: #2563eb;
+    --primary-rgb: 37, 99, 235;
+    --primary-light: rgba(37, 99, 235, 0.1);
+    --primary-border: rgba(37, 99, 235, 0.2);
+    --background: #eff6ff;
+    --background-rgb: 239, 246, 255;
+    --background-alt: #ffffff;
+    --text: #1e3a8a;
+    --text-rgb: 30, 58, 138;
+    --text-muted: #334155;
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(191, 219, 254, 0.6);
+  }
+
+  [data-theme='sunset'] {
+    --primary: #ff6b4a;
+    --primary-rgb: 255, 107, 74;
+    --primary-light: rgba(255, 107, 74, 0.1);
+    --primary-border: rgba(255, 107, 74, 0.2);
+    --background: #fffaf5;
+    --background-rgb: 255, 250, 245;
+    --background-alt: #ffffff;
+    --text: #2c1810;
+    --text-rgb: 44, 24, 16;
+    --text-muted: #574e4a;
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(254, 215, 170, 0.6);
+  }
+
+  [data-theme='purple'] {
+    --primary: #7c3aed;
+    --primary-rgb: 124, 58, 237;
+    --primary-light: rgba(124, 58, 237, 0.1);
+    --primary-border: rgba(124, 58, 237, 0.2);
+    --background: #f5f3ff;
+    --background-rgb: 245, 243, 255;
+    --background-alt: #ffffff;
+    --text: #5b21b6;
+    --text-rgb: 91, 33, 182;
+    --text-muted: #4c1d95;
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(221, 214, 254, 0.6);
+  }
+
+  [data-theme='glossy-black'] {
+    --primary: #09090b;
+    --primary-rgb: 9, 9, 11;
+    --primary-light: rgba(9, 9, 11, 0.08);
+    --primary-border: rgba(9, 9, 11, 0.2);
+    --background: #f8fafc;
+    --background-rgb: 248, 250, 252;
+    --background-alt: #ffffff;
+    --text: #09090b;
+    --text-rgb: 9, 9, 11;
+    --text-muted: #64748b;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-border: rgba(226, 232, 240, 0.9);
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #fffaf5;
-    color: #2c1810;
+    background-color: var(--background);
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
+    transition: background-color 1s ease, color 1s ease;
+  }
+
+  /* Transition for dynamic theme syncing */
+  div, section, header, nav, button, span, p, h1, h2, h3, h4 {
+    transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease;
   }
 
   h1, h2, h3, h4, .font-heading {
@@ -25,14 +113,14 @@
   }
 }
 
-/* Warm Orange Card Styles & Glass Accents */
-.bg-orange-card {
-  background-color: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(254, 215, 170, 0.6);
+/* Dynamic Theme Card Styles & Glass Accents */
+.bg-theme-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
 }
 
-.bg-orange-subtle-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(255, 107, 74, 0.08), transparent 70%);
+.bg-theme-subtle-glow {
+  background-color: var(--primary-light);
 }
 
 /* Hide scrollbars for clean horizontal and pill scrolling */
@@ -44,34 +132,10 @@
   scrollbar-width: none;
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+/* Glossy Black Theme Polish */
+[data-theme='glossy-black'] .bg-\[var\(--primary\)\] {
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-@keyframes shine {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
 
 

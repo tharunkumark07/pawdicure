@@ -202,9 +202,95 @@
         "updatedAt": { "type": "integer" }
       },
       "required": ["petId", "updatedAt"]
+    },
+    "vaccineRecord": {
+      "title": "Clinical Vaccine Record",
+      "description": "A verified clinical record for a pet's immunization.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "petId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Core", "Non-Core", "Lifestyle"] },
+        "status": { "type": "string", "enum": ["Administered", "Due", "Overdue", "Predicted", "Scheduled"] },
+        "dueDate": { "type": "string" },
+        "administeredDate": { "type": "string" },
+        "vet": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "batchNumber": { "type": "string" },
+        "verificationLevel": { "type": "string" },
+        "isPrediction": { "type": "boolean" },
+        "alert": { "type": "boolean" },
+        "completed": { "type": "boolean" }
+      }
+    },
+    "household": {
+      "title": "Household Data Blob",
+      "description": "The primary data structure for PAWdiCURE synchronization.",
+      "type": "object",
+      "properties": {
+        "householdId": { "type": "string" },
+        "syncCode": { "type": "string" },
+        "activePetId": { "type": "string" },
+        "vaccinationHistory": {
+          "type": "array",
+          "items": { "$ref": "#/entities/vaccineRecord" }
+        }
+      }
+    },
+    "routine": {
+      "title": "Custom Pet Care Routine",
+      "description": "Personalized daily/weekly routine orchestration document containing scheduled care activities.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "petId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "accent": { "type": "string" },
+        "timezone": { "type": "string" },
+        "active": { "type": "boolean" },
+        "items": { "type": "array" },
+        "createdAt": { "type": "integer" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["id", "userId", "petId", "name", "active", "items", "createdAt", "updatedAt"]
+    },
+    "routineExecution": {
+      "title": "Routine Item Daily Execution Record",
+      "description": "Daily status and completion log of a scheduled routine task for a specific date.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "routineId": { "type": "string" },
+        "routineItemId": { "type": "string" },
+        "petId": { "type": "string" },
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["upcoming", "due", "completed", "missed", "skipped", "cancelled"] },
+        "completedAt": { "type": "integer" },
+        "linkedRecordId": { "type": "string" },
+        "xpEarned": { "type": "integer" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "routineId", "routineItemId", "petId", "userId", "date", "status", "createdAt"]
     }
   },
   "firestore": {
+    "/users/{userId}/pets/{petId}/routines/{routineId}": {
+      "schema": "routine",
+      "description": "Stores personalized custom routines for a specific companion pet."
+    },
+    "/users/{userId}/pets/{petId}/routineExecutions/{executionId}": {
+      "schema": "routineExecution",
+      "description": "Tracks daily completion and skip logs for scheduled routine tasks."
+    },
+    "/households/{householdId}": {
+      "schema": "household",
+      "description": "Primary multi-device synchronization document for pet care data."
+    },
     "/users/{userId}/pets/{petId}/careSettings/{settingId}": {
       "schema": "careSettings",
       "description": "Pet-specific safety guardrails and guidance."

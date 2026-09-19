@@ -118,25 +118,25 @@ export function FeedView({
       {/* Page Header */}
       <div className="flex items-center justify-between px-1">
         <div>
-          <span className="text-[10px] font-bold text-[#ae3115] bg-orange-50 border border-orange-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 border border-[var(--primary)]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
             Supper Routine #{pet.mealsToday || 2}
           </span>
-          <h2 className="font-heading font-extrabold text-2xl text-slate-900 mt-1">
+          <h2 className="font-heading font-extrabold text-2xl text-[var(--text)] mt-1">
             Time to fill the bowl.
           </h2>
         </div>
-        <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-xs font-semibold text-[var(--text-muted)] bg-[var(--primary)]/5 px-2.5 py-1 rounded-full flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5 opacity-50" />
           <span>Last fed: {pet.lastFed}</span>
         </span>
       </div>
 
       {/* CUMULATIVE DAILY INTAKE PROGRESSION CARD (NEVER DECREASES) */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs space-y-3">
+      <div className="bg-[var(--card-bg)] rounded-3xl p-4 sm:p-5 border border-[var(--card-border)] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="font-heading font-bold text-sm text-slate-900">
+            <h3 className="font-heading font-bold text-sm text-[var(--text)]">
               Daily Nutrition &amp; Intake Tracker
             </h3>
           </div>
@@ -147,43 +147,43 @@ export function FeedView({
 
         {/* Monotonically Increasing Progress Meter */}
         <div>
-          <div className="flex justify-between text-xs font-bold text-slate-700 mb-1.5">
+          <div className="flex justify-between text-xs font-bold text-[var(--text-muted)] mb-1.5">
             <span>Cumulative Food Consumed Today:</span>
-            <span className="font-heading text-sm text-[#ae3115]">
+            <span className="font-heading text-sm text-[var(--primary)]">
               {currentDailyGrams}g{' '}
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-normal opacity-60">
                 / {dailyGoalGrams}g target
               </span>
             </span>
           </div>
 
-          <div className="w-full bg-slate-100 rounded-full h-3.5 p-0.5 overflow-hidden relative">
+          <div className="w-full bg-[var(--primary)]/5 rounded-full h-3.5 p-0.5 overflow-hidden relative">
             {/* Current base fill */}
             <div
-              className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-700 ease-out"
+              className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out"
               style={{ width: `${Math.min(100, (currentDailyGrams / dailyGoalGrams) * 100)}%` }}
             />
           </div>
 
           {/* Mathematical Calorie & Meal Status */}
-          <div className="flex justify-between items-center text-[11px] text-slate-500 mt-2">
+          <div className="flex justify-between items-center text-[11px] text-[var(--text-muted)] mt-2">
             <span>
               ⚡ Energy:{' '}
-              <strong className="text-slate-800">
+              <strong className="text-[var(--text)] opacity-90">
                 {currentDailyKcal.toLocaleString()} kcal
               </strong>{' '}
               / {dailyGoalKcal.toLocaleString()} kcal
             </span>
             <span>
               🥣 Meals Logged:{' '}
-              <strong className="text-slate-800">{pet.mealsToday || 2}</strong>
+              <strong className="text-[var(--text)] opacity-90">{pet.mealsToday || 2}</strong>
             </span>
           </div>
         </div>
 
         {/* Live Mathematical Projection Callout */}
-        <div className="p-2.5 rounded-2xl bg-orange-50/70 border border-orange-200/60 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 text-[#ae3115]">
+        <div className="p-2.5 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5 text-[var(--primary)]">
             <TrendingUp className="w-4 h-4 shrink-0" />
             <span>
               Feeding <strong>+{portionGrams}g</strong> will increase daily total to{' '}
@@ -194,7 +194,7 @@ export function FeedView({
       </div>
 
       {/* SMART INTERACTIVE FOOD BOWL COMPONENT */}
-      <div className="bg-gradient-to-b from-white via-orange-50/30 to-amber-50/20 rounded-3xl p-5 border border-slate-100 shadow-xs text-center relative overflow-hidden">
+      <div className="bg-[var(--card-bg)] rounded-3xl p-5 border border-[var(--card-border)] shadow-xs text-center relative overflow-hidden">
         {/* Vet Calibrated Tag */}
         <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-100 px-3 py-1 rounded-full text-xs font-bold mb-4">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -205,25 +205,25 @@ export function FeedView({
 
         {/* Visual Food Bowl Circle with Interactive Level */}
         <div className="relative w-48 h-48 mx-auto my-2 flex items-center justify-center">
-          <div className="w-44 h-44 rounded-full bg-slate-100 border-8 border-white shadow-xl flex items-center justify-center relative overflow-hidden">
+          <div className="w-44 h-44 rounded-full bg-[var(--background)] border-8 border-[var(--card-bg)] shadow-xl flex items-center justify-center relative overflow-hidden">
             {/* Cumulative + current portion food fill layer */}
             <div
               id="food-bowl-fill-layer"
-              className="absolute bottom-0 w-full bg-gradient-to-t from-amber-600 via-amber-500 to-amber-400 transition-all duration-700 ease-out"
+              className="absolute bottom-0 w-full bg-[var(--primary)] opacity-80 transition-all duration-700 ease-out"
               style={{
                 height: `${Math.min(100, Math.max(30, (projectedDailyGrams / dailyGoalGrams) * 85))}%`,
               }}
             />
 
             {/* Center readout overlay */}
-            <div className="relative z-10 bg-white/95 backdrop-blur-xs px-4 py-2.5 rounded-2xl shadow-md border border-white">
-              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+            <div className="relative z-10 bg-[var(--card-bg)]/95 backdrop-blur-xs px-4 py-2.5 rounded-2xl shadow-md border border-white/20">
+              <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-60 block uppercase tracking-wider">
                 PORTION TO ADD
               </span>
-              <span className="font-heading font-black text-2xl text-slate-900 block leading-none mt-0.5">
+              <span className="font-heading font-black text-2xl text-[var(--text)] block leading-none mt-0.5">
                 +{portionGrams}g
               </span>
-              <span className="text-[11px] text-amber-700 font-extrabold block mt-0.5">
+              <span className="text-[11px] text-[var(--primary)] font-extrabold block mt-0.5">
                 +{mealKcal} kcal
               </span>
             </div>
@@ -232,9 +232,9 @@ export function FeedView({
 
         {/* Interactive Portion Slider */}
         <div className="mt-4 px-2">
-          <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
+          <div className="flex justify-between text-xs font-bold text-[var(--text-muted)] mb-1.5">
             <span>Light (40g)</span>
-            <span className="text-[#ae3115] font-extrabold">
+            <span className="text-[var(--primary)] font-extrabold">
               Standard Target ({pet.targetPortionGrams || 180}g)
             </span>
             <span>Feast (350g)</span>
@@ -247,13 +247,13 @@ export function FeedView({
             step="5"
             value={portionGrams}
             onChange={(e) => setPortionGrams(parseInt(e.target.value))}
-            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#ff6b4a]"
+            className="w-full h-2 bg-[var(--primary)]/10 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
           />
         </div>
 
         {/* Active Meal Enhancers / Toppers */}
-        <div className="mt-5 text-left border-t border-slate-100 pt-3">
-          <span className="text-xs font-bold text-slate-700 block mb-2">
+        <div className="mt-5 text-left border-t border-[var(--card-border)] pt-3">
+          <span className="text-xs font-bold text-[var(--text-muted)] block mb-2">
             Active Meal Enhancers &amp; Toppers (Calculated into Energy):
           </span>
           <div className="flex flex-wrap gap-2">
@@ -262,13 +262,13 @@ export function FeedView({
               onClick={() => setTopperSalmon(!topperSalmon)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 ${
                 topperSalmon
-                  ? 'bg-orange-50 border-orange-200 text-orange-800 shadow-2xs'
-                  : 'bg-slate-50 border-slate-200 text-slate-500'
+                  ? 'bg-[var(--primary)]/10 border-[var(--primary)]/20 text-[var(--primary)] shadow-2xs'
+                  : 'bg-[var(--background-alt)] border-[var(--card-border)] text-[var(--text-muted)] opacity-60'
               }`}
             >
               <span>🐟</span>
               <span>Wild Salmon Oil (+45 kcal)</span>
-              {topperSalmon && <Check className="w-3.5 h-3.5 text-[#ff6b4a]" />}
+              {topperSalmon && <Check className="w-3.5 h-3.5 text-[var(--primary)]" />}
             </button>
 
             <button
@@ -276,8 +276,8 @@ export function FeedView({
               onClick={() => setTopperJoint(!topperJoint)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 ${
                 topperJoint
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800 shadow-2xs'
-                  : 'bg-slate-50 border-slate-200 text-slate-500'
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-800 shadow-2xs'
+                  : 'bg-[var(--background-alt)] border-[var(--card-border)] text-[var(--text-muted)] opacity-60'
               }`}
             >
               <span>💊</span>
@@ -305,7 +305,7 @@ export function FeedView({
             className={`w-full py-3.5 px-4 rounded-2xl text-white font-heading font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-colors ${
               justFed
                 ? 'bg-emerald-600'
-                : 'bg-gradient-to-r from-[#ff6b4a] to-[#ae3115]'
+                : 'bg-[var(--primary)]'
             }`}
           >
             <Utensils className="w-4 h-4" />
@@ -330,59 +330,59 @@ export function FeedView({
       </div>
 
       {/* VETERINARY CLINICAL MATHEMATICS COLLAPSIBLE CARD */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-100 shadow-xs space-y-3">
+      <div className="bg-[var(--card-bg)] rounded-3xl p-4 sm:p-5 border border-[var(--card-border)] shadow-xs space-y-3">
         <button
           type="button"
           onClick={() => setShowMathDetails(!showMathDetails)}
           className="w-full flex items-center justify-between text-left"
         >
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl bg-orange-100 text-[#ae3115] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
               <Calculator className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="font-heading font-bold text-xs text-slate-800">
+              <h4 className="font-heading font-bold text-xs text-[var(--text)]">
                 Veterinary Metabolic Math Equations
               </h4>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px] text-[var(--text-muted)] opacity-70">
                 Kleiber's Law RER &amp; Maintenance Energy Requirement
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs font-bold text-[#ff6b4a]">
+          <div className="flex items-center gap-1 text-xs font-bold text-[var(--primary)]">
             <span>{showMathDetails ? 'Hide' : 'Explain Math'}</span>
             {showMathDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </div>
         </button>
 
         {showMathDetails && (
-          <div className="pt-2 border-t border-slate-100 space-y-2.5 text-xs text-slate-700 animate-in fade-in">
-            <div className="p-3 bg-slate-50 rounded-2xl font-mono text-[11px] space-y-1.5">
-              <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+          <div className="pt-2 border-t border-[var(--card-border)] space-y-2.5 text-xs text-[var(--text-muted)] animate-in fade-in">
+            <div className="p-3 bg-[var(--background-alt)] rounded-2xl font-mono text-[11px] space-y-1.5">
+              <div className="text-[var(--text-muted)] opacity-60 font-bold uppercase tracking-wider text-[10px]">
                 1. Resting Energy Requirement (RER)
               </div>
-              <div className="text-slate-900 font-semibold">
+              <div className="text-[var(--text)] font-semibold">
                 RER = 70 × ({pet.weight} kg)^0.75 = <strong>{rerKcal} kcal/day</strong>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-2xl font-mono text-[11px] space-y-1.5">
-              <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+            <div className="p-3 bg-[var(--background-alt)] rounded-2xl font-mono text-[11px] space-y-1.5">
+              <div className="text-[var(--text-muted)] opacity-60 font-bold uppercase tracking-wider text-[10px]">
                 2. Maintenance Energy Requirement (MER)
               </div>
-              <div className="text-slate-900 font-semibold">
+              <div className="text-[var(--text)] font-semibold">
                 MER = {rerKcal} kcal × {merMultiplier} = <strong>{calculatedMerKcal} kcal/day</strong>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-2xl font-mono text-[11px] space-y-1.5">
-              <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+            <div className="p-3 bg-[var(--background-alt)] rounded-2xl font-mono text-[11px] space-y-1.5">
+              <div className="text-[var(--text-muted)] opacity-60 font-bold uppercase tracking-wider text-[10px]">
                 3. Daily Food Weight Calibration
               </div>
-              <div className="text-slate-900 font-semibold">
+              <div className="text-[var(--text)] font-semibold">
                 Target = {calculatedMerKcal} kcal ÷ {CALORIC_DENSITY} kcal/g = <strong>{calculatedDailyGrams}g/day</strong>
               </div>
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-[var(--text-muted)] opacity-60">
                 Divided across {pet.species === 'Cat' ? 3 : 2} meals = {pet.targetPortionGrams || 180}g per meal.
               </div>
             </div>
@@ -391,13 +391,13 @@ export function FeedView({
       </div>
 
       {/* MACRO NUTRITION BREAKDOWN CALCULATED FROM CURRENT MEAL */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-xs">
+      <div className="bg-[var(--card-bg)] p-4 sm:p-5 rounded-3xl border border-[var(--card-border)] shadow-xs">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h4 className="font-heading font-bold text-xs text-slate-800">
+            <h4 className="font-heading font-bold text-xs text-[var(--text)]">
               Formula Nutrition &amp; Macros ({portionGrams}g portion)
             </h4>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-[var(--text-muted)] opacity-70">
               Wild Pacific Salmon &amp; Sweet Potato Formula
             </p>
           </div>
@@ -407,35 +407,35 @@ export function FeedView({
         </div>
 
         <div className="grid grid-cols-4 gap-2 text-center">
-          <div className="p-2.5 rounded-2xl bg-slate-50">
-            <span className="font-heading font-black text-sm text-slate-800">
+          <div className="p-2.5 rounded-2xl bg-[var(--background-alt)]">
+            <span className="font-heading font-black text-sm text-[var(--text)]">
               {mealProteinGrams}g
             </span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
+            <span className="text-[10px] text-[var(--text-muted)] opacity-60 block font-semibold mt-0.5">
               Protein (32%)
             </span>
           </div>
-          <div className="p-2.5 rounded-2xl bg-slate-50">
-            <span className="font-heading font-black text-sm text-slate-800">
+          <div className="p-2.5 rounded-2xl bg-[var(--background-alt)]">
+            <span className="font-heading font-black text-sm text-[var(--text)]">
               {mealFatGrams}g
             </span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
+            <span className="text-[10px] text-[var(--text-muted)] opacity-60 block font-semibold mt-0.5">
               Fats (18%)
             </span>
           </div>
-          <div className="p-2.5 rounded-2xl bg-slate-50">
-            <span className="font-heading font-black text-sm text-slate-800">
+          <div className="p-2.5 rounded-2xl bg-[var(--background-alt)]">
+            <span className="font-heading font-black text-sm text-[var(--text)]">
               {mealFiberGrams}g
             </span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
+            <span className="text-[10px] text-[var(--text-muted)] opacity-60 block font-semibold mt-0.5">
               Fiber (4.5%)
             </span>
           </div>
-          <div className="p-2.5 rounded-2xl bg-slate-50">
-            <span className="font-heading font-black text-sm text-slate-800">
+          <div className="p-2.5 rounded-2xl bg-[var(--background-alt)]">
+            <span className="font-heading font-black text-sm text-[var(--text)]">
               {mealMoistureGrams}g
             </span>
-            <span className="text-[10px] text-slate-400 block font-semibold mt-0.5">
+            <span className="text-[10px] text-[var(--text-muted)] opacity-60 block font-semibold mt-0.5">
               Moisture (10%)
             </span>
           </div>
@@ -444,13 +444,13 @@ export function FeedView({
 
       {/* SMART FOUNTAIN & PANTRY STOCK (MATHEMATICALLY LINKED) */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+        <div className="bg-[var(--card-bg)] p-4 rounded-3xl border border-[var(--card-border)] shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+            <div className="flex items-center justify-between text-xs font-bold text-[var(--text-muted)] opacity-80 mb-1">
               <span>Smart Fountain</span>
               <Droplet className="w-4 h-4 text-blue-500 fill-blue-100" />
             </div>
-            <div className="text-base font-extrabold text-slate-900 font-heading">
+            <div className="text-base font-extrabold text-[var(--text)] font-heading">
               {pet.hydrationMl} / {pet.goalMl} ml
             </div>
             <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
@@ -460,19 +460,19 @@ export function FeedView({
           <button
             type="button"
             onClick={onRefreshWater}
-            className="mt-3 w-full py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition active:scale-95"
+            className="mt-3 w-full py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 rounded-xl text-xs font-bold transition active:scale-95"
           >
             + Refresh (+170ml)
           </button>
         </div>
 
-        <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex flex-col justify-between">
+        <div className="bg-[var(--card-bg)] p-4 rounded-3xl border border-[var(--card-border)] shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+            <div className="flex items-center justify-between text-xs font-bold text-[var(--text-muted)] opacity-80 mb-1">
               <span>Pantry Food Stock</span>
               <Package className="w-4 h-4 text-amber-500" />
             </div>
-            <div className="text-base font-extrabold text-slate-900 font-heading">
+            <div className="text-base font-extrabold text-[var(--text)] font-heading">
               {pet.pantryKg} kg remaining
             </div>
             <p className="text-[10px] text-amber-600 font-semibold mt-0.5">
@@ -482,7 +482,7 @@ export function FeedView({
           <button
             type="button"
             onClick={onOrderFoodRefill}
-            className="mt-3 w-full py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl text-xs font-bold transition active:scale-95"
+            className="mt-3 w-full py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 rounded-xl text-xs font-bold transition active:scale-95"
           >
             Order Refill Bag
           </button>

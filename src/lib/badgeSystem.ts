@@ -242,7 +242,7 @@ export function evaluatePetBadges(pet: Pet, household: any = {}): PetBadge[] {
   const remindersCompletedCount = household.reminders?.filter((r: any) => r.completed).length || 0;
   const memoriesCount = household.memories?.length || 0;
   const medsCount = household.medications?.filter((m: any) => m.takenToday).length || 0;
-  const vacsCount = household.vaccines?.filter((v: any) => v.completed).length || 0;
+  const vacsCount = (household.vaccinationHistory || []).filter((v: any) => v.completed).length || 0;
   const familyCount = household.familyMembers?.length || 1;
   const favoritesCount = household.places?.filter((pl: any) => pl.isFavorite).length || 0;
   const isSafetyComplete = !!(pet.microchipId && pet.vetClinic && pet.emergencyContact && pet.emergencyPhone);
