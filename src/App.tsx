@@ -23,6 +23,7 @@ import { PAWdiCURELoading } from './components/PAWdiCURELoading';
 import { HomeView } from './views/HomeView';
 import { FeedView } from './views/FeedView';
 import { BondView } from './views/BondView';
+import { BiometryView } from './views/BiometryView';
 
 // Dedicated Full Functional Pages
 import { HealthView } from './pages/HealthView';
@@ -158,7 +159,7 @@ function AppContent() {
   // Derive current active bottom tab from currentRoute
   const getActiveTab = (): NavTab => {
     if (currentRoute === '/feed') return 'feed';
-    if (currentRoute === '/badges') return 'badges';
+    if (currentRoute === '/biometry' || currentRoute === '/health/biometry') return 'biometry';
     if (
       currentRoute.startsWith('/health') ||
       currentRoute === '/stats' ||
@@ -189,8 +190,8 @@ function AppContent() {
       case 'feed':
         navigate('/feed');
         break;
-      case 'badges':
-        navigate('/badges');
+      case 'biometry':
+        navigate('/biometry');
         break;
       case 'health':
         navigate('/health');
@@ -349,6 +350,10 @@ function AppContent() {
 
     if (currentRoute === '/health/passport') {
       return <VaccinePassportView />;
+    }
+
+    if (currentRoute === '/health/biometry' || currentRoute === '/biometry') {
+      return <BiometryView pet={activePet} onShowToast={(msg, icon) => showToast(msg, 'success', icon)} />;
     }
 
     if (currentRoute.startsWith('/health')) {
@@ -697,6 +702,7 @@ function AppContent() {
           onOpenEmergency={() => navigate('/emergency')}
           onOpenNotifications={() => navigate('/notifications')}
           onOpenProfile={() => navigate('/pet-profile')}
+          onOpenBadges={() => navigate('/badges')}
           characterId={characterId}
           currentTheme={currentTheme}
           onSelectTheme={(t) => setCurrentTheme(t)}

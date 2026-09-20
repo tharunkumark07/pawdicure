@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pet, RoutineTask, PetActivityRecord } from '../types';
 import { PetCard } from '../components/PetCard';
+import { PetBiometryInsights } from '../components/PetBiometryInsights';
 import { PetActivityTimeline } from '../components/PetActivityTimeline';
 import { TodaysRoutineWidget } from '../components/routine/TodaysRoutineWidget';
 import { LogActivityModal } from '../components/LogActivityModal';
@@ -28,6 +29,9 @@ import {
   Award,
   ArrowRight,
   Droplets,
+  Cpu,
+  Scale,
+  Zap,
   Activity,
 } from 'lucide-react';
 
@@ -597,58 +601,8 @@ export function HomeView({
             </div>
           </section>
 
-          {/* 7. PET HEALTH SNAPSHOT */}
-          <section aria-labelledby="health-snapshot-heading" className="space-y-3">
-            <div className="flex justify-between items-baseline px-1">
-              <h2
-                id="health-snapshot-heading"
-                className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest"
-              >
-                Health Snapshot
-              </h2>
-              <button
-                type="button"
-                onClick={() => onNavigate('health')}
-                className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1"
-              >
-                <span>View Health</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-5 shadow-2xs space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-2xl bg-[var(--background-alt)] border border-[var(--card-border)]">
-                  <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase text-[var(--text-muted)]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Vaccines</span>
-                  </div>
-                  <p className="text-xs font-bold text-[var(--text)] mt-1 truncate">
-                    {dueVaccines.length > 0 ? `${dueVaccines.length} due soon` : 'Up to date ✓'}
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-[var(--background-alt)] border border-[var(--card-border)]">
-                  <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase text-[var(--text-muted)]">
-                    <Pill className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Medications</span>
-                  </div>
-                  <p className="text-xs font-bold text-[var(--text)] mt-1 truncate">
-                    {pendingMeds.length > 0
-                      ? `${pendingMeds.length} scheduled`
-                      : 'None pending'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1 border-t border-[var(--card-border)]/60 text-xs">
-                <span className="text-[var(--text-muted)] font-medium">Care Score</span>
-                <span className="font-bold text-emerald-600 font-heading">
-                  {dynamicCareScore}% · {dynamicCareScore >= 80 ? 'Excellent' : 'Healthy'}
-                </span>
-              </div>
-            </div>
-          </section>
+          {/* 7. PET BIOMETRY INSIGHTS */}
+          <PetBiometryInsights pet={pet} onNavigate={onNavigate} />
 
           {/* 8. RELATIONSHIP PROGRESS */}
           <section aria-labelledby="relationship-heading" className="space-y-3">

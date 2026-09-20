@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Play, Cloud, Bell, ShieldAlert, User, X, Sparkles, Palette, Check, PlusCircle, Vibrate, Trash2, AlertTriangle } from 'lucide-react';
+import { Settings, Play, Cloud, Bell, ShieldAlert, User, X, Sparkles, Palette, Check, PlusCircle, Vibrate, Trash2, AlertTriangle, Award } from 'lucide-react';
 import { Pet } from '../types';
 import { useApp } from '../context/AppContext';
 import { MobileBottomSheet } from './ui/MobileBottomSheet';
@@ -13,6 +13,7 @@ interface SettingsModalProps {
   onOpenEmergency: () => void;
   onOpenNotifications: () => void;
   onOpenProfile: () => void;
+  onOpenBadges: () => void;
   characterId: string;
   currentTheme: string;
   onSelectTheme: (themeId: string) => void;
@@ -34,6 +35,7 @@ export function SettingsModal({
   onOpenEmergency,
   onOpenNotifications,
   onOpenProfile,
+  onOpenBadges,
   characterId,
   currentTheme,
   onSelectTheme,
@@ -406,6 +408,27 @@ export function SettingsModal({
               )}
             </div>
           </div>
+
+          {/* 7. Companion Badges & Medals Tile */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onOpenBadges();
+            }}
+            className="w-full p-3.5 rounded-2xl bg-slate-50 hover:bg-amber-50/60 border border-slate-200 hover:border-amber-200 flex items-center justify-between transition cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Award className="w-4 h-4" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold text-slate-900">Companion Medals &amp; Badges</div>
+                <div className="text-[11px] text-slate-500">View unlockable achievements &amp; milestone rewards</div>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-[var(--primary)]">View</span>
+          </button>
         </div>
 
         <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
