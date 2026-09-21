@@ -94,6 +94,10 @@ function AppContent() {
     triggerTestPushNotification,
     currentTheme,
     setCurrentTheme,
+    isAuthenticated,
+    authLoading,
+    currentUser,
+    onboardingCompleted,
   } = useApp();
 
   const {
@@ -140,6 +144,36 @@ function AppContent() {
       sessionStorage.setItem('PAWdiCURE_OPENED', 'true');
     }
   }, []);
+
+  // Synchronize authentication view display with auth state & route
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isAuthenticated || currentRoute === '/auth') {
+        setShowSplashAndAuth(true);
+      } else {
+        setShowSplashAndAuth(false);
+      }
+    }
+  }, [isAuthenticated, authLoading, currentRoute]);
+
+  // Centralized Route Guard: Ensures users are routed to /auth, /onboarding, or /home correctly
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!isAuthenticated || !currentUser || currentUser.isAnonymous) {
+      if (currentRoute !== '/auth') {
+        navigate('/auth', { replace: true });
+      }
+    } else if (!onboardingCompleted) {
+      if (currentRoute !== '/onboarding') {
+        navigate('/onboarding', { replace: true });
+      }
+    } else if (isAuthenticated && onboardingCompleted) {
+      if (currentRoute === '/auth' || currentRoute === '/onboarding') {
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [isAuthenticated, onboardingCompleted, authLoading, currentRoute, currentUser]);
 
   // Page Transition Skeleton State for UI stability during navigation
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
@@ -470,8 +504,9 @@ function AppContent() {
       return <WishlistView />;
     }
 
-    if (currentRoute === '/pet-profile') {
-      return <PetProfileView />;
+    if (currentRoute === '/pet-profile' || currentRoute.startsWith('/pets/')) {
+      const routePetId = currentRoute.startsWith('/pets/') ? currentRoute.replace('/pets/', '') : null;
+      return <PetProfileView routePetId={routePetId} />;
     }
 
     if (currentRoute === '/notifications') {
@@ -492,6 +527,17 @@ function AppContent() {
 
     if (currentRoute === '/onboarding') {
       return <OnboardingView />;
+    }
+
+    if (currentRoute === '/auth') {
+      return (
+        <SplashAndAuth
+          onComplete={() => {
+            setShowSplashAndAuth(false);
+            navigate('/home');
+          }}
+        />
+      );
     }
 
     // Default: HomeView
@@ -519,6 +565,12 @@ function AppContent() {
       />
     );
   };
+
+  if (authLoading) {
+    return <PAWdiCURELoading fullscreen={true} route={currentRoute} />;
+  }
+
+  const showAppChrome = isAuthenticated && onboardingCompleted && !showSplashAndAuth && currentRoute !== '/auth' && currentRoute !== '/onboarding';
 
   return (
     <motion.div
@@ -551,13 +603,13 @@ function AppContent() {
       <div
         id="app-mobile-shell"
         className="w-full max-w-md md:max-w-lg min-h-screen bg-transparent flex flex-col relative shadow-2xl border-x border-[var(--card-border)] overflow-hidden"
-        style={{ paddingBottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }}
+        style={{ paddingBottom: showAppChrome ? 'calc(96px + env(safe-area-inset-bottom, 0px))' : '0px' }}
       >
         {/* Dynamic Route-Specific Background with Interactive Pets & Ambient Light */}
         <DynamicPetBackground route={currentRoute} />
 
         {/* Global Top Header */}
-        {!showSplashAndAuth && (
+        {showAppChrome && (
           <div className="relative z-50">
             <Header
               pets={householdData.pets}
@@ -578,60 +630,64 @@ function AppContent() {
         )}
 
         {/* Native Push Notification Request & Care Alert Banner */}
-        <div className="relative z-10">
-          <PushNotificationBanner petName={activePet.name} />
-        </div>
+        {showAppChrome && (
+          <div className="relative z-10">
+            <PushNotificationBanner petName={activePet.name} />
+          </div>
+        )}
 
         {/* Global Interactive Search Bar */}
-        <div className="relative z-20 px-3 sm:px-4 pt-2 pb-1">
-          <div className="relative">
-            <Search className="w-4 h-4 text-[var(--primary)] absolute left-3.5 top-3" />
-            <input
-              id="global-search-input"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder={`Search ${activePet.name}'s vaccines, meds, places, store...`}
-              className="w-full pl-10 pr-9 py-2.5 bg-[var(--card-bg)] backdrop-blur-xs rounded-2xl border border-[var(--card-border)] text-xs font-medium text-[var(--text)] placeholder:text-[var(--text-muted)] opacity-80 focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 shadow-2xs transition"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSearchResults([]);
-                }}
-                className="absolute right-3 top-3 text-[var(--text-muted)] hover:text-[var(--text)]"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Live Search Results Drawer */}
-          {searchResults.length > 0 && (
-            <div className="mt-2 p-2 bg-[var(--card-bg)] rounded-2xl shadow-xl border border-[var(--card-border)] text-xs z-40 animate-in fade-in">
-              {searchResults.map((res, i) => (
+        {showAppChrome && (
+          <div className="relative z-20 px-3 sm:px-4 pt-2 pb-1">
+            <div className="relative">
+              <Search className="w-4 h-4 text-[var(--primary)] absolute left-3.5 top-3" />
+              <input
+                id="global-search-input"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder={`Search ${activePet.name}'s vaccines, meds, places, store...`}
+                className="w-full pl-10 pr-9 py-2.5 bg-[var(--card-bg)] backdrop-blur-xs rounded-2xl border border-[var(--card-border)] text-xs font-medium text-[var(--text)] placeholder:text-[var(--text-muted)] opacity-80 focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 shadow-2xs transition"
+              />
+              {searchQuery && (
                 <button
-                  key={i}
                   type="button"
                   onClick={() => {
-                    navigate(res.route);
                     setSearchQuery('');
                     setSearchResults([]);
                   }}
-                  className="w-full p-2 rounded-xl hover:bg-[var(--primary)]/5 text-left flex items-center justify-between border-b border-[var(--primary)]/5 last:border-none transition"
+                  className="absolute right-3 top-3 text-[var(--text-muted)] hover:text-[var(--text)]"
                 >
-                  <div>
-                    <div className="font-bold text-[var(--text)]">{res.title}</div>
-                    <div className="text-[10px] text-[var(--text-muted)] opacity-70">{res.sub}</div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-[var(--primary)]" />
+                  <X className="w-4 h-4" />
                 </button>
-              ))}
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Live Search Results Drawer */}
+            {searchResults.length > 0 && (
+              <div className="mt-2 p-2 bg-[var(--card-bg)] rounded-2xl shadow-xl border border-[var(--card-border)] text-xs z-40 animate-in fade-in">
+                {searchResults.map((res, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      navigate(res.route);
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                    className="w-full p-2 rounded-xl hover:bg-[var(--primary)]/5 text-left flex items-center justify-between border-b border-[var(--primary)]/5 last:border-none transition"
+                  >
+                    <div>
+                      <div className="font-bold text-[var(--text)]">{res.title}</div>
+                      <div className="text-[10px] text-[var(--text-muted)] opacity-70">{res.sub}</div>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-[var(--primary)]" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Main Content Area with Subtle Skeleton Transition State */}
         <main className="relative z-10 flex-1 px-3 sm:px-4 pt-6 pb-4 flex flex-col items-center justify-start w-full min-h-[520px]">
@@ -656,7 +712,7 @@ function AppContent() {
         </main>
 
         {/* Persistent Bottom Navigation */}
-        {!showSplashAndAuth && (
+        {showAppChrome && (
           <Navigation
             currentTab={getActiveTab()}
             onSelectTab={handleSelectTab}

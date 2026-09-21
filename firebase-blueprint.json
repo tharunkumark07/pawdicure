@@ -170,6 +170,10 @@
           "type": "string",
           "description": "Preferred UI theme (light, dark, or system)"
         },
+        "pawPoints": {
+          "type": "integer",
+          "description": "Secure user reward points balance"
+        },
         "notificationSettings": {
           "type": "object",
           "description": "Granular user level notification settings and Quiet Hours windows.",
@@ -276,6 +280,78 @@
         "createdAt": { "type": "integer" }
       },
       "required": ["id", "routineId", "routineItemId", "petId", "userId", "date", "status", "createdAt"]
+    },
+    "pawPointTransaction": {
+      "title": "Paw Point Transaction Log",
+      "description": "An immutable record of points earned or spent by a user.",
+      "type": "object",
+      "properties": {
+        "transactionId": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["EARN", "SPEND"] },
+        "source": { "type": "string" },
+        "sourceRecordId": { "type": "string" },
+        "points": { "type": "integer" },
+        "balanceAfter": { "type": "integer" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["transactionId", "userId", "type", "source", "sourceRecordId", "points", "balanceAfter", "description", "createdAt"]
+    },
+    "biometryProfile": {
+      "title": "User Biometric Profile",
+      "description": "Main onboarding and state configurations for wearable health syncing.",
+      "type": "object",
+      "properties": {
+        "biometryEnabled": { "type": "boolean" },
+        "wearableConnected": { "type": "boolean" },
+        "biometricDataAvailable": { "type": "boolean" },
+        "biometryOnboardingShown": { "type": "boolean" },
+        "createdAt": { "type": "integer" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["biometryEnabled", "wearableConnected", "biometricDataAvailable", "biometryOnboardingShown", "createdAt", "updatedAt"]
+    },
+    "wearableDevice": {
+      "title": "Connected Wearable Device",
+      "description": "A connected health wearable/device record.",
+      "type": "object",
+      "properties": {
+        "wearableId": { "type": "string" },
+        "deviceName": { "type": "string" },
+        "deviceType": { "type": "string" },
+        "manufacturer": { "type": "string" },
+        "connectionType": { "type": "string", "enum": ["Bluetooth", "Cloud Platform"] },
+        "ownerType": { "type": "string", "enum": ["user", "pet"] },
+        "ownerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["connected", "disconnected"] },
+        "connectedAt": { "type": "integer" },
+        "lastSeenAt": { "type": "integer" },
+        "lastSyncAt": { "type": "integer" },
+        "permissions": { "type": "object" },
+        "supportedMetrics": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "integer" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["wearableId", "deviceName", "deviceType", "connectionType", "ownerType", "ownerId", "status", "connectedAt", "lastSeenAt", "createdAt", "updatedAt"]
+    },
+    "biometricRecord": {
+      "title": "Biometric Data Point",
+      "description": "An individual biometric value reading registered from a wearable.",
+      "type": "object",
+      "properties": {
+        "sourceDeviceId": { "type": "string" },
+        "sourceType": { "type": "string" },
+        "ownerType": { "type": "string", "enum": ["user", "pet"] },
+        "ownerId": { "type": "string" },
+        "metricType": { "type": "string" },
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "recordedAt": { "type": "integer" },
+        "syncedAt": { "type": "integer" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["sourceDeviceId", "sourceType", "ownerType", "ownerId", "metricType", "value", "unit", "recordedAt", "syncedAt", "createdAt"]
     }
   },
   "firestore": {
@@ -314,6 +390,22 @@
     "/users/{userId}/missionProgress/{missionId}": {
       "schema": "missionProgress",
       "description": "Tracks sub-task completions of multi-step campaigns per user."
+    },
+    "/users/{userId}/pawPointTransactions/{transactionId}": {
+      "schema": "pawPointTransaction",
+      "description": "Stores transaction logs of earned or spent reward points."
+    },
+    "/users/{userId}/biometry/profile": {
+      "schema": "biometryProfile",
+      "description": "Stores biometric onboarding status and system states."
+    },
+    "/users/{userId}/wearables/{wearableId}": {
+      "schema": "wearableDevice",
+      "description": "Stores connected wearable details and status."
+    },
+    "/users/{userId}/biometryRecords/{recordId}": {
+      "schema": "biometricRecord",
+      "description": "Stores individual verified biometric data readings."
     }
   }
 }

@@ -476,10 +476,20 @@ export interface NotificationSettings {
 }
 
 export interface UserProfile {
+  uid?: string;
   name: string;
+  displayName?: string;
+  preferredName?: string;
   email: string;
+  phone?: string;
+  photoURL?: string;
   avatar: string;
   theme: 'light' | 'dark' | 'system';
+  onboardingCompleted?: boolean;
+  onboardingStep?: string | number;
+  createdAt?: number;
+  updatedAt?: number;
+  lastLoginAt?: number;
   notifications: {
     feeding: boolean;
     medications: boolean;
@@ -493,6 +503,7 @@ export interface UserProfile {
     publicProfile: boolean;
   };
   notificationSettings?: NotificationSettings;
+  pawPoints?: number;
 }
 
 export interface RedeemedReward {
@@ -607,4 +618,45 @@ export interface DailyCycle {
   };
   createdAt: number;
   updatedAt: number;
+}
+
+export interface BiometryProfile {
+  biometryEnabled: boolean;
+  wearableConnected: boolean;
+  biometricDataAvailable: boolean;
+  biometryOnboardingShown: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface WearableDevice {
+  wearableId: string;
+  deviceName: string;
+  deviceType: string;
+  manufacturer?: string;
+  connectionType: 'Bluetooth' | 'Cloud Platform';
+  ownerType: 'user' | 'pet';
+  ownerId: string;
+  status: 'connected' | 'disconnected';
+  connectedAt: number;
+  lastSeenAt: number;
+  lastSyncAt: number | null;
+  permissions: Record<string, boolean>;
+  supportedMetrics: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface BiometricRecord {
+  id?: string;
+  sourceDeviceId: string;
+  sourceType: string;
+  ownerType: 'user' | 'pet';
+  ownerId: string;
+  metricType: string;
+  value: number;
+  unit: string;
+  recordedAt: number;
+  syncedAt: number;
+  createdAt: number;
 }

@@ -24,14 +24,27 @@ import { Pet } from '../types';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 
-export function PetProfileView() {
+interface PetProfileViewProps {
+  routePetId?: string | null;
+}
+
+export function PetProfileView({ routePetId }: PetProfileViewProps) {
   const {
-    activePet,
+    activePet: contextActivePet,
     householdData,
     setActivePetId,
     addPet,
     navigate,
   } = useApp();
+
+  const petList: Pet[] = Array.isArray(householdData.pets)
+    ? householdData.pets
+    : Object.values(householdData.pets || {});
+
+  // Determine active pet from route parameter if available
+  const activePet = routePetId && householdData.pets && householdData.pets[routePetId]
+    ? householdData.pets[routePetId]
+    : contextActivePet;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
@@ -39,10 +52,6 @@ export function PetProfileView() {
 
   const evaluatedBadges = evaluatePetBadges(activePet);
   const unlockedBadges = evaluatedBadges.filter((b) => b.isUnlocked);
-
-  const petList: Pet[] = Array.isArray(householdData.pets)
-    ? householdData.pets
-    : Object.values(householdData.pets || {});
 
   const handleAddNewPet = () => {
     const newP: Pet = {
@@ -82,7 +91,7 @@ export function PetProfileView() {
       restingBpm: 76,
       microchipId: '985-141-209-441-002',
       vetClinic: 'Bay Paws Veterinary Specialty Center',
-      emergencyContact: 'Sarah Miller',
+      emergencyContact: 'THARUN',
       emergencyPhone: '+1 (555) 019-2834',
       allergies: ['Beef', 'Wheat gluten'],
       affinityPillars: activePet.affinityPillars || [],

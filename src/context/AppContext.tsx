@@ -23,12 +23,13 @@ import {
   RoutineItemExecution,
   ScheduledRoutineItem,
 } from '../types';
-import { INITIAL_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
-import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db, auth } from '../lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { INITIAL_HOUSEHOLD_DATA, INITIAL_EMPTY_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
+import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db, auth, getUserProfileDoc, createUserProfileDoc, updateUserProfileDoc, sendPasswordReset, mapAuthErrorMessage, clearUserCachedState, loginWithGoogle, determineInitialRoute } from '../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import { dailyCycleService } from '../services/dailyCycleService';
 import { activityService } from '../services/activityService';
 import { routineService } from '../services/routineService';
+import { pawPointsService } from '../services/pawPointsService';
 import { getUserLocalDate, getUserLocalTime } from '../lib/timeUtils';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { updateDocumentFavicon } from '../lib/favicon';
@@ -45,7 +46,7 @@ interface AppContextType {
   toasts: ToastMessage[];
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  navigate: (route: string) => void;
+  navigate: (route: string, options?: { replace?: boolean }) => void;
   showToast: (title: string, type?: 'success' | 'info' | 'warning' | 'error', icon?: string) => void;
   removeToast: (id: string) => void;
   triggerConfetti: () => void;
@@ -101,6 +102,7 @@ interface AppContextType {
   // Family & Care Activities
   inviteFamilyMember: (member: { name: string; email: string; role: 'Owner' | 'Family Member' | 'Caregiver' }) => void;
   addCareActivity: (action: string, xp?: number, icon?: string) => void;
+  awardPawPoints: (activityType: string, sourceRecordId: string, description?: string) => Promise<void>;
   activities: PetActivityRecord[];
   logPetActivity: (activity: Omit<PetActivityRecord, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => Promise<PetActivityRecord>;
   updatePetActivity: (activityId: string, updates: Partial<PetActivityRecord>) => Promise<void>;
@@ -118,9 +120,25 @@ interface AppContextType {
   performDailyCheckIn: () => { success: boolean; message: string; pointsEarned: number };
   verifyVaccine: (vaccineId: string) => Promise<boolean>;
 
-  // Realtime Firebase Auth Actions
+  // Realtime Firebase Auth Actions & State
+  currentUser: User | null;
+  userProfile: UserProfile | null;
+  authLoading: boolean;
+  isAuthenticated: boolean;
+  onboardingCompleted: boolean;
+  onboardingStep: number;
   loginUserWithFirebase: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
-  signupUserWithFirebase: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: any }>;
+  loginUserWithGoogle: () => Promise<{ success: boolean; error?: any }>;
+  signupUserWithFirebase: (
+    email: string,
+    password: string,
+    name: string,
+    extraFields?: { preferredName?: string; phone?: string; photoURL?: string }
+  ) => Promise<{ success: boolean; error?: any }>;
+  logoutUserWithFirebase: () => Promise<{ success: boolean; error?: any }>;
+  sendPasswordReset: (email: string) => Promise<{ success: boolean; message: string }>;
+  updateOnboardingStep: (step: number) => Promise<void>;
+  completeUserOnboarding: (userUpdates?: Partial<UserProfile>, petData?: Partial<Pet>) => Promise<void>;
 
   // Notifications
   notifications: AppNotification[];
@@ -196,6 +214,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Centralized Firebase Auth State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(false);
 
   // Badges & Missions state
   const [userId, setUserId] = useState<string | null>(null);
@@ -320,13 +345,96 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [householdData]);
 
-  // Boot Firebase anonymous authentication
+  // Real-time Firebase Auth State Manager
   useEffect(() => {
-    initFirebaseAuth((user) => {
-      if (user) {
-        setUserId(user.uid);
+    let unsubscribeHousehold: (() => void) | null = null;
+    let unsubscribeProfile: (() => void) | null = null;
+    setAuthLoading(true);
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (unsubscribeHousehold) {
+        unsubscribeHousehold();
+        unsubscribeHousehold = null;
       }
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+        unsubscribeProfile = null;
+      }
+
+      if (user && !user.isAnonymous) {
+        setCurrentUser(user);
+        setUserId(user.uid);
+        setIsAuthenticated(true);
+
+        try {
+          let profile = await getUserProfileDoc(user.uid);
+          if (!profile) {
+            profile = await createUserProfileDoc(user.uid, {
+              name: user.displayName || 'Pet Parent',
+              displayName: user.displayName || 'Pet Parent',
+              preferredName: user.displayName || 'Pet Parent',
+              email: user.email || '',
+              photoURL: user.photoURL || '',
+              onboardingCompleted: false,
+              onboardingStep: 1,
+              pawPoints: 0, // Starts at zero for every new user
+            });
+          } else {
+            updateUserProfileDoc(user.uid, { lastLoginAt: Date.now() });
+          }
+
+          setUserProfile(profile);
+          setOnboardingCompleted(!!profile.onboardingCompleted);
+
+          // Subscribe to profile doc in real-time
+          const userDocRef = doc(db, 'users', user.uid);
+          unsubscribeProfile = onSnapshot(userDocRef, (snap) => {
+            if (snap.exists()) {
+              const updatedProfile = snap.data() as UserProfile;
+              setUserProfile(updatedProfile);
+              setOnboardingCompleted(!!updatedProfile.onboardingCompleted);
+            }
+          });
+
+          // Subscribe to isolated household data for user's UID
+          const userHouseholdId = `household-${user.uid}`;
+          unsubscribeHousehold = subscribeToHousehold(userHouseholdId, (data) => {
+            setHouseholdData(data);
+          });
+
+          // Route determination
+          const targetRoute = determineInitialRoute(user, profile);
+          const currentHash = window.location.hash.replace('#', '') || '/home';
+          if (currentHash === '/auth' || !profile.onboardingCompleted || currentHash === '') {
+            navigate(targetRoute, { replace: true });
+          }
+        } catch (err) {
+          console.error('Error synchronizing user profile or household:', err);
+        }
+      } else if (user && user.isAnonymous) {
+        // Guest mode
+        setCurrentUser(user);
+        setUserProfile(null);
+        setUserId(user.uid);
+        setIsAuthenticated(false);
+        setOnboardingCompleted(false);
+      } else {
+        // Unauthenticated
+        setCurrentUser(null);
+        setUserProfile(null);
+        setUserId(null);
+        setIsAuthenticated(false);
+        setOnboardingCompleted(false);
+        setHouseholdData(INITIAL_EMPTY_HOUSEHOLD_DATA);
+      }
+      setAuthLoading(false);
     });
+
+    return () => {
+      if (unsubscribeHousehold) unsubscribeHousehold();
+      if (unsubscribeProfile) unsubscribeProfile();
+      unsubscribeAuth();
+    };
   }, []);
 
   // Base64 helper for VAPID key conversion
@@ -577,8 +685,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Custom navigate function
-  const navigate = (route: string) => {
-    window.location.hash = route;
+  const navigate = (route: string, options?: { replace?: boolean }) => {
+    if (options?.replace) {
+      window.location.replace(`#${route}`);
+    } else {
+      window.location.hash = route;
+    }
     if (route.startsWith('/store/product/')) {
       const id = route.replace('/store/product/', '');
       setRouteParams({ id });
@@ -819,7 +931,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       return {
         ...prev,
-        pawPoints: prev.pawPoints + Math.round(amount * 0.4),
         pets: {
           ...prev.pets,
           [pet.id]: pet,
@@ -911,6 +1022,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const xp = Math.round(25 + grams / 15);
     addXp(xp, `Fed +${grams}g meal (+${mealKcal} kcal)`);
     addCareActivity(`Fed ${activePet.name} +${grams}g meal (+${mealKcal} kcal)`, xp, 'restaurant');
+    awardPawPoints('FEEDING', 'feed-' + Date.now(), `Fed ${activePet.name} +${grams}g meal`);
   };
 
   const refreshWater = () => {
@@ -1028,6 +1140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addXp(memory.xp || 100, `Recorded memory: ${memory.title}`);
     addCareActivity(`Saved memory "${memory.title}"`, 100, 'photo_camera');
     showToast(`Memory "${memory.title}" added to journal!`, 'success', '📸');
+    awardPawPoints('MEMORY', newMemory.id, `Recorded memory: ${memory.title}`);
   };
 
   const deleteMemory = (id: string) => {
@@ -1052,6 +1165,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addXp(50, `Recorded vaccination: ${vaccine.name}`);
     addCareActivity(`Logged vaccination "${vaccine.name}"`, 50, 'healing');
     showToast(`Vaccination record for "${vaccine.name}" saved!`, 'success', '💉');
+    awardPawPoints('VACCINATION', newVac.id, `Recorded vaccination: ${vaccine.name}`);
   };
 
   const toggleVaccine = (id: string) => {
@@ -1283,7 +1397,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return (householdData.wishlist || []).includes(productId);
   };
 
-  const redeemReward = (itemOrId: StoreProduct | RewardItem | string) => {
+  const redeemReward = async (itemOrId: StoreProduct | RewardItem | string) => {
     let itemTitle = 'Reward';
     let pointsCost = 0;
     let rewardId = '';
@@ -1316,8 +1430,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       rewardId = itemOrId.id;
     }
 
-    if (householdData.pawPoints < pointsCost) {
-      const diff = pointsCost - householdData.pawPoints;
+    const currentPoints = userProfile ? (userProfile.pawPoints ?? 0) : 0;
+    if (currentPoints < pointsCost) {
+      const diff = pointsCost - currentPoints;
       showToast(
         `Exclusive perk! You need ${diff.toLocaleString()} more PAW Points to unlock "${itemTitle}".`,
         'warning',
@@ -1326,30 +1441,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    const redemptionCode =
-      'PAW-' +
-      Math.random().toString(36).substring(2, 6).toUpperCase() +
-      '-' +
-      Date.now().toString().slice(-4);
+    if (!userId) {
+      showToast('Please sign in to redeem rewards', 'error');
+      return false;
+    }
 
-    const newRedemption = {
-      id: 'red-' + Date.now(),
-      rewardId: rewardId,
-      title: itemTitle,
-      pointsSpent: pointsCost,
-      redeemedAt: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-      code: redemptionCode,
-    };
+    showToast('Processing redemption securely...', 'info', '⏳');
 
-    updateHousehold((prev) => ({
-      ...prev,
-      pawPoints: prev.pawPoints - pointsCost,
-      redeemedRewards: [newRedemption, ...(prev.redeemedRewards || [])],
-    }));
+    const result = await pawPointsService.redeemReward(userId, rewardId, itemTitle, pointsCost);
+    if (!result.success) {
+      showToast(result.error || 'Redemption failed', 'error');
+      return false;
+    }
+
+    const redemptionCode = result.code || 'PAW-ERROR';
 
     triggerConfetti();
     showToast(`🎉 Clinical Voucher Unlocked! Code: ${redemptionCode}`, 'success', '🎁');
@@ -1405,6 +1510,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const awardPawPoints = async (activityType: string, sourceRecordId: string, description?: string) => {
+    if (!userId) return;
+    try {
+      const result = await pawPointsService.awardPoints(userId, activityType, sourceRecordId, description);
+      if (result.success && result.pointsAwarded > 0) {
+        showToast(`+${result.pointsAwarded} PAW Points! 🐾`, 'success', '🪙');
+      }
+    } catch (err) {
+      console.warn('Error awarding PAW Points via backend:', err);
+    }
+  };
+
   const logPetActivity = async (
     activityData: Omit<PetActivityRecord, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
   ): Promise<PetActivityRecord> => {
@@ -1439,6 +1556,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       'success',
       savedRecord.icon || '🐾'
     );
+
+    // Securely award points on the server based on activityType
+    awardPawPoints(savedRecord.activityType.toUpperCase(), savedRecord.id, `Recorded activity: ${savedRecord.title}`);
 
     refreshDailyCycle();
     evaluateAchievements();
@@ -1710,6 +1830,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } else if (foundItem.activityType === 'water') {
       refreshWater();
       linkedRecordId = `water-routine-${Date.now()}`;
+      awardPawPoints('COMPLETED_ROUTINE', execId, `Completed task: ${foundItem.title}`);
     } else if (
       ['walk', 'play', 'exercise', 'training', 'outdoor', 'indoor_play', 'bonding'].includes(
         foundItem.activityType
@@ -1735,10 +1856,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addCareActivity(`Administered scheduled dose: "${foundItem.title}"`, xpReward, 'medication');
       addXp(xpReward, `Completed routine medication: ${foundItem.title}`);
       linkedRecordId = `med-routine-${Date.now()}`;
+      awardPawPoints('COMPLETED_ROUTINE', execId, `Completed task: ${foundItem.title}`);
     } else {
       addCareActivity(`Completed routine care: "${foundItem.title}"`, xpReward, foundItem.icon || 'task_alt');
       addXp(xpReward, `Completed scheduled routine task: ${foundItem.title}`);
       linkedRecordId = `care-routine-${Date.now()}`;
+      awardPawPoints('COMPLETED_ROUTINE', execId, `Completed task: ${foundItem.title}`);
     }
 
     const executionRecord: RoutineItemExecution = {
@@ -1933,56 +2056,218 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const loginUserWithFirebase = async (emailStr: string, passwordStr: string) => {
     try {
       setIsSyncing(true);
-      const cred = await signInWithEmailAndPassword(auth, emailStr, passwordStr);
-      setUserId(cred.user.uid);
+      const cred = await signInWithEmailAndPassword(auth, emailStr.trim(), passwordStr);
+      const uid = cred.user.uid;
+      let profile = await getUserProfileDoc(uid);
+      if (!profile) {
+        profile = await createUserProfileDoc(uid, {
+          name: cred.user.displayName || 'Pet Parent',
+          displayName: cred.user.displayName || 'Pet Parent',
+          preferredName: cred.user.displayName || 'Pet Parent',
+          email: cred.user.email || emailStr.trim(),
+          photoURL: cred.user.photoURL || '',
+          onboardingCompleted: false,
+          onboardingStep: 1,
+        });
+      }
+      setUserProfile(profile);
+      setOnboardingCompleted(!!profile.onboardingCompleted);
       
-      const customHouseholdId = `household-${cred.user.uid}`;
-      updateHousehold((prev) => ({
-        ...prev,
-        householdId: customHouseholdId,
-        userProfile: {
-          ...prev.userProfile,
-          email: emailStr,
-          name: cred.user.displayName || prev.userProfile?.name || 'Companion Parent',
-        }
-      }));
-      showToast('Real-time login successful! Syncing cloud data... ✨', 'success', '🔐');
+      const targetRoute = determineInitialRoute(cred.user, profile);
+      showToast('Welcome back to PAWdiCURE! ✨', 'success', '🔐');
+      navigate(targetRoute, { replace: true });
       return { success: true };
     } catch (err: any) {
       console.error('Firebase sign-in error:', err);
-      showToast(err.message || 'Login failed. Please check credentials.', 'error', '❌');
-      return { success: false, error: err };
+      const userMsg = mapAuthErrorMessage(err);
+      showToast(userMsg, 'error', '❌');
+      return { success: false, error: userMsg };
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const signupUserWithFirebase = async (emailStr: string, passwordStr: string, nameStr: string) => {
+  const loginUserWithGoogle = async () => {
     try {
       setIsSyncing(true);
-      const cred = await createUserWithEmailAndPassword(auth, emailStr, passwordStr);
-      await updateProfile(cred.user, { displayName: nameStr });
-      setUserId(cred.user.uid);
-
-      const customHouseholdId = `household-${cred.user.uid}`;
-      updateHousehold((prev) => ({
-        ...prev,
-        householdId: customHouseholdId,
-        userProfile: {
-          ...prev.userProfile,
-          name: nameStr,
-          email: emailStr,
+      const res = await loginWithGoogle();
+      if (res.success && res.user) {
+        const uid = res.user.uid;
+        let profile = await getUserProfileDoc(uid);
+        if (!profile) {
+          profile = await createUserProfileDoc(uid, {
+            name: res.user.displayName || 'Pet Parent',
+            displayName: res.user.displayName || 'Pet Parent',
+            preferredName: res.user.displayName || 'Pet Parent',
+            email: res.user.email || '',
+            photoURL: res.user.photoURL || '',
+            onboardingCompleted: false,
+            onboardingStep: 1,
+          });
         }
-      }));
-      showToast('Account created successfully! Real-time sync enabled. ✨', 'success', '🎉');
-      return { success: true };
+        setUserProfile(profile);
+        setOnboardingCompleted(!!profile.onboardingCompleted);
+
+        const targetRoute = determineInitialRoute(res.user, profile);
+        showToast('Signed in with Google! Welcome to PAWdiCURE. ✨', 'success', '🔑');
+        navigate(targetRoute, { replace: true });
+        return { success: true };
+      } else {
+        const userMsg = res.error || 'Google Sign-In failed.';
+        showToast(userMsg, 'error', '❌');
+        return { success: false, error: userMsg };
+      }
     } catch (err: any) {
-      console.error('Firebase sign-up error:', err);
-      showToast(err.message || 'Account creation failed.', 'error', '❌');
-      return { success: false, error: err };
+      console.error('Google Sign-In error:', err);
+      const userMsg = mapAuthErrorMessage(err);
+      showToast(userMsg, 'error', '❌');
+      return { success: false, error: userMsg };
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  const signupUserWithFirebase = async (
+    emailStr: string,
+    passwordStr: string,
+    nameStr: string,
+    extraFields?: { preferredName?: string; phone?: string; photoURL?: string }
+  ) => {
+    try {
+      setIsSyncing(true);
+      const cred = await createUserWithEmailAndPassword(auth, emailStr.trim(), passwordStr);
+      const uid = cred.user.uid;
+      await updateProfile(cred.user, { displayName: nameStr.trim() });
+
+      const profile = await createUserProfileDoc(uid, {
+        name: nameStr.trim(),
+        displayName: nameStr.trim(),
+        preferredName: extraFields?.preferredName?.trim() || nameStr.trim(),
+        email: emailStr.trim(),
+        phone: extraFields?.phone?.trim() || null,
+        photoURL: extraFields?.photoURL || null,
+        onboardingCompleted: false,
+        onboardingStep: 1,
+      });
+
+      setUserProfile(profile);
+      setOnboardingCompleted(false);
+      showToast('Account created! Welcome to PAWdiCURE. 🐾', 'success', '🎉');
+      navigate('/onboarding', { replace: true });
+      return { success: true };
+    } catch (err: any) {
+      console.error('Firebase sign-up error:', err);
+      const userMsg = mapAuthErrorMessage(err);
+      showToast(userMsg, 'error', '❌');
+      return { success: false, error: userMsg };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const logoutUserWithFirebase = async () => {
+    try {
+      setIsSyncing(true);
+      const currentUid = userId;
+      await signOut(auth);
+
+      if (currentUid) {
+        clearUserCachedState(currentUid);
+      }
+
+      setCurrentUser(null);
+      setUserProfile(null);
+      setUserId(null);
+      setIsAuthenticated(false);
+      setOnboardingCompleted(false);
+
+      // Reset local household state to empty
+      setHouseholdData(INITIAL_EMPTY_HOUSEHOLD_DATA);
+
+      showToast('Logged out of PAWdiCURE.', 'info', '🚪');
+      navigate('/auth', { replace: true });
+      return { success: true };
+    } catch (err: any) {
+      console.error('Firebase sign-out error:', err);
+      const userMsg = mapAuthErrorMessage(err);
+      showToast(userMsg, 'error', '❌');
+      return { success: false, error: userMsg };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const updateOnboardingStep = async (stepNum: number) => {
+    if (userId) {
+      await updateUserProfileDoc(userId, { onboardingStep: stepNum });
+      setUserProfile((prev) => (prev ? { ...prev, onboardingStep: stepNum } : null));
+    }
+  };
+
+  const completeUserOnboarding = async (userUpdates?: Partial<UserProfile>, petData?: Partial<Pet>) => {
+    if (userId) {
+      const updates: Partial<UserProfile> = {
+        onboardingCompleted: true,
+        onboardingStep: 3,
+        ...userUpdates,
+        updatedAt: Date.now(),
+      };
+      await updateUserProfileDoc(userId, updates);
+      setUserProfile((prev) => (prev ? { ...prev, ...updates } : null));
+    }
+
+    if (petData && petData.name) {
+      const newPet: Pet = {
+        id: petData.id || `pet-${Date.now()}`,
+        name: petData.name.trim(),
+        species: petData.species || 'Dog',
+        breed: petData.breed?.trim() || 'Companion',
+        age: petData.age?.trim() || '1 year',
+        gender: petData.gender || 'Male',
+        weight: petData.weight || 10,
+        restingBpm: 68,
+        personality: petData.personality || ['Friendly', 'Playful'],
+        avatarUrl: petData.avatarUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=300',
+        careScore: 90,
+        level: 1,
+        levelTitle: 'New Companion',
+        xp: 100,
+        nextLevelXp: 500,
+        mood: 'Happy',
+        healthStatus: 'Excellent',
+        hungerPercent: 20,
+        targetPortionGrams: petData.targetPortionGrams || 180,
+        dailyGramsFed: 0,
+        dailyGramsGoal: petData.targetPortionGrams || 180,
+        dailyCaloriesFed: 0,
+        dailyCaloriesGoal: 450,
+        nutritionPercent: 100,
+        lastFed: 'Just now',
+        mealsToday: 0,
+        maxMeals: 2,
+        hydrationPercent: 90,
+        hydrationMl: 400,
+        goalMl: 600,
+        pantryKg: 5,
+        vetClinic: 'Paws Medical Center',
+        microchipId: '9851410029381',
+        bloodType: 'DEA 1.1 Positive',
+        allergies: petData.allergies || [],
+        medicalConditions: [],
+        emergencyContact: 'Dr. Sarah Smith',
+        emergencyPhone: '(555) 019-2831',
+        affinityPillars: [],
+        stepsToday: 0,
+        stepsGoal: petData.stepsGoal || 8500,
+        streakDays: 1,
+        lastCheckInDate: getUserLocalDate(),
+        ...petData,
+      };
+      addPet(newPet);
+    }
+
+    setOnboardingCompleted(true);
+    navigate('/home', { replace: true });
   };
 
   const resetDemoData = () => {
@@ -2066,7 +2351,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     triggerConfetti();
     addXp(20, `Daily check-in streak Day ${nextStreak}`);
     addCareActivity(`Completed Daily Check-In (Day ${nextStreak})`, 20, 'sparkles');
-    showToast(`🎉 Daily Check-In Complete! +12 Paw Points earned! (Streak: ${nextStreak} Days)`, 'success', '⭐');
+    showToast(`🎉 Daily Check-In Complete! (Streak: ${nextStreak} Days)`, 'success', '⭐');
+    
+    // Secure points award
+    awardPawPoints('DAILY_CHECK_IN', 'checkin-' + todayStr, `Daily check-in streak Day ${nextStreak}`);
 
     addNotification({
       title: `Daily Check-In: +12 Points!`,
@@ -2161,6 +2449,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         claimDailyQuest,
         inviteFamilyMember,
         addCareActivity,
+        awardPawPoints,
         activities: householdData.activities || [],
         logPetActivity,
         updatePetActivity,
@@ -2173,8 +2462,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         exportData,
         performDailyCheckIn,
         verifyVaccine,
+        currentUser,
+        userProfile,
+        authLoading,
+        isAuthenticated,
+        onboardingCompleted,
+        onboardingStep: (userProfile?.onboardingStep as number) || 1,
         loginUserWithFirebase,
+        loginUserWithGoogle,
         signupUserWithFirebase,
+        logoutUserWithFirebase,
+        sendPasswordReset,
+        updateOnboardingStep,
+        completeUserOnboarding,
         notifications,
         unreadNotificationCount,
         markNotificationRead,

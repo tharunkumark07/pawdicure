@@ -556,6 +556,54 @@ export const INITIAL_TROPHIES: Trophy[] = [
   },
 ];
 
+export const INITIAL_EMPTY_HOUSEHOLD_DATA: HouseholdData = {
+  householdId: '',
+  syncCode: '',
+  activePetId: '',
+  streakDays: 0,
+  pawPoints: 0,
+  wishlist: [],
+  cart: [],
+  lastSyncedAt: Date.now(),
+  pets: {},
+  userProfile: {
+    name: '',
+    email: '',
+    avatar: '',
+    theme: 'light',
+    notifications: {
+      feeding: true,
+      medications: true,
+      walks: true,
+      health: true,
+      achievements: true,
+    },
+    privacy: {
+      locationSharing: true,
+      cloudSync: true,
+      publicProfile: false,
+    },
+  },
+  familyMembers: [],
+  routineTasks: [],
+  routines: [],
+  routineExecutions: [],
+  vaccinationHistory: [],
+  medications: [],
+  vetVisits: [],
+  reminders: [],
+  memories: [],
+  trophies: [],
+  activities: [],
+  healthMilestones: [],
+  documents: [],
+  feedingHistory: [],
+  weightHistory: [],
+  careActivities: [],
+  places: [],
+  redeemedRewards: [],
+};
+
 export const INITIAL_HOUSEHOLD_DATA: HouseholdData = {
   householdId: 'default-household',
   syncCode: 'MILO-88',
@@ -568,9 +616,9 @@ export const INITIAL_HOUSEHOLD_DATA: HouseholdData = {
   ],
   lastSyncedAt: Date.now(),
   userProfile: {
-    name: 'Sarah Miller',
-    email: 'sarah.miller@pawdicure.app',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    name: 'THARUN',
+    email: 'tharun@pawdicure.app',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
     theme: 'light',
     notifications: {
       feeding: true,
@@ -588,8 +636,8 @@ export const INITIAL_HOUSEHOLD_DATA: HouseholdData = {
   familyMembers: [
     {
       id: 'fam-1',
-      name: 'Sarah Miller',
-      email: 'sarah@pawdicure.app',
+      name: 'THARUN',
+      email: 'tharun@pawdicure.app',
       role: 'Owner',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
       isPrimary: true,
@@ -613,7 +661,7 @@ export const INITIAL_HOUSEHOLD_DATA: HouseholdData = {
     {
       id: 'act-1',
       petId: 'milo',
-      actorName: 'Sarah',
+      actorName: 'THARUN',
       action: 'Administered 180g supper with Salmon Oil topper',
       time: '12m ago',
       timestamp: Date.now() - 12 * 60 * 1000,
@@ -633,7 +681,7 @@ export const INITIAL_HOUSEHOLD_DATA: HouseholdData = {
     {
       id: 'act-3',
       petId: 'milo',
-      actorName: 'Sarah',
+      actorName: 'THARUN',
       action: 'Dispensed daily Glucosamine Joint chew',
       time: '5h ago',
       timestamp: Date.now() - 5 * 3600 * 1000,

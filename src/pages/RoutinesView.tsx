@@ -431,15 +431,19 @@ export function RoutinesView() {
 
             <div className="space-y-2.5">
               {petTodayItems.length > 0 ? (
-                petTodayItems.map((item) => {
-                  const isDone = item.status === 'completed';
+                petTodayItems.map((sched, idx) => {
+                  const routineItem = sched.item;
+                  const isDone = sched.status === 'completed';
+                  const itemId = routineItem.id || `sched-${idx}`;
+                  const uniqueKey = `today-${sched.routine?.id || 'r'}-${itemId}-${idx}`;
+
                   return (
                     <div
-                      key={item.id}
+                      key={uniqueKey}
                       className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                         isDone
                           ? 'bg-emerald-500/[0.06] border-emerald-500/20'
-                          : item.status === 'due'
+                          : sched.status === 'due'
                           ? 'bg-amber-500/[0.08] border-amber-500/30 ring-1 ring-amber-500/20'
                           : 'bg-[var(--background-alt)] border-[var(--card-border)]'
                       }`}
@@ -449,9 +453,9 @@ export function RoutinesView() {
                           type="button"
                           onClick={() => {
                             if (isDone) {
-                              uncompleteRoutineItem(item.id);
+                              uncompleteRoutineItem(routineItem.id);
                             } else {
-                              completeRoutineItem(item.id);
+                              completeRoutineItem(routineItem.id, routineItem);
                             }
                           }}
                           className={`w-7 h-7 rounded-full border flex items-center justify-center transition shrink-0 cursor-pointer ${
@@ -463,7 +467,7 @@ export function RoutinesView() {
                           {isDone && <Check className="w-4 h-4 stroke-[3]" />}
                         </button>
 
-                        <span className="text-xl shrink-0">{item.icon || '🐾'}</span>
+                        <span className="text-xl shrink-0">{routineItem.icon || '🐾'}</span>
 
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -472,17 +476,17 @@ export function RoutinesView() {
                                 isDone ? 'line-through text-slate-400' : 'text-[var(--text)]'
                               }`}
                             >
-                              {item.title}
+                              {routineItem.title}
                             </span>
                             <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 uppercase">
-                              {item.scheduledTime}
+                              {routineItem.scheduledTime}
                             </span>
                           </div>
                           <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
-                            <span className="capitalize">{item.activityType}</span>
+                            <span className="capitalize">{routineItem.activityType}</span>
                             <span>•</span>
-                            <span>{item.durationMinutes} mins</span>
-                            {item.location && <span>• {item.location}</span>}
+                            <span>{routineItem.durationMinutes} mins</span>
+                            {routineItem.location && <span>• {routineItem.location}</span>}
                           </div>
                         </div>
                       </div>
@@ -495,13 +499,13 @@ export function RoutinesView() {
                               : 'bg-[var(--primary)]/10 text-[var(--primary)]'
                           }`}
                         >
-                          +{item.priority === 'high' ? 35 : 25} XP
+                          +{routineItem.priority === 'high' ? 35 : 25} XP
                         </span>
 
                         {!isDone && (
                           <button
                             type="button"
-                            onClick={() => skipRoutineItem(item.id)}
+                            onClick={() => skipRoutineItem(routineItem.id)}
                             className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded-md hover:bg-slate-100"
                           >
                             Skip

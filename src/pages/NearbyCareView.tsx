@@ -164,6 +164,7 @@ export function NearbyCareView() {
     showToast,
     navigate,
     addXp,
+    awardPawPoints,
   } = useApp();
 
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -249,12 +250,8 @@ export function NearbyCareView() {
     });
 
     // 4. Boost pawPoints as reward
-    updateHousehold((prev) => ({
-      ...prev,
-      pawPoints: (prev.pawPoints || 0) + 20,
-    }));
     addXp(30, `Booked ${vaccineName} appointment online`);
-    showToast(`Earned +20 Paw Points for scheduling care! ✨`, 'success');
+    awardPawPoints('OTHER_CARE_ACTIVITY', 'booking-' + Date.now(), `Booked ${vaccineName} care online`);
 
     setIsBookedSuccess(true);
   };

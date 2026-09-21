@@ -1,37 +1,107 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   Sparkles,
   ArrowRight,
   ArrowLeft,
   Check,
-  Heart,
+  User as UserIcon,
   Dog,
+  Heart,
   Shield,
   Activity,
+  Phone,
+  Mail,
+  Award,
 } from 'lucide-react';
 
 export function OnboardingView() {
-  const { activePet, updatePet, navigate, showToast } = useApp();
+  const {
+    currentUser,
+    userProfile,
+    onboardingStep: savedStep,
+    updateOnboardingStep,
+    completeUserOnboarding,
+    showToast,
+    navigate,
+  } = useApp();
 
-  const [step, setStep] = useState(1);
-  const [petName, setPetName] = useState(activePet.name || 'Milo');
-  const [breed, setBreed] = useState(activePet.breed || 'Golden Retriever');
-  const [age, setAge] = useState(activePet.age || '2y 4m');
-  const [weight, setWeight] = useState(activePet.weight?.toString() || '28.4');
-  const [gender, setGender] = useState(activePet.gender || 'Male');
-  const [targetPortion, setTargetPortion] = useState(activePet.targetPortionGrams?.toString() || '180');
-  const [stepsGoal, setStepsGoal] = useState(activePet.stepsGoal?.toString() || '8500');
-  const [allergies, setAllergies] = useState(activePet.allergies?.join(', ') || 'Chicken byproduct');
+  const [step, setStep] = useState<number>(() => savedStep || 1);
 
-  const handleFinish = () => {
-    const updated = {
-      ...activePet,
-      name: petName.trim() || 'Milo',
-      breed: breed.trim() || 'Golden Retriever',
-      age: age.trim() || '2y 4m',
-      weight: parseFloat(weight) || 28.4,
-      gender: gender as any,
+  // User Info state
+  const [fullName, setFullName] = useState(
+    userProfile?.displayName || userProfile?.name || currentUser?.displayName || ''
+  );
+  const [preferredName, setPreferredName] = useState(
+    userProfile?.preferredName || userProfile?.displayName || ''
+  );
+  const [email, setEmail] = useState(
+    userProfile?.email || currentUser?.email || ''
+  );
+  const [phone, setPhone] = useState(userProfile?.phone || '');
+
+  // Pet Info state
+  const [petName, setPetName] = useState('');
+  const [species, setSpecies] = useState<'Dog' | 'Cat' | 'Bird' | 'Rabbit' | 'Other'>('Dog');
+  const [breed, setBreed] = useState('');
+  const [gender, setGender] = useState<'Male' | 'Female' | 'Unknown'>('Male');
+  const [age, setAge] = useState('');
+  const [weight, setWeight] = useState('');
+
+  // Pet Lifestyle & Goals
+  const [personality, setPersonality] = useState('Playful, Affectionate');
+  const [favoriteFood, setFavoriteFood] = useState('Salmon Kibble');
+  const [favoriteToy, setFavoriteToy] = useState('Squeaky Ball');
+  const [targetPortion, setTargetPortion] = useState('180');
+  const [stepsGoal, setStepsGoal] = useState('8500');
+  const [allergies, setAllergies] = useState('');
+
+  useEffect(() => {
+    if (savedStep && savedStep !== step) {
+      setStep(savedStep);
+    }
+  }, [savedStep]);
+
+  const changeStep = async (nextStep: number) => {
+    setStep(nextStep);
+    await updateOnboardingStep(nextStep);
+  };
+
+  const handleFinish = async () => {
+    if (!fullName.trim()) {
+      showToast('Please enter your full name', 'warning', '👤');
+      setStep(1);
+      return;
+    }
+
+    if (!petName.trim()) {
+      showToast("Please enter your companion's name", 'warning', '🐾');
+      setStep(2);
+      return;
+    }
+
+    const userUpdates = {
+      name: fullName.trim(),
+      displayName: fullName.trim(),
+      preferredName: preferredName.trim() || fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim() || null,
+    };
+
+    const petData = {
+      name: petName.trim(),
+      species,
+      breed: breed.trim() || 'Companion Breed',
+      gender,
+      age: age.trim() || '1 year',
+      weight: parseFloat(weight) || 10,
+      personality: personality
+        ? personality.split(',').map((p) => p.trim()).filter(Boolean)
+        : ['Friendly'],
+      avatarUrl:
+        species.toLowerCase() === 'cat'
+          ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=300&q=80'
+          : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&q=80',
       targetPortionGrams: parseInt(targetPortion, 10) || 180,
       stepsGoal: parseInt(stepsGoal, 10) || 8500,
       allergies: allergies
@@ -39,220 +109,361 @@ export function OnboardingView() {
         : [],
     };
 
-    updatePet(updated);
-    showToast(`Welcome to PAWdiCURE, ${updated.name}! 🐾`, 'success');
-    navigate('/home');
+    await completeUserOnboarding(userUpdates, petData);
+    showToast(`Welcome to PAWdiCURE, ${userUpdates.preferredName}! 🐾`, 'success', '🎉');
   };
 
   return (
-    <div className="flex flex-col w-full min-h-[500px] justify-center pb-12 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xl max-w-md mx-auto w-full space-y-6">
-        {/* Progress Bar & Dots */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-            <span>Step {step} of 3</span>
-            <button
-              type="button"
-              onClick={() => navigate('/home')}
-              className="text-slate-400 hover:text-slate-700"
-            >
-              Skip
-            </button>
+    <div className="flex flex-col w-full min-h-[520px] justify-center py-6 animate-in fade-in duration-200">
+      <div className="bg-[var(--card-bg)] rounded-3xl p-6 sm:p-8 border border-[var(--card-border)] shadow-2xl max-w-lg mx-auto w-full space-y-6">
+        {/* Header Branding */}
+        <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🐾</span>
+            <div>
+              <h1 className="font-heading font-black text-lg text-[var(--text)]">
+                Welcome to PAWdiCURE
+              </h1>
+              <p className="text-[11px] text-[var(--text-muted)]">
+                First-Time Parent &amp; Companion Setup
+              </p>
+            </div>
           </div>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-            <div
-              style={{ width: `${(step / 3) * 100}%` }}
-              className="bg-[var(--primary)] h-full rounded-full transition-all"
-            />
-          </div>
+          <span className="px-2.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-bold">
+            Step {step} of 3
+          </span>
         </div>
 
-        {/* STEP 1: Basic Identity */}
+        {/* Progress Bar */}
+        <div className="w-full bg-[var(--card-border)]/30 h-2 rounded-full overflow-hidden">
+          <div
+            style={{ width: `${(step / 3) * 100}%` }}
+            className="bg-[var(--primary)] h-full rounded-full transition-all duration-300"
+          />
+        </div>
+
+        {/* STEP 1: USER INFORMATION */}
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in">
             <div className="space-y-1">
-              <span className="text-2xl">🐶</span>
-              <h2 className="font-heading font-black text-xl text-slate-900">
-                Who are we caring for?
+              <span className="text-2xl">👤</span>
+              <h2 className="font-heading font-black text-xl text-[var(--text)]">
+                1. User Information
               </h2>
-              <p className="text-xs text-slate-500">
-                Let's set up your companion's core profile.
+              <p className="text-xs text-[var(--text-muted)]">
+                Let's setup your primary owner profile.
               </p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Pet's Name
+                <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                  Full Name *
                 </label>
                 <input
                   type="text"
-                  value={petName}
-                  onChange={(e) => setPetName(e.target.value)}
-                  placeholder="e.g. Milo"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Tharun Miller"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Breed
+                <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                  Preferred / Display Name
                 </label>
                 <input
                   type="text"
-                  value={breed}
-                  onChange={(e) => setBreed(e.target.value)}
-                  placeholder="e.g. Golden Retriever"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  value={preferredName}
+                  onChange={(e) => setPreferredName(e.target.value)}
+                  placeholder="e.g. Tharun"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@domain.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Phone Number (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="(555) 019-2831"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() => setStep(2)}
+              onClick={() => {
+                if (!fullName.trim()) {
+                  showToast('Please enter your full name', 'warning', '👤');
+                  return;
+                }
+                changeStep(2);
+              }}
               className="w-full py-3 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 flex items-center justify-center gap-2 transition active:scale-95"
             >
-              <span>Next: Biometrics</span>
+              <span>Continue to Pet Profile</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* STEP 2: Biometrics */}
+        {/* STEP 2: PET INFORMATION */}
         {step === 2 && (
           <div className="space-y-4 animate-in fade-in">
             <div className="space-y-1">
-              <span className="text-2xl">⚖️</span>
-              <h2 className="font-heading font-black text-xl text-slate-900">
-                Biometrics &amp; Vital Stats
+              <span className="text-2xl">🐶</span>
+              <h2 className="font-heading font-black text-xl text-[var(--text)]">
+                2. Pet Information
               </h2>
-              <p className="text-xs text-slate-500">
-                Used to compute clinical caloric intake &amp; resting heart rate.
+              <p className="text-xs text-[var(--text-muted)]">
+                Tell us about your beloved companion.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Weight (kg)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Pet Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={petName}
+                    onChange={(e) => setPetName(e.target.value)}
+                    placeholder="e.g. Milo"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Species
+                  </label>
+                  <select
+                    value={species}
+                    onChange={(e) => setSpecies(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  >
+                    <option value="Dog">Dog 🐶</option>
+                    <option value="Cat">Cat 🐱</option>
+                    <option value="Bird">Bird 🦜</option>
+                    <option value="Rabbit">Rabbit 🐰</option>
+                    <option value="Other">Other 🐾</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Age
-                </label>
-                <input
-                  type="text"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Breed
+                  </label>
+                  <input
+                    type="text"
+                    value={breed}
+                    onChange={(e) => setBreed(e.target.value)}
+                    placeholder="e.g. Golden Retriever"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Gender
+                  </label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Unknown">Unknown</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Age / DOB
+                  </label>
+                  <input
+                    type="text"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="e.g. 2 years 4 months"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Weight (kg)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="e.g. 18.5"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Gender
-              </label>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Unknown">Unknown</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+                onClick={() => changeStep(1)}
+                className="px-4 py-3 rounded-2xl bg-[var(--card-border)]/40 hover:bg-[var(--card-border)] text-[var(--text)] text-xs font-bold transition flex items-center gap-1"
               >
-                Back
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
               </button>
               <button
                 type="button"
-                onClick={() => setStep(3)}
+                onClick={() => {
+                  if (!petName.trim()) {
+                    showToast("Please enter your companion's name", 'warning', '🐾');
+                    return;
+                  }
+                  changeStep(3);
+                }}
                 className="flex-1 py-3 rounded-2xl bg-[var(--primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--primary)]/20 flex items-center justify-center gap-2 transition active:scale-95"
               >
-                <span>Next: Goals</span>
+                <span>Continue to Goals</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: Goals & Health */}
+        {/* STEP 3: LIFESTYLE & GOALS */}
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in">
             <div className="space-y-1">
               <span className="text-2xl">🎯</span>
-              <h2 className="font-heading font-black text-xl text-slate-900">
-                Daily Nutrition &amp; Health
+              <h2 className="font-heading font-black text-xl text-[var(--text)]">
+                3. Lifestyle &amp; Daily Care Targets
               </h2>
-              <p className="text-xs text-slate-500">
-                Personalized targets for food, exercise, and allergies.
+              <p className="text-xs text-[var(--text-muted)]">
+                Calibrate daily nutrition, exercise, and preferences.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Favorite Food
+                  </label>
+                  <input
+                    type="text"
+                    value={favoriteFood}
+                    onChange={(e) => setFavoriteFood(e.target.value)}
+                    placeholder="e.g. Salmon Kibble"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Favorite Toy
+                  </label>
+                  <input
+                    type="text"
+                    value={favoriteToy}
+                    onChange={(e) => setFavoriteToy(e.target.value)}
+                    placeholder="e.g. Squeaky Ball"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Daily Portion (grams)
+                  </label>
+                  <input
+                    type="number"
+                    value={targetPortion}
+                    onChange={(e) => setTargetPortion(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                    Daily Steps Target
+                  </label>
+                  <input
+                    type="number"
+                    value={stepsGoal}
+                    onChange={(e) => setStepsGoal(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Portion Target (g)
+                <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                  Personality &amp; Vibes
                 </label>
                 <input
-                  type="number"
-                  value={targetPortion}
-                  onChange={(e) => setTargetPortion(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  type="text"
+                  value={personality}
+                  onChange={(e) => setPersonality(e.target.value)}
+                  placeholder="e.g. Playful, Energetic, Gentle"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Daily Steps Goal
+                <label className="block text-xs font-bold text-[var(--text)] mb-1">
+                  Known Allergies (if any)
                 </label>
                 <input
-                  type="number"
-                  value={stepsGoal}
-                  onChange={(e) => setStepsGoal(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  type="text"
+                  value={allergies}
+                  onChange={(e) => setAllergies(e.target.value)}
+                  placeholder="e.g. Chicken byproduct, Dairy"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-xs text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Known Allergies (if any)
-              </label>
-              <input
-                type="text"
-                value={allergies}
-                onChange={(e) => setAllergies(e.target.value)}
-                placeholder="e.g. Chicken byproduct, Dairy"
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setStep(2)}
-                className="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+                onClick={() => changeStep(2)}
+                className="px-4 py-3 rounded-2xl bg-[var(--card-border)]/40 hover:bg-[var(--card-border)] text-[var(--text)] text-xs font-bold transition flex items-center gap-1"
               >
-                Back
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
               </button>
               <button
                 type="button"

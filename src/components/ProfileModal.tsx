@@ -87,12 +87,12 @@ export function ProfileModal({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                  alt="Sarah"
+                  src={householdData.userProfile?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"}
+                  alt={householdData.userProfile?.name || "THARUN"}
                   className="w-8 h-8 rounded-full object-cover"
                 />
                 <div>
-                  <span className="font-bold text-slate-900 block">Sarah M.</span>
+                  <span className="font-bold text-slate-900 block">{householdData.userProfile?.name || "THARUN"}</span>
                   <span className="text-[10px] text-slate-400">Owner &amp; Admin</span>
                 </div>
               </div>
@@ -104,11 +104,11 @@ export function ProfileModal({
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-slate-600 text-[11px]">
               <div className="flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-slate-400" />
-                <span>+1 (555) 019-2834</span>
+                <span>{householdData.userProfile?.phone || "+1 (555) 019-2834"}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
-                <span>sarah@pawdicure.app</span>
+                <span>{householdData.userProfile?.email || "tharun@pawdicure.app"}</span>
               </div>
             </div>
           </div>

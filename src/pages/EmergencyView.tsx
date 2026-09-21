@@ -18,12 +18,14 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 
 export function EmergencyView() {
-  const { activePet, householdData, navigate, showToast } = useApp();
+  const { activePet, householdData, navigate, showToast, userProfile } = useApp();
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const petVaccines = (householdData.vaccinationHistory || []).filter((v) => v.petId === activePet.id);
   const petMeds = householdData.medications.filter((m) => m.petId === activePet.id);
+
+  const parentName = userProfile?.name || householdData.userProfile?.name || 'THARUN';
 
   const handleCopyPass = () => {
     const text = `🚨 PAWdiCURE EMERGENCY PET PASS 🚨
@@ -32,7 +34,7 @@ Age: ${activePet.age} | Weight: ${activePet.weight} kg | Blood: ${activePet.bloo
 Microchip ID: ${activePet.microchipId}
 ALLERGIES: ${activePet.allergies?.join(', ') || 'None recorded'}
 Active Meds: ${petMeds.map((m) => m.name).join(', ') || 'None'}
-Owner Contact: ${activePet.emergencyContact || 'Sarah Miller'} (${activePet.emergencyPhone || '+1 555 019 2834'})
+Owner Contact: ${activePet.emergencyContact || parentName} (${activePet.emergencyPhone || '+1 555 019 2834'})
 Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
 
     navigator.clipboard.writeText(text).then(() => {
@@ -164,7 +166,7 @@ Preferred Clinic: ${activePet.vetClinic || 'Bay Paws Specialty 24/7'}`;
             </div>
             <div>
               <div className="text-xs font-bold text-slate-900">
-                {activePet.emergencyContact || 'Sarah Miller (Primary Caregiver)'}
+                {activePet.emergencyContact || `${parentName} (Primary Caregiver)`}
               </div>
               <div className="text-[11px] text-slate-500 font-mono">
                 {activePet.emergencyPhone || '+1 (555) 019-2834'}

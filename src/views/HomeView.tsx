@@ -68,6 +68,7 @@ export function HomeView({
     logPetActivity,
     updatePetActivity,
     deletePetActivity,
+    userProfile,
   } = useApp();
   const [completedAnimationId, setCompletedAnimationId] = useState<string | null>(null);
 
@@ -77,7 +78,11 @@ export function HomeView({
   const [deletingActivity, setDeletingActivity] = useState<PetActivityRecord | null>(null);
 
   const userDisplayName =
-    householdData.userProfile?.name?.split(' ')[0] || 'Friend';
+    userProfile?.preferredName?.split(' ')[0] ||
+    userProfile?.displayName?.split(' ')[0] ||
+    userProfile?.name?.split(' ')[0] ||
+    householdData.userProfile?.name?.split(' ')[0] ||
+    'THARUN';
 
   // Check-in status
   const todayDateKey = getUserLocalDate();
@@ -252,11 +257,11 @@ export function HomeView({
             <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mr-1 shrink-0">
               Pets:
             </span>
-            {petList.map((p) => {
+            {petList.map((p, idx) => {
               const isSelected = p.id === pet.id;
               return (
                 <button
-                  key={p.id}
+                  key={`pet-tab-${p.id || idx}`}
                   type="button"
                   onClick={() => setActivePetId(p.id)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer shrink-0 ${
@@ -545,9 +550,9 @@ export function HomeView({
             </div>
 
             <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-4 space-y-2.5 shadow-2xs">
-              {pendingTasks.slice(0, 2).map((task) => (
+              {pendingTasks.slice(0, 2).map((task, idx) => (
                 <div
-                  key={task.id}
+                  key={`home-pending-task-${task.id || idx}`}
                   onClick={() => handleTaskRowClick(task)}
                   className="p-3 rounded-2xl bg-[var(--background-alt)] border border-[var(--card-border)] flex items-center justify-between gap-3 hover:border-[var(--primary)]/30 cursor-pointer transition"
                 >
@@ -570,9 +575,9 @@ export function HomeView({
                 </div>
               ))}
 
-              {upcomingReminders.slice(0, 1).map((reminder) => (
+              {upcomingReminders.slice(0, 1).map((reminder, idx) => (
                 <div
-                  key={reminder.id}
+                  key={`home-reminder-${reminder.id || idx}`}
                   onClick={() => onNavigate('reminders')}
                   className="p-3 rounded-2xl bg-[var(--background-alt)] border border-[var(--card-border)] flex items-center justify-between gap-3 hover:border-[var(--primary)]/30 cursor-pointer transition"
                 >

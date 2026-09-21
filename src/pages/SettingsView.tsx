@@ -13,8 +13,15 @@ import {
   ChevronRight,
   Sparkles,
   Trash2,
+  LogOut,
+  LogIn,
+  UserCheck,
+  Mail,
+  Lock,
+  ShieldCheck,
 } from 'lucide-react';
 import { DeletePetModal } from '../components/DeletePetModal';
+import { LogoutConfirmModal } from '../components/LogoutConfirmModal';
 import { Pet } from '../types';
 
 export function SettingsView() {
@@ -26,7 +33,57 @@ export function SettingsView() {
     navigate,
     currentTheme,
     setCurrentTheme,
+    loginUserWithFirebase,
+    signupUserWithFirebase,
+    logoutUserWithFirebase,
   } = useApp();
+
+  const [showAuthInline, setShowAuthInline] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
+
+  const handleLogout = async () => {
+    if (logoutUserWithFirebase) {
+      await logoutUserWithFirebase();
+      setShowAuthInline(false);
+    }
+  };
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail || !authPassword) return;
+    if (authPassword.length < 6) {
+      showToast('Password must be at least 6 characters.', 'warning');
+      return;
+    }
+    setIsAuthSubmitting(true);
+    try {
+      if (authMode === 'signin') {
+        const res = await loginUserWithFirebase(authEmail, authPassword);
+        if (res.success) {
+          setShowAuthInline(false);
+          setAuthEmail('');
+          setAuthPassword('');
+        }
+      } else {
+        const res = await signupUserWithFirebase(authEmail, authPassword, authName || 'Companion Caregiver');
+        if (res.success) {
+          setShowAuthInline(false);
+          setAuthEmail('');
+          setAuthPassword('');
+          setAuthName('');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAuthSubmitting(false);
+    }
+  };
 
   const rawSettings = householdData.settings || {};
   const settings = {
@@ -407,68 +464,181 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* Danger Zone: Reset Data */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-red-100 shadow-xs space-y-3">
+      {/* Account & Authentication Tile (Log Out / Log In) */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-heading font-bold text-xs text-red-700 uppercase">
-              Sign Out / Re-Login
-            </h3>
-            <p className="text-[11px] text-slate-500">
-              Clear one-time login credentials on this device
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.removeItem('PAWdiCURE_AUTH_COMPLETED_V1');
-              showToast('Logged out! Reloading...', 'info');
-              setTimeout(() => window.location.reload(), 500);
-            }}
-            className="px-3 py-1.5 rounded-xl bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/20 transition"
-          >
-            Sign Out
-          </button>
-        </div>
-
-        <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
-          <div>
-            <h3 className="font-heading font-bold text-xs text-red-700 uppercase">
-              System Reset
-            </h3>
-            <p className="text-[11px] text-slate-500">
-              Restore sample data and reset all mock counters
-            </p>
-          </div>
-
-          {confirmReset ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleResetData}
-                className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold shadow-2xs hover:bg-red-700 transition"
-              >
-                Confirm Reset
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmReset(false)}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold"
-              >
-                Cancel
-              </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[var(--primary)] flex items-center justify-center font-bold shadow-2xs">
+              <UserCheck className="w-5 h-5" />
             </div>
-          ) : (
+            <div>
+              <div className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
+                <span>Account &amp; Session</span>
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                  householdData.userProfile?.email
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    : 'bg-amber-100 text-amber-800 border border-amber-200'
+                }`}>
+                  {householdData.userProfile?.email ? 'Logged In' : 'Guest Mode'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[220px] sm:max-w-[320px]">
+                {householdData.userProfile?.email || 'Guest Caregiver Session (Unlinked)'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {householdData.userProfile?.email && (
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out</span>
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setConfirmReset(true)}
-              className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold border border-red-200 transition"
+              onClick={() => setShowAuthInline(!showAuthInline)}
+              className="px-3.5 py-2 rounded-xl bg-[var(--primary-light)] hover:bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary-border)] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
             >
-              Reset to Defaults
+              <LogIn className="w-4 h-4" />
+              <span>{showAuthInline ? 'Close' : householdData.userProfile?.email ? 'Switch Account' : 'Log In / Sign Up'}</span>
             </button>
-          )}
+          </div>
         </div>
+
+        {/* Inline Login / Sign-up form when expanded */}
+        {showAuthInline && (
+          <form onSubmit={handleAuthSubmit} className="pt-3 border-t border-slate-100 space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-slate-800 font-heading uppercase tracking-wide">
+                {authMode === 'signin' ? 'Sign In to Existing Account' : 'Create New Cloud Account'}
+              </span>
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signin')}
+                  className={`px-3 py-1 rounded-lg transition ${authMode === 'signin' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'}`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signup')}
+                  className={`px-3 py-1 rounded-lg transition ${authMode === 'signup' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'}`}
+                >
+                  Sign Up
+                </button>
+              </div>
+            </div>
+
+            {authMode === 'signup' && (
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sarah Miller"
+                  value={authName}
+                  onChange={(e) => setAuthName(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Email Address</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="email"
+                  placeholder="sarah@example.com"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Password</label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="password"
+                  placeholder="Min 6 characters"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthSubmitting}
+              className="w-full py-2.5 px-4 rounded-xl bg-[var(--primary)] text-white text-xs font-bold transition hover:brightness-105 shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            >
+              {isAuthSubmitting ? (
+                <span>Authenticating with Cloud...</span>
+              ) : authMode === 'signin' ? (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In &amp; Restore Session</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Create Account &amp; Sync Household</span>
+                </>
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* System Reset Section */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-red-100 shadow-xs flex items-center justify-between">
+        <div>
+          <h3 className="font-heading font-bold text-xs text-red-700 uppercase">
+            System Reset
+          </h3>
+          <p className="text-[11px] text-slate-500">
+            Restore sample data and reset all mock counters
+          </p>
+        </div>
+
+        {confirmReset ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleResetData}
+              className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-bold shadow-2xs hover:bg-red-700 transition cursor-pointer"
+            >
+              Confirm Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmReset(false)}
+              className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmReset(true)}
+            className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold border border-red-200 transition cursor-pointer"
+          >
+            Reset to Defaults
+          </button>
+        )}
       </div>
 
       {/* App Info Footer */}
@@ -484,6 +654,11 @@ export function SettingsView() {
           pet={petToDelete}
         />
       )}
+
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+      />
     </div>
   );
 }

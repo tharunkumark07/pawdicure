@@ -19,11 +19,13 @@ export function FamilyCareView() {
     householdData,
     removeFamilyMember,
     showToast,
+    userProfile,
   } = useApp();
 
   const [isInviteOpen, setIsInviteOpen] = useState(false);
 
   const members = householdData.familyMembers || [];
+  const parentName = userProfile?.name || householdData.userProfile?.name || 'THARUN';
 
   return (
     <div className="flex flex-col w-full pb-12 space-y-4 animate-in fade-in duration-200">
@@ -137,7 +139,7 @@ export function FamilyCareView() {
         <div className="space-y-3 pt-1">
           {(activePet.species === 'Cat' ? [
             {
-              author: 'Sarah Miller',
+              author: parentName,
               action: `Fed ${activePet.name} morning meal (65g) + Pumpkin Puree`,
               time: 'Today, 8:15 AM',
               icon: '🍖',
@@ -156,7 +158,7 @@ export function FamilyCareView() {
             },
           ] : [
             {
-              author: 'Sarah Miller',
+              author: parentName,
               action: `Fed ${activePet.name} morning meal (180g) + Salmon Oil`,
               time: 'Today, 8:15 AM',
               icon: '🍖',

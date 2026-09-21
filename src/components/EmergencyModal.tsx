@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PhoneCall, Phone, Share2, X, AlertTriangle, ShieldCheck, Check } from 'lucide-react';
 import { Pet } from '../types';
 import { MobileBottomSheet } from './ui/MobileBottomSheet';
+import { useApp } from '../context/AppContext';
 
 interface EmergencyModalProps {
   isOpen: boolean;
@@ -11,11 +12,15 @@ interface EmergencyModalProps {
 
 export function EmergencyModal({ isOpen, pet, onClose }: EmergencyModalProps) {
   const [copied, setCopied] = useState(false);
+  const { userProfile, householdData } = useApp();
 
   if (!isOpen) return null;
 
+  const parentName = userProfile?.preferredName || userProfile?.name || householdData.userProfile?.name || 'THARUN';
+  const parentShort = parentName.split(' ')[0];
+
   const handleSharePass = () => {
-    const text = `PAWdiCURE EMERGENCY PASS\nPet: ${pet.name} (${pet.species}, ${pet.breed})\nWeight: ${pet.weight} kg | Microchip: ${pet.microchipId}\nBlood Type: ${pet.bloodType}\nKnown Allergies: ${pet.allergies.join(', ')}\nPrimary Clinic: ${pet.vetClinic}\nOwner: Sarah M. (+1 555-019-2834)`;
+    const text = `PAWdiCURE EMERGENCY PASS\nPet: ${pet.name} (${pet.species}, ${pet.breed})\nWeight: ${pet.weight} kg | Microchip: ${pet.microchipId}\nBlood Type: ${pet.bloodType}\nKnown Allergies: ${pet.allergies.join(', ')}\nPrimary Clinic: ${pet.vetClinic}\nOwner: ${parentName} (+1 555-019-2834)`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -103,7 +108,7 @@ export function EmergencyModal({ isOpen, pet, onClose }: EmergencyModalProps) {
             className="w-full py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 transition-all"
           >
             <Phone className="w-4 h-4" />
-            <span>Call Primary Parent (Sarah M.)</span>
+            <span>Call Primary Parent ({parentShort})</span>
           </a>
 
           <button

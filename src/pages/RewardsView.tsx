@@ -27,7 +27,7 @@ import { INITIAL_REWARDS } from '../lib/mockData';
 type CategoryFilter = 'all' | 'clinical' | 'diagnostic' | 'therapeutic' | 'wellness' | 'gear' | 'my-vouchers';
 
 export function RewardsView() {
-  const { householdData, activePet, redeemReward, navigate, showToast, performDailyCheckIn } = useApp();
+  const { householdData, userProfile, activePet, redeemReward, navigate, showToast, performDailyCheckIn } = useApp();
   const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null);
   const [viewingVoucher, setViewingVoucher] = useState<RedeemedReward | null>(null);
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
@@ -35,7 +35,7 @@ export function RewardsView() {
   const [isConfirmingRedeem, setIsConfirmingRedeem] = useState(false);
 
   const rewards = householdData.rewards && householdData.rewards.length > 0 ? householdData.rewards : INITIAL_REWARDS;
-  const currentPoints = householdData.pawPoints ?? 4820;
+  const currentPoints = userProfile ? (userProfile.pawPoints ?? 0) : (householdData.pawPoints ?? 4820);
   const currentStreak = householdData.careStreakDays ?? householdData.streakDays ?? 12;
   const isCheckedInToday = householdData.lastCheckInDate === new Date().toISOString().slice(0, 10);
   const petLevel = activePet.level || 1;

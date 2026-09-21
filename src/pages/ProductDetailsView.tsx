@@ -21,6 +21,7 @@ interface ProductDetailsViewProps {
 export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
   const {
     householdData,
+    userProfile,
     addToCart,
     toggleWishlist,
     redeemReward,
@@ -38,7 +39,7 @@ export function ProductDetailsView({ productId }: ProductDetailsViewProps) {
   const product = allProducts.find((p) => p.id === productId);
   const wishlist = householdData.wishlist || [];
   const isWishlisted = product ? wishlist.includes(product.id) : false;
-  const currentPoints = householdData.pawPoints ?? 4820;
+  const currentPoints = userProfile ? (userProfile.pawPoints ?? 0) : (householdData.pawPoints ?? 4820);
 
   if (!product) {
     return (
