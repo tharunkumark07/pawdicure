@@ -433,13 +433,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
             // Subscribe to profile doc in real-time
             const userDocRef = doc(db, 'users', user.uid);
-            unsubscribeProfile = onSnapshot(userDocRef, (snap) => {
-              if (snap.exists()) {
-                const updatedProfile = snap.data() as UserProfile;
-                setUserProfile(updatedProfile);
-                setOnboardingCompleted(true);
+            unsubscribeProfile = onSnapshot(userDocRef, 
+              (snap) => {
+                if (snap.exists()) {
+                  const updatedProfile = snap.data() as UserProfile;
+                  setUserProfile(updatedProfile);
+                  setOnboardingCompleted(true);
+                }
+              },
+              (err) => {
+                console.info("[AppContext] Profile subscription offline or restricted:", err.message);
               }
-            });
+            );
 
             // Subscribe to isolated household data for user's UID
             const userHouseholdId = `household-${user.uid}`;
