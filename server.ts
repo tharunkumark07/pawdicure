@@ -15,16 +15,46 @@ try {
       projectId: firebaseConfig.projectId
     });
   }
-  dbAdmin = getAdminFirestore(firebaseConfig.firestoreDatabaseId);
+  const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
+    ? firebaseConfig.firestoreDatabaseId.trim() 
+    : undefined;
+    
+  if (dbId) {
+    dbAdmin = getAdminFirestore(dbId);
+  } else {
+    dbAdmin = getAdminFirestore();
+  }
   console.log(`Firebase Admin initialized successfully using project ID: ${firebaseConfig.projectId}`);
 } catch (err: any) {
-  console.error("Firebase Admin initialization failed:", err.message);
+  console.error("Firebase Admin initialization failed, falling back to default:", err.message);
   try {
     if (getAdminApps().length === 0) {
       initializeAdminApp();
     }
   } catch (e) {}
-  dbAdmin = getAdminFirestore(firebaseConfig.firestoreDatabaseId);
+  
+  try {
+    const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
+      ? firebaseConfig.firestoreDatabaseId.trim() 
+      : undefined;
+    if (dbId) {
+      dbAdmin = getAdminFirestore(dbId);
+    } else {
+      dbAdmin = getAdminFirestore();
+    }
+  } catch (err2: any) {
+    console.error("Firebase Admin fallback failed completely, creating mock admin Firestore:", err2.message);
+    dbAdmin = {
+      collection: () => ({
+        doc: () => ({
+          get: async () => ({ exists: false, data: () => null }),
+          set: async () => {},
+          update: async () => {},
+          delete: async () => {},
+        })
+      })
+    } as any;
+  }
 }
 
 // -------------------------------------------------------------

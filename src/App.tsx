@@ -18,6 +18,7 @@ import { PetGuide } from './components/pet-guide/PetGuide';
 import { usePetGuide } from './hooks/usePetGuide';
 import { WelcomeAnimation } from './components/WelcomeAnimation';
 import { PAWdiCURELoading } from './components/PAWdiCURELoading';
+import { safeStorage, safeSessionStorage } from './lib/safeStorage';
 
 // Views
 import { HomeView } from './views/HomeView';
@@ -131,18 +132,34 @@ function AppContent() {
 
   // One-time login / entrance animation state
   const [showAnimation, setShowAnimation] = useState(false);
-  const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(() => {
-    const isCompleted = localStorage.getItem('PAWdiCURE_AUTH_COMPLETED_V1');
-    return !isCompleted;
-  });
+  const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(false);
 
   // Welcome animation trigger (runs exactly when transitioning into the authenticated app)
   useEffect(() => {
     if (isAuthenticated && onboardingCompleted && !showSplashAndAuth && !authLoading) {
-      const hasBeenOpened = sessionStorage.getItem('PAWdiCURE_WELCOME_PLAYED');
-      if (!hasBeenOpened) {
+      // Detect reload using browser Performance API
+      let wasReload = false;
+      try {
+        if (typeof window !== 'undefined' && window.performance) {
+          const navEntries = window.performance.getEntriesByType('navigation');
+          if (navEntries.length > 0) {
+            wasReload = (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
+          } else if (window.performance.navigation && window.performance.navigation.type === 1) {
+            wasReload = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read performance navigation type:', e);
+      }
+
+      const hasBeenOpened = safeSessionStorage.getItem('PAWdiCURE_WELCOME_PLAYED');
+
+      if (!wasReload && !hasBeenOpened) {
         setShowAnimation(true);
-        sessionStorage.setItem('PAWdiCURE_WELCOME_PLAYED', 'true');
+        safeSessionStorage.setItem('PAWdiCURE_WELCOME_PLAYED', 'true');
+      } else {
+        // Ensure the session storage flag stays set even if bypassed
+        safeSessionStorage.setItem('PAWdiCURE_WELCOME_PLAYED', 'true');
       }
     }
   }, [isAuthenticated, onboardingCompleted, showSplashAndAuth, authLoading]);

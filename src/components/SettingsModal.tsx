@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { MobileBottomSheet } from './ui/MobileBottomSheet';
 import { DeletePetModal } from './DeletePetModal';
 import { LogoutConfirmModal } from './LogoutConfirmModal';
+import { safeStorage } from '../lib/safeStorage';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -70,7 +71,7 @@ export function SettingsModal({
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('pawdicure_haptics_enabled');
+    const saved = safeStorage.getItem('pawdicure_haptics_enabled');
     if (saved === 'false') setHapticsEnabled(false);
   }, []);
 
@@ -128,7 +129,7 @@ export function SettingsModal({
   const toggleHaptics = () => {
     const nextState = !hapticsEnabled;
     setHapticsEnabled(nextState);
-    localStorage.setItem('pawdicure_haptics_enabled', String(nextState));
+    safeStorage.setItem('pawdicure_haptics_enabled', String(nextState));
     if (nextState && typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
       window.navigator.vibrate(25); // Test vibration when turning on
     }

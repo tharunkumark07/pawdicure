@@ -24,6 +24,7 @@ import {
 import firebaseConfig from '../../firebase-applet-config.json';
 import { HouseholdData, UserProfile } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_EMPTY_HOUSEHOLD_DATA } from './mockData';
+import { safeStorage } from './safeStorage';
 
 // Central routing decision helper
 export function determineInitialRoute(user: User | null, profile: UserProfile | null): string {
@@ -53,24 +54,26 @@ try {
   });
 }
 
-// 2. Initialize Firestore with specific database ID, auto-detecting and healing personal project mismatches
+// 2. Initialize Firestore with specific database ID
 let dbInstance: Firestore;
 try {
-  const isPersonalProject = firebaseConfig.projectId !== "crested-quasar-zt3g1";
-  const configuredDbId = firebaseConfig.firestoreDatabaseId;
+  const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
+    ? firebaseConfig.firestoreDatabaseId.trim() 
+    : undefined;
   
-  // If the user connects their personal project, force standard "(default)" database to prevent crash
-  const targetDbId = (isPersonalProject || !configuredDbId) ? "(default)" : configuredDbId;
-  
-  try {
-    dbInstance = getFirestore(app, targetDbId);
-  } catch (innerErr) {
-    console.warn(`Failed to initialize Firestore with database ID '${targetDbId}', falling back to '(default)':`, innerErr);
+  if (dbId) {
+    dbInstance = getFirestore(app, dbId);
+  } else {
     dbInstance = getFirestore(app);
   }
 } catch (err) {
-  console.error("Firestore initialization failed entirely. Using basic fallback:", err);
-  dbInstance = getFirestore(app);
+  console.error("Firestore initialization with database ID failed, trying default:", err);
+  try {
+    dbInstance = getFirestore(app);
+  } catch (e3) {
+    console.error("Firestore initialization failed entirely:", e3);
+    dbInstance = {} as Firestore;
+  }
 }
 
 export const db = dbInstance;
@@ -81,7 +84,18 @@ try {
   authInstance = getAuth(app);
 } catch (err) {
   console.error("Firebase Auth initialization failed:", err);
-  authInstance = getAuth();
+  try {
+    authInstance = getAuth();
+  } catch (e) {
+    console.error("Firebase Auth fallback failed:", e);
+    authInstance = {
+      currentUser: null,
+      onAuthStateChanged: (callback: any) => {
+        callback(null);
+        return () => {};
+      }
+    } as any;
+  }
 }
 
 export const auth = authInstance;
@@ -89,7 +103,7 @@ export const auth = authInstance;
 // Keep track of current user and sync connection
 let currentUser: User | null = null;
 let currentHouseholdId: string =
-  localStorage.getItem('PAWdiCURE_HOUSEHOLD_ID') || 'household-milo-sarah';
+  safeStorage.getItem('PAWdiCURE_HOUSEHOLD_ID') || 'household-milo-sarah';
 
 // Error Code Mapper for User-Friendly Authentication Messages
 export function mapAuthErrorMessage(error: any): string {
@@ -244,7 +258,7 @@ export function initFirebaseAuth(onUserReady?: (user: User) => void) {
 export function getCachedHouseholdData(uid?: string): HouseholdData {
   const key = uid ? `${LOCAL_STORAGE_KEY_PREFIX}_${uid}` : LOCAL_STORAGE_KEY_PREFIX;
   try {
-    const raw = localStorage.getItem(key);
+    const raw = safeStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.pets && typeof parsed.pets === 'object') {
@@ -261,7 +275,7 @@ export function getCachedHouseholdData(uid?: string): HouseholdData {
 export function cacheHouseholdData(data: HouseholdData, uid?: string) {
   const key = uid ? `${LOCAL_STORAGE_KEY_PREFIX}_${uid}` : LOCAL_STORAGE_KEY_PREFIX;
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    safeStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
     console.warn('Local storage cache warning:', e);
   }
@@ -271,13 +285,13 @@ export function cacheHouseholdData(data: HouseholdData, uid?: string) {
 export function clearUserCachedState(uid?: string) {
   try {
     if (uid) {
-      localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}_${uid}`);
-      localStorage.removeItem(`PAWdiCURE_ACTIVE_PET_${uid}`);
+      safeStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}_${uid}`);
+      safeStorage.removeItem(`PAWdiCURE_ACTIVE_PET_${uid}`);
     }
-    localStorage.removeItem('PAWdiCURE_HOUSEHOLD_ID');
-    localStorage.removeItem('PAWdiCURE_AUTH_COMPLETED_V1');
-    localStorage.removeItem('PAWdiCURE_USER_NAME');
-    localStorage.removeItem('PAWdiCURE_USER_EMAIL');
+    safeStorage.removeItem('PAWdiCURE_HOUSEHOLD_ID');
+    safeStorage.removeItem('PAWdiCURE_AUTH_COMPLETED_V1');
+    safeStorage.removeItem('PAWdiCURE_USER_NAME');
+    safeStorage.removeItem('PAWdiCURE_USER_EMAIL');
   } catch (e) {
     console.warn('Error clearing cached state:', e);
   }
@@ -290,7 +304,7 @@ export function subscribeToHousehold(
   onError?: (err: Error) => void
 ) {
   currentHouseholdId = householdId;
-  localStorage.setItem('PAWdiCURE_HOUSEHOLD_ID', householdId);
+  safeStorage.setItem('PAWdiCURE_HOUSEHOLD_ID', householdId);
 
   const docRef = doc(db, 'households', householdId);
 
@@ -365,7 +379,7 @@ export async function connectBySyncCode(
       const docSnap = snap.docs[0];
       const data = docSnap.data() as HouseholdData;
       currentHouseholdId = docSnap.id;
-      localStorage.setItem('PAWdiCURE_HOUSEHOLD_ID', docSnap.id);
+      safeStorage.setItem('PAWdiCURE_HOUSEHOLD_ID', docSnap.id);
       cacheHouseholdData(data);
       return { success: true, data, message: `Connected to household: ${data.syncCode}!` };
     }

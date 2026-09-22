@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { safeStorage } from '../lib/safeStorage';
 import {
   Settings as SettingsIcon,
   User,
@@ -132,7 +133,7 @@ export function SettingsView() {
   };
 
   const handleResetData = () => {
-    localStorage.clear();
+    safeStorage.clear();
     showToast('Resetting application state...', 'info');
     setTimeout(() => {
       window.location.reload();

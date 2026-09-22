@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { petGuideService } from '../services/petGuideService';
 import { GUIDE_STEPS } from '../data/guideSteps';
+import { safeStorage } from '../lib/safeStorage';
 
 export const usePetGuide = () => {
   const { userId, navigate } = useApp();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(() => {
-    const localCompleted = localStorage.getItem('pawdicure_guide_completed');
-    const localSkipped = localStorage.getItem('pawdicure_guide_skipped');
+    const localCompleted = safeStorage.getItem('pawdicure_guide_completed');
+    const localSkipped = safeStorage.getItem('pawdicure_guide_skipped');
     return !localCompleted && !localSkipped;
   });
   const [characterId, setCharacterId] = useState('dog');
@@ -22,10 +23,10 @@ export const usePetGuide = () => {
           const progress = await petGuideService.getGuideProgress(userId, 'home-tour');
           if (progress && (progress.completed || progress.skipped)) {
             setIsVisible(false);
-            localStorage.setItem('pawdicure_guide_completed', 'true');
+            safeStorage.setItem('pawdicure_guide_completed', 'true');
           } else {
-            const localCompleted = localStorage.getItem('pawdicure_guide_completed');
-            const localSkipped = localStorage.getItem('pawdicure_guide_skipped');
+            const localCompleted = safeStorage.getItem('pawdicure_guide_completed');
+            const localSkipped = safeStorage.getItem('pawdicure_guide_skipped');
             if (localCompleted || localSkipped) {
               setIsVisible(false);
               await petGuideService.updateGuideProgress(userId, 'home-tour', { completed: true });
@@ -50,7 +51,7 @@ export const usePetGuide = () => {
       setCurrentStepIndex(nextStepIndex);
     } else {
       setIsVisible(false);
-      localStorage.setItem('pawdicure_guide_completed', 'true');
+      safeStorage.setItem('pawdicure_guide_completed', 'true');
       if (userId) petGuideService.updateGuideProgress(userId, 'home-tour', { completed: true, currentStep: GUIDE_STEPS.length - 1 });
     }
   };
@@ -66,7 +67,7 @@ export const usePetGuide = () => {
 
   const handleSkip = () => {
     setIsVisible(false);
-    localStorage.setItem('pawdicure_guide_skipped', 'true');
+    safeStorage.setItem('pawdicure_guide_skipped', 'true');
     if (userId) petGuideService.updateGuideProgress(userId, 'home-tour', { skipped: true });
   };
 
