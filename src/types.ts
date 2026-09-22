@@ -1,3 +1,12 @@
+export type LaunchStage =
+  | "ENTRY"
+  | "BUDDY_INTRO"
+  | "TUTORIAL"
+  | "AUTH"
+  | "ONBOARDING_USER"
+  | "ONBOARDING_PET"
+  | "APP";
+
 export interface AffinityPillar {
   id: string;
   name: string;

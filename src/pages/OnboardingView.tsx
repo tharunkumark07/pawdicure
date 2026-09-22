@@ -15,7 +15,7 @@ import {
   Award,
 } from 'lucide-react';
 
-export function OnboardingView() {
+export function OnboardingView({ initialStep }: { initialStep?: number }) {
   const {
     currentUser,
     userProfile,
@@ -26,7 +26,11 @@ export function OnboardingView() {
     navigate,
   } = useApp();
 
-  const [step, setStep] = useState<number>(() => savedStep || 1);
+  const [step, setStep] = useState<number>(() => initialStep || savedStep || 1);
+
+  useEffect(() => {
+    if (initialStep) setStep(initialStep);
+  }, [initialStep]);
 
   // User Info state
   const [fullName, setFullName] = useState(
@@ -76,6 +80,13 @@ export function OnboardingView() {
   }, [userProfile, currentUser]);
 
   const changeStep = async (nextStep: number) => {
+    // Explicitly navigate between user setup and pet setup
+    if (step === 1 && nextStep === 2) {
+      navigate('/onboarding/pet');
+    } else if (step === 2 && nextStep === 1) {
+      navigate('/onboarding');
+    }
+    
     setStep(nextStep);
     await updateOnboardingStep(nextStep);
   };

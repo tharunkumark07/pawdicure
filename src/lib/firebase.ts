@@ -22,7 +22,7 @@ import {
   User,
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { HouseholdData, UserProfile } from '../types';
+import { HouseholdData, UserProfile, BiometryProfile } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_EMPTY_HOUSEHOLD_DATA } from './mockData';
 import { safeStorage } from './safeStorage';
 
@@ -175,6 +175,34 @@ export async function getUserProfileDoc(uid: string): Promise<UserProfile | null
   return null;
 }
 
+export async function initializeNewUser(uid: string): Promise<void> {
+  // 1. Initialize Biometry Profile (Zero State)
+  const biometryProfile: BiometryProfile = {
+    biometryEnabled: false,
+    wearableConnected: false,
+    biometricDataAvailable: false,
+    biometryOnboardingShown: false,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  
+  try {
+    await setDoc(doc(db, 'users', uid, 'biometry', 'profile'), biometryProfile);
+  } catch (err) {
+    console.warn('Failed to initialize biometry profile for new user:', err);
+  }
+
+  // 2. Initialize other base states (Paw Points, etc.) as zero
+  try {
+    await updateDoc(doc(db, 'users', uid), {
+        pawPoints: 0,
+        // ... other base states
+    });
+  } catch (err) {
+      console.warn('Failed to initialize base states for new user:', err);
+  }
+}
+
 export async function createUserProfileDoc(
   uid: string,
   profile: Partial<UserProfile>
@@ -212,12 +240,17 @@ export async function createUserProfileDoc(
   try {
     const docRef = doc(db, 'users', uid);
     await setDoc(docRef, fullProfile, { merge: true });
+    
+    // Call new user initialization
+    await initializeNewUser(uid);
+    
   } catch (err) {
     console.warn('Failed to write user profile to Firestore:', err);
   }
 
   return fullProfile;
 }
+
 
 export async function updateUserProfileDoc(
   uid: string,

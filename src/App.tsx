@@ -17,6 +17,7 @@ import { PushNotificationBanner } from './components/PushNotificationBanner';
 import { PetGuide } from './components/pet-guide/PetGuide';
 import { usePetGuide } from './hooks/usePetGuide';
 import { WelcomeAnimation } from './components/WelcomeAnimation';
+import { BuddyIntro } from './components/BuddyIntro';
 import { PAWdiCURELoading } from './components/PAWdiCURELoading';
 import { safeStorage, safeSessionStorage } from './lib/safeStorage';
 
@@ -99,6 +100,8 @@ function AppContent() {
     authLoading,
     currentUser,
     onboardingCompleted,
+    launchStage,
+    setLaunchStage,
   } = useApp();
 
   const {
@@ -130,39 +133,14 @@ function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [inspectedPillar, setInspectedPillar] = useState<AffinityPillar | null>(null);
 
-  // One-time login / entrance animation state
-  const [showAnimation, setShowAnimation] = useState(false);
-  const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(false);
-
-  // Welcome animation trigger (runs exactly when transitioning into the authenticated app)
   useEffect(() => {
-    if (isAuthenticated && onboardingCompleted && !showSplashAndAuth && !authLoading) {
-      // Detect reload using browser Performance API
-      let wasReload = false;
-      try {
-        if (typeof window !== 'undefined' && window.performance) {
-          const navEntries = window.performance.getEntriesByType('navigation');
-          if (navEntries.length > 0) {
-            wasReload = (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
-          } else if (window.performance.navigation && window.performance.navigation.type === 1) {
-            wasReload = true;
-          }
-        }
-      } catch (e) {
-        console.warn('Could not read performance navigation type:', e);
-      }
-
-      const hasBeenOpened = safeSessionStorage.getItem('PAWdiCURE_WELCOME_PLAYED');
-
-      if (!wasReload && !hasBeenOpened) {
-        setShowAnimation(true);
-        safeSessionStorage.setItem('PAWdiCURE_WELCOME_PLAYED', 'true');
-      } else {
-        // Ensure the session storage flag stays set even if bypassed
-        safeSessionStorage.setItem('PAWdiCURE_WELCOME_PLAYED', 'true');
-      }
+    if (launchStage === 'TUTORIAL' && !isVisible) {
+      setLaunchStage('AUTH');
     }
-  }, [isAuthenticated, onboardingCompleted, showSplashAndAuth, authLoading]);
+  }, [isVisible, launchStage, setLaunchStage]);
+
+  // One-time login / entrance animation state
+  const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(false);
 
   // Synchronize authentication view display with auth state & route
   useEffect(() => {
@@ -545,7 +523,11 @@ function AppContent() {
     }
 
     if (currentRoute === '/onboarding') {
-      return <OnboardingView />;
+      return <OnboardingView initialStep={1} />;
+    }
+
+    if (currentRoute === '/onboarding/pet') {
+      return <OnboardingView initialStep={2} />;
     }
 
     if (currentRoute === '/auth') {
@@ -600,8 +582,9 @@ function AppContent() {
       transition={{ duration: 1.5, ease: "easeInOut" }}
       className="min-h-screen flex flex-col items-center justify-start"
     >
-      {showAnimation && <WelcomeAnimation onComplete={() => setShowAnimation(false)} />}
-      {isVisible && step && (
+      {launchStage === 'ENTRY' && <WelcomeAnimation onComplete={() => setLaunchStage('BUDDY_INTRO')} />}
+      {launchStage === 'BUDDY_INTRO' && <BuddyIntro onComplete={() => setLaunchStage('TUTORIAL')} />}
+      {launchStage === 'TUTORIAL' && isVisible && step && (
         <PetGuide 
           characterId={characterId}
           message={step.message}
@@ -614,14 +597,13 @@ function AppContent() {
           onToggleCharacter={() => setCharacterId((prev) => (prev === 'dog' ? 'cat' : 'dog'))}
         />
       )}
-
-      {showSplashAndAuth && (
-        <SplashAndAuth onComplete={() => setShowSplashAndAuth(false)} />
+      {launchStage === 'AUTH' && (
+        <SplashAndAuth onComplete={() => setLaunchStage('APP')} />
       )}
 
       <div
         id="app-mobile-shell"
-        className="w-full max-w-md md:max-w-lg min-h-screen bg-transparent flex flex-col relative shadow-2xl border-x border-[var(--card-border)] overflow-hidden"
+        className="w-full max-w-md md:max-w-2xl lg:max-w-4xl min-h-screen bg-transparent flex flex-col relative shadow-2xl border-x border-[var(--card-border)] overflow-hidden"
         style={{ paddingBottom: showAppChrome ? 'calc(96px + env(safe-area-inset-bottom, 0px))' : '0px' }}
       >
         {/* Dynamic Route-Specific Background with Interactive Pets & Ambient Light */}

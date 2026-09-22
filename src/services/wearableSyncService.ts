@@ -209,7 +209,7 @@ export const wearableSyncService = {
   },
 
   /**
-   * Sync a connected device. Generates and pushes real readings if connection is verified.
+   * Sync a connected device. Pushes actual readings if connection is verified and data is received.
    */
   async syncDevice(userId: string, wearableId: string): Promise<{ success: boolean; recordsCount: number; message: string }> {
     try {
@@ -224,63 +224,19 @@ export const wearableSyncService = {
         return { success: false, recordsCount: 0, message: 'Device is disconnected' };
       }
 
-      // Read supported metrics
-      const metrics = device.supportedMetrics || [];
-      if (metrics.length === 0) {
-        return { success: true, recordsCount: 0, message: 'Device has no supported metrics to sync.' };
+      // NOTE: In a real implementation, this would involve calling the actual 
+      // device/platform API (e.g., Google Fit, Apple Health, Bluetooth device API) 
+      // to fetch new data since the lastSyncAt.
+      
+      const lastSyncAt = device.lastSyncAt || 0;
+      const newData: Omit<BiometricRecord, 'createdAt'>[] = []; // Fetch actual data here
+
+      if (newData.length === 0) {
+        return { success: true, recordsCount: 0, message: 'No new biometric data found.' };
       }
 
-      // Generate verified, structured actual readings for this sync window
-      const now = Date.now();
       let savedCount = 0;
-
-      for (const metric of metrics) {
-        // Enforce the permissions set on the device
-        if (device.permissions && device.permissions[metric] === false) {
-          continue;
-        }
-
-        let value = 0;
-        let unit = '';
-
-        if (metric === 'heartRate') {
-          // Real average heart rate variations depending on device context
-          value = device.ownerType === 'pet' ? Math.round(70 + Math.random() * 20) : Math.round(65 + Math.random() * 15);
-          unit = 'bpm';
-        } else if (metric === 'steps') {
-          value = Math.round(1500 + Math.random() * 800); // realistic steps synced
-          unit = 'steps';
-        } else if (metric === 'sleep') {
-          value = parseFloat((6.5 + Math.random() * 2.0).toFixed(1));
-          unit = 'hrs';
-        } else if (metric === 'calories') {
-          value = Math.round(350 + Math.random() * 250);
-          unit = 'kcal';
-        } else if (metric === 'bodyTemperature') {
-          value = parseFloat((device.ownerType === 'pet' ? 101.0 + Math.random() * 1.2 : 98.2 + Math.random() * 0.8).toFixed(1));
-          unit = device.ownerType === 'pet' ? '°F' : '°F';
-        } else if (metric === 'bloodOxygen') {
-          value = Math.round(95 + Math.random() * 5);
-          unit = '%';
-        } else if (metric === 'respiration') {
-          value = Math.round(15 + Math.random() * 10);
-          unit = 'bpm';
-        } else {
-          continue; // unsupported metric
-        }
-
-        const record: Omit<BiometricRecord, 'createdAt'> = {
-          sourceDeviceId: device.wearableId,
-          sourceType: device.connectionType,
-          ownerType: device.ownerType,
-          ownerId: device.ownerId,
-          metricType: metric,
-          value,
-          unit,
-          recordedAt: now - Math.round(Math.random() * 5000), // raw realistic timestamp
-          syncedAt: now
-        };
-
+      for (const record of newData) {
         const success = await this.saveBiometricRecord(userId, record);
         if (success) {
           savedCount++;
@@ -288,6 +244,7 @@ export const wearableSyncService = {
       }
 
       // Update device sync timestamp
+      const now = Date.now();
       await updateDoc(deviceRef, {
         lastSeenAt: now,
         lastSyncAt: now,

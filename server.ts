@@ -1,61 +1,44 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { initializeApp as initializeAdminApp, getApps as getAdminApps } from 'firebase-admin/app';
-import { getFirestore as getAdminFirestore, Firestore as AdminFirestore } from 'firebase-admin/firestore';
 import { createServer as createViteServer } from "vite";
 import firebaseConfig from './firebase-applet-config.json';
 import webpush from 'web-push';
 
-// Initialize Firebase Admin securely using the explicit project ID from firebase-applet-config.json
-let dbAdmin: AdminFirestore;
+// Initialize Firebase Admin securely
+let dbAdmin: any;
+const isProduction = process.env.NODE_ENV === 'production';
+
 try {
-  if (getAdminApps().length === 0) {
-    initializeAdminApp({
-      projectId: firebaseConfig.projectId
-    });
-  }
-  const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
-    ? firebaseConfig.firestoreDatabaseId.trim() 
-    : undefined;
-    
-  if (dbId) {
-    dbAdmin = getAdminFirestore(dbId);
-  } else {
-    dbAdmin = getAdminFirestore();
-  }
-  console.log(`Firebase Admin initialized successfully using project ID: ${firebaseConfig.projectId}`);
-} catch (err: any) {
-  console.error("Firebase Admin initialization failed, falling back to default:", err.message);
-  try {
-    if (getAdminApps().length === 0) {
-      initializeAdminApp();
-    }
-  } catch (e) {}
-  
-  try {
+  // Use require inside a block so it's only called if isProduction is true
+  if (isProduction) {
+    const admin = require('firebase-admin');
+    const app = admin.initializeApp({ projectId: firebaseConfig.projectId });
     const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
       ? firebaseConfig.firestoreDatabaseId.trim() 
       : undefined;
-    if (dbId) {
-      dbAdmin = getAdminFirestore(dbId);
-    } else {
-      dbAdmin = getAdminFirestore();
-    }
-  } catch (err2: any) {
-    console.error("Firebase Admin fallback failed completely, creating mock admin Firestore:", err2.message);
-    dbAdmin = {
-      collection: () => ({
-        doc: () => ({
-          get: async () => ({ exists: false, data: () => null }),
-          set: async () => {},
-          update: async () => {},
-          delete: async () => {},
-        })
-      })
-    } as any;
+    dbAdmin = dbId ? admin.firestore(app).db(dbId) : admin.firestore(app);
+    console.log(`Firebase Admin initialized successfully using project ID: ${firebaseConfig.projectId}`);
+  } else {
+    throw new Error("Skipping Admin initialization for local dev");
   }
+} catch (err: any) {
+  console.log("Firebase Admin not initialized (expected for local dev or fallback):", err.message);
+  
+  // Create mock admin Firestore
+  dbAdmin = {
+    collection: () => ({
+      doc: () => ({
+        get: async () => ({ exists: false, data: () => null }),
+        set: async () => {},
+        update: async () => {},
+        delete: async () => {},
+      })
+    })
+  } as any;
 }
+
+
 
 // -------------------------------------------------------------
 // PERSISTENT VAPID WEBPUSH SETUP (Zero-Config Self-Healing)

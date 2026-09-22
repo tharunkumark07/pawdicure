@@ -35,7 +35,7 @@ export function PetBiometryInsights({ pet, onNavigate }: PetBiometryInsightsProp
       <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-5 shadow-2xs space-y-4">
         {/* Biometry Quick-Look Cards Grid */}
         <div className="grid grid-cols-3 gap-2.5">
-          <button
+            <button
             type="button"
             onClick={() => {
               triggerHaptic('light');
@@ -51,9 +51,11 @@ export function PetBiometryInsights({ pet, onNavigate }: PetBiometryInsightsProp
             </div>
             <div className="mt-2">
               <p className="text-sm font-black text-[var(--text)] font-heading">
-                {pet.weight ? `${pet.weight} kg` : '12.4 kg'}
+                {pet.weight ? `${pet.weight} kg` : '--'}
               </p>
-              <p className="text-[10px] text-emerald-600 font-bold mt-0.5">Stable</p>
+              <p className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                {pet.weight ? 'Stable' : 'No data'}
+              </p>
             </div>
           </button>
 
@@ -73,9 +75,11 @@ export function PetBiometryInsights({ pet, onNavigate }: PetBiometryInsightsProp
             </div>
             <div className="mt-2">
               <p className="text-sm font-black text-[var(--text)] font-heading">
-                72 bpm
+                {pet.restingBpm > 0 ? `${pet.restingBpm} bpm` : '--'}
               </p>
-              <p className="text-[10px] text-emerald-600 font-bold mt-0.5">Optimal</p>
+              <p className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                {pet.restingBpm > 0 ? 'Optimal' : 'No wearable connected'}
+              </p>
             </div>
           </button>
 
@@ -95,9 +99,11 @@ export function PetBiometryInsights({ pet, onNavigate }: PetBiometryInsightsProp
             </div>
             <div className="mt-2">
               <p className="text-sm font-black text-[var(--text)] font-heading">
-                640 kcal
+                {pet.stepsToday ? `${pet.stepsToday} steps` : '--'}
               </p>
-              <p className="text-[10px] text-emerald-600 font-bold mt-0.5">Active</p>
+              <p className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                {pet.stepsToday ? 'Active' : 'No data'}
+              </p>
             </div>
           </button>
         </div>
@@ -112,7 +118,7 @@ export function PetBiometryInsights({ pet, onNavigate }: PetBiometryInsightsProp
             }}
             className="font-bold text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer"
           >
-            <span>View All Telemetry</span>
+            <span>Connect Wearable</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>

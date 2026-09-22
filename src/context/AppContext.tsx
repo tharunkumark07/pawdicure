@@ -22,6 +22,7 @@ import {
   RoutineItem,
   RoutineItemExecution,
   ScheduledRoutineItem,
+  LaunchStage,
 } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_EMPTY_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
 import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db, auth, getUserProfileDoc, createUserProfileDoc, updateUserProfileDoc, sendPasswordReset, mapAuthErrorMessage, clearUserCachedState, loginWithGoogle, determineInitialRoute } from '../lib/firebase';
@@ -33,11 +34,13 @@ import { pawPointsService } from '../services/pawPointsService';
 import { getUserLocalDate, getUserLocalTime } from '../lib/timeUtils';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { updateDocumentFavicon } from '../lib/favicon';
-import { safeStorage } from '../lib/safeStorage';
+import { safeStorage, safeSessionStorage } from '../lib/safeStorage';
 
 const STORAGE_KEY = 'pawdicure_household_state_v2';
 
 interface AppContextType {
+  launchStage: LaunchStage;
+  setLaunchStage: (stage: LaunchStage) => void;
   householdData: HouseholdData;
   activePet: Pet;
   currentRoute: string;
@@ -210,6 +213,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const hash = window.location.hash.replace('#', '');
     return hash || '/home';
   });
+  const [launchStage, setLaunchStage] = useState<LaunchStage>(() => {
+    if (safeSessionStorage.getItem('pawdicure_session')) {
+      return 'APP';
+    }
+    safeSessionStorage.setItem('pawdicure_session', 'true');
+    return 'ENTRY';
+  });
   const [routeParams, setRouteParams] = useState<Record<string, string>>({});
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -218,31 +228,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Centralized Firebase Auth State
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    uid: 'sarah-caregiver',
-    displayName: 'Sarah Miller',
-    email: 'sarah@example.com',
-    isAnonymous: false,
-  } as any);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>({
-    uid: 'sarah-caregiver',
-    name: 'Sarah Miller',
-    displayName: 'Sarah Miller',
-    preferredName: 'Sarah',
-    email: 'sarah@example.com',
-    phone: '+1 555-0199',
-    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-    theme: 'light',
-    onboardingCompleted: true,
-    pawPoints: 350,
-  } as any);
-  const [authLoading, setAuthLoading] = useState<boolean>(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean>(false);
 
   // Badges & Missions state
-  const [userId, setUserId] = useState<string | null>('sarah-caregiver');
+  const [userId, setUserId] = useState<string | null>(null);
   const [badgeProgress, setBadgeProgress] = useState<any[]>([]);
   const [missionProgress, setMissionProgress] = useState<any[]>([]);
 
@@ -370,33 +363,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let unsubscribeProfile: (() => void) | null = null;
     let unsubscribeAuth: (() => void) | null = null;
 
-    // Default to fully-logged-in Sarah Miller state so the app never shows a blank screen
-    setAuthLoading(false);
-    setIsAuthenticated(true);
-    setOnboardingCompleted(true);
-    setUserId('sarah-caregiver');
-    setCurrentUser({
-      uid: 'sarah-caregiver',
-      displayName: 'Sarah Miller',
-      email: 'sarah@example.com',
-      isAnonymous: false,
-    } as any);
-    setUserProfile({
-      uid: 'sarah-caregiver',
-      name: 'Sarah Miller',
-      displayName: 'Sarah Miller',
-      preferredName: 'Sarah',
-      email: 'sarah@example.com',
-      phone: '+1 555-0199',
-      photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-      theme: 'light',
-      onboardingCompleted: true,
-      pawPoints: 350,
-    } as any);
-
+    // Real-time Firebase Auth State Manager (Non-Blocking & Fail-Safe)
     try {
       unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+
         if (unsubscribeHousehold) {
           unsubscribeHousehold();
           unsubscribeHousehold = null;
@@ -477,29 +447,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             console.error('Error starting guest household subscription:', err);
           }
         } else {
-          // Fall back gracefully to Sarah Miller default profile to keep the app functional
-          setCurrentUser({
-            uid: 'sarah-caregiver',
-            displayName: 'Sarah Miller',
-            email: 'sarah@example.com',
-            isAnonymous: false,
-          } as any);
-          setUserProfile({
-            uid: 'sarah-caregiver',
-            name: 'Sarah Miller',
-            displayName: 'Sarah Miller',
-            preferredName: 'Sarah',
-            email: 'sarah@example.com',
-            phone: '+1 555-0199',
-            photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-            theme: 'light',
-            onboardingCompleted: true,
-            pawPoints: 350,
-          } as any);
-          setUserId('sarah-caregiver');
-          setIsAuthenticated(true);
-          setOnboardingCompleted(true);
+          // Not authenticated
+          setCurrentUser(null);
+          setUserProfile(null);
+          setUserId(null);
+          setIsAuthenticated(false);
+          setOnboardingCompleted(false);
         }
         setAuthLoading(false);
       });
@@ -2492,6 +2445,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
+        launchStage,
+        setLaunchStage,
         householdData,
         activePet,
         currentRoute,
