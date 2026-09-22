@@ -130,20 +130,22 @@ function AppContent() {
   const [inspectedPillar, setInspectedPillar] = useState<AffinityPillar | null>(null);
 
   // One-time login / entrance animation state
-  const [showAnimation, setShowAnimation] = useState(true);
+  const [showAnimation, setShowAnimation] = useState(false);
   const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(() => {
     const isCompleted = localStorage.getItem('PAWdiCURE_AUTH_COMPLETED_V1');
     return !isCompleted;
   });
 
+  // Welcome animation trigger (runs exactly when transitioning into the authenticated app)
   useEffect(() => {
-    const hasBeenOpened = sessionStorage.getItem('PAWdiCURE_OPENED');
-    if (hasBeenOpened) {
-      setShowAnimation(false);
-    } else {
-      sessionStorage.setItem('PAWdiCURE_OPENED', 'true');
+    if (isAuthenticated && onboardingCompleted && !showSplashAndAuth && !authLoading) {
+      const hasBeenOpened = sessionStorage.getItem('PAWdiCURE_WELCOME_PLAYED');
+      if (!hasBeenOpened) {
+        setShowAnimation(true);
+        sessionStorage.setItem('PAWdiCURE_WELCOME_PLAYED', 'true');
+      }
     }
-  }, []);
+  }, [isAuthenticated, onboardingCompleted, showSplashAndAuth, authLoading]);
 
   // Synchronize authentication view display with auth state & route
   useEffect(() => {
@@ -160,15 +162,15 @@ function AppContent() {
   useEffect(() => {
     if (authLoading) return;
 
-    if (!isAuthenticated || !currentUser || currentUser.isAnonymous) {
+    if (!isAuthenticated || !currentUser) {
       if (currentRoute !== '/auth') {
         navigate('/auth', { replace: true });
       }
-    } else if (!onboardingCompleted) {
+    } else if (!onboardingCompleted && !currentUser.isAnonymous) {
       if (currentRoute !== '/onboarding') {
         navigate('/onboarding', { replace: true });
       }
-    } else if (isAuthenticated && onboardingCompleted) {
+    } else if (isAuthenticated && (onboardingCompleted || currentUser.isAnonymous)) {
       if (currentRoute === '/auth' || currentRoute === '/onboarding') {
         navigate('/home', { replace: true });
       }
@@ -721,26 +723,33 @@ function AppContent() {
         )}
 
         {/* Global Toast Stack */}
-        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center gap-1.5 pointer-events-none">
-          {toasts.map((t) => (
-            <div
-              key={t.id}
-              className="animate-in fade-in slide-in-from-top-4 duration-200"
-            >
-              <div
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-white text-xs font-semibold shadow-xl border backdrop-blur-md pointer-events-auto ${
-                  t.type === 'error'
-                    ? 'bg-red-900/90 border-red-800'
-                    : t.type === 'warning'
-                    ? 'bg-amber-900/90 border-amber-800'
-                    : 'bg-slate-900/90 border-slate-800'
-                }`}
+        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center gap-1.5 pointer-events-none w-full max-w-[90%] sm:max-w-xs">
+          <AnimatePresence>
+            {toasts.map((t) => (
+              <motion.div
+                key={t.id}
+                layout
+                initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -15, scale: 0.92, transition: { duration: 0.18 } }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                className="pointer-events-auto w-full flex justify-center"
               >
-                <span>{t.icon || '✨'}</span>
-                <span>{t.title}</span>
-              </div>
-            </div>
-          ))}
+                <div
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-white text-xs font-semibold shadow-xl border backdrop-blur-md ${
+                    t.type === 'error'
+                      ? 'bg-red-950/95 border-red-800/50'
+                      : t.type === 'warning'
+                      ? 'bg-amber-950/95 border-amber-800/50'
+                      : 'bg-slate-900/95 border-slate-800/60'
+                  }`}
+                >
+                  <span className="shrink-0">{t.icon || '✨'}</span>
+                  <span className="truncate max-w-[200px]">{t.title}</span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
         {/* Global Modals & Drawers */}

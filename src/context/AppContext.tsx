@@ -129,6 +129,7 @@ interface AppContextType {
   onboardingStep: number;
   loginUserWithFirebase: (email: string, password: string) => Promise<{ success: boolean; error?: any }>;
   loginUserWithGoogle: () => Promise<{ success: boolean; error?: any }>;
+  loginUserAnonymously: () => Promise<{ success: boolean; error?: any }>;
   signupUserWithFirebase: (
     email: string,
     password: string,
@@ -416,8 +417,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCurrentUser(user);
         setUserProfile(null);
         setUserId(user.uid);
-        setIsAuthenticated(false);
-        setOnboardingCompleted(false);
+        setIsAuthenticated(true);
+        setOnboardingCompleted(true);
+
+        try {
+          // Subscribe to isolated household data for user's UID
+          const userHouseholdId = `household-${user.uid}`;
+          unsubscribeHousehold = subscribeToHousehold(userHouseholdId, (data) => {
+            setHouseholdData(data);
+          });
+        } catch (err) {
+          console.error('Error starting guest household subscription:', err);
+        }
       } else {
         // Unauthenticated
         setCurrentUser(null);
@@ -2127,6 +2138,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginUserAnonymously = async () => {
+    try {
+      setIsSyncing(true);
+      await signInAnonymously(auth);
+      showToast('Continuing as Guest Sandbox User! 🐾', 'info', '🔑');
+      return { success: true };
+    } catch (err: any) {
+      console.error('Anonymous sign-in error:', err);
+      const userMsg = mapAuthErrorMessage(err);
+      showToast(userMsg, 'error', '❌');
+      return { success: false, error: userMsg };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const signupUserWithFirebase = async (
     emailStr: string,
     passwordStr: string,
@@ -2470,6 +2497,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         onboardingStep: (userProfile?.onboardingStep as number) || 1,
         loginUserWithFirebase,
         loginUserWithGoogle,
+        loginUserAnonymously,
         signupUserWithFirebase,
         logoutUserWithFirebase,
         sendPasswordReset,

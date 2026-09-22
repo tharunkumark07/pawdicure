@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { PawLogo } from './PawLogo';
 import {
   Sparkles,
@@ -26,6 +27,7 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
   const {
     loginUserWithFirebase,
     loginUserWithGoogle,
+    loginUserAnonymously,
     signupUserWithFirebase,
     sendPasswordReset,
     showToast,
@@ -52,14 +54,29 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [resetSuccessMessage, setResetSuccessMessage] = useState('');
+  const [splashProgress, setSplashProgress] = useState(0);
 
   useEffect(() => {
+    // Animate the progress bar from 0% to 100%
+    const progressInterval = setInterval(() => {
+      setSplashProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 90); // 20 increments of 5% over ~1.8 seconds
+
     // 2.0-second splash entrance animation
     const timer = setTimeout(() => {
       setPhase('auth');
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearInterval(progressInterval);
+      clearTimeout(timer);
+    };
   }, []);
 
   // Email format validator
@@ -198,8 +215,16 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
       {/* ========================================================================= */}
       {/* SPLASH PHASE */}
       {/* ========================================================================= */}
-      {phase === 'splash' && (
-        <div className="flex flex-col items-center justify-center p-6 text-center max-w-sm mx-auto space-y-6 animate-in fade-in zoom-in-90 duration-300">
+      <AnimatePresence mode="wait">
+        {phase === 'splash' ? (
+          <motion.div
+            key="splash"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="flex flex-col items-center justify-center p-6 text-center max-w-sm mx-auto space-y-6"
+          >
           <div className="relative">
             <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-md border border-white/40 shadow-2xl flex items-center justify-center p-4 transform rotate-3 animate-bounce">
               <PawLogo className="w-16 h-16 text-white" />
@@ -229,23 +254,24 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
 
             <div className="w-full bg-black/20 h-1.5 rounded-full overflow-hidden relative">
               <div
-                className="absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-[2000ms] ease-out"
-                style={{ width: '100%' }}
+                className="absolute inset-y-0 left-0 bg-white rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${splashProgress}%` }}
               />
             </div>
             <p className="text-[10px] text-orange-100 font-medium">
               Securing companion cloud environment…
             </p>
           </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* AUTHENTICATION PHASE */}
-      {/* ========================================================================= */}
-      {phase === 'auth' && (
-        <div className="w-full max-w-md mx-auto p-4 sm:p-6 animate-in fade-in slide-in-from-bottom-6 duration-300 max-h-[92vh] overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 text-slate-900 shadow-2xl border border-orange-100 space-y-5">
+        </motion.div>
+        ) : (
+          <motion.div
+            key="auth"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="w-full max-w-md mx-auto p-4 sm:p-6 max-h-[92vh] overflow-y-auto"
+          >
+            <div className="bg-white rounded-3xl p-6 sm:p-7 text-slate-900 shadow-2xl border border-orange-100 space-y-5">
             {/* Header & Brand */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -664,10 +690,21 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
             <div className="text-center space-y-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => {
-                  onComplete();
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    const res = await loginUserAnonymously();
+                    if (res.success) {
+                      onComplete();
+                    }
+                  } catch (err) {
+                    console.error('Guest mode failed:', err);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
                 }}
-                className="text-[11px] text-slate-500 hover:text-slate-800 font-semibold underline"
+                disabled={isSubmitting}
+                className="text-[11px] text-slate-500 hover:text-slate-800 font-semibold underline disabled:opacity-50"
               >
                 Or preview in Guest Sandbox Mode
               </button>
@@ -676,8 +713,9 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
               </p>
             </div>
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

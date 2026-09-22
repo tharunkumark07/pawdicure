@@ -41,17 +41,50 @@ export function determineInitialRoute(user: User | null, profile: UserProfile | 
 
 const LOCAL_STORAGE_KEY_PREFIX = 'PAWdiCURE_SYNCED_HOUSEHOLD_V3';
 
-// 1. Initialize Firebase App
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// 1. Initialize Firebase App securely
+let app;
+try {
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+} catch (err) {
+  console.error("Firebase App initialization failed, falling back to empty config:", err);
+  app = initializeApp({
+    projectId: "crested-quasar-zt3g1",
+    apiKey: "dummy-key"
+  });
+}
 
-// 2. Initialize Firestore with specific database ID from config
-export const db: Firestore = getFirestore(
-  app,
-  firebaseConfig.firestoreDatabaseId || '(default)'
-);
+// 2. Initialize Firestore with specific database ID, auto-detecting and healing personal project mismatches
+let dbInstance: Firestore;
+try {
+  const isPersonalProject = firebaseConfig.projectId !== "crested-quasar-zt3g1";
+  const configuredDbId = firebaseConfig.firestoreDatabaseId;
+  
+  // If the user connects their personal project, force standard "(default)" database to prevent crash
+  const targetDbId = (isPersonalProject || !configuredDbId) ? "(default)" : configuredDbId;
+  
+  try {
+    dbInstance = getFirestore(app, targetDbId);
+  } catch (innerErr) {
+    console.warn(`Failed to initialize Firestore with database ID '${targetDbId}', falling back to '(default)':`, innerErr);
+    dbInstance = getFirestore(app);
+  }
+} catch (err) {
+  console.error("Firestore initialization failed entirely. Using basic fallback:", err);
+  dbInstance = getFirestore(app);
+}
 
-// 3. Initialize Firebase Auth
-export const auth = getAuth(app);
+export const db = dbInstance;
+
+// 3. Initialize Firebase Auth safely
+let authInstance;
+try {
+  authInstance = getAuth(app);
+} catch (err) {
+  console.error("Firebase Auth initialization failed:", err);
+  authInstance = getAuth();
+}
+
+export const auth = authInstance;
 
 // Keep track of current user and sync connection
 let currentUser: User | null = null;

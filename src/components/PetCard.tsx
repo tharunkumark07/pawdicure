@@ -11,7 +11,9 @@ interface PetCardProps {
 
 export function PetCard({ pet, className = '' }: PetCardProps) {
   const { navigate, showToast } = useApp();
-  const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; emoji: string; angle: number; velocity: number }[]>([]);
+  const [avatarAnim, setAvatarAnim] = useState<any>({});
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const copyToClipboard = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -20,17 +22,100 @@ export function PetCard({ pet, className = '' }: PetCardProps) {
   };
 
   const handlePetAvatarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const newHeart = { id: Date.now(), x, y };
-    setHearts((prev) => [...prev, newHeart]);
-    setTimeout(() => {
-      setHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
-    }, 1000);
+    // Calculate overall average affinity resonance score (0 - 100%)
+    const pillars = pet.affinityPillars || [];
+    const averageResonance = pillars.length > 0
+      ? Math.round(pillars.reduce((acc, p) => acc + (p.resonance ?? 50), 0) / pillars.length)
+      : 50;
 
-    showToast(`🐾 *Purr!* ${pet.name} loves the head pats! +5 Bond XP`, 'success', '💖');
+    let level: 'exalted' | 'strong' | 'developing' = 'developing';
+    let emojis = ['🌱', '✨', '🐾', '💛'];
+    let toastMsg = `🌱 Nurturing Trust! ${pet.name} feels safe and appreciates the gentle pats! +5 Bond XP`;
+    let toastIcon = '🐾';
+    let animConfig = {};
+
+    if (averageResonance >= 85) {
+      level = 'exalted';
+      emojis = ['👑', '🌟', '💖', '🔥', '🌈', '🐾'];
+      toastMsg = `🌟 Divine Connection! ${pet.name} does a joyful double spin! You share an exalted bond! +5 Bond XP`;
+      toastIcon = '👑';
+      animConfig = {
+        scale: [1, 1.25, 0.85, 1.15, 1],
+        rotate: [0, -15, 15, -8, 8, 0],
+        y: [0, -25, 4, -10, 0],
+      };
+    } else if (averageResonance >= 60) {
+      level = 'strong';
+      emojis = ['💖', '✨', '🌸', '🐾'];
+      toastMsg = `💖 Warm devotion! ${pet.name} leans into your hand with happy vertical wiggles! +5 Bond XP`;
+      toastIcon = '✨';
+      animConfig = {
+        scale: [1, 1.15, 0.92, 1.05, 1],
+        y: [0, -12, 2, -4, 0],
+        rotate: [0, -4, 4, 0],
+      };
+    } else {
+      level = 'developing';
+      emojis = ['🌱', '✨', '🐾', '💛'];
+      toastMsg = `🌱 Trust growing! ${pet.name} looks up with soft eyes and gentle wiggles. +5 Bond XP`;
+      toastIcon = '🐾';
+      animConfig = {
+        scale: [1, 1.08, 0.96, 1.02, 1],
+        rotate: [0, -3, 3, 0],
+      };
+    }
+
+    // Trigger physical reaction animation
+    setAvatarAnim(animConfig);
+
+    // Spawn rich radial particles
+    const particleCount = level === 'exalted' ? 8 : level === 'strong' ? 5 : 3;
+    const newParticles = Array.from({ length: particleCount }).map((_, i) => {
+      // Direct velocity angle spreading upwards and outwards (-120deg to -60deg)
+      const angle = (-90 + (Math.random() - 0.5) * 60) * (Math.PI / 180);
+      const velocity = 40 + Math.random() * 50;
+      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+      return {
+        id: Date.now() + i + Math.random(),
+        x,
+        y,
+        emoji,
+        angle,
+        velocity,
+      };
+    });
+
+    setParticles((prev) => [...prev, ...newParticles]);
+
+    // Cleanup animations and particles
+    setTimeout(() => {
+      setAvatarAnim({});
+      setIsAnimating(false);
+    }, 600);
+
+    setTimeout(() => {
+      setParticles((prev) => prev.filter((p) => !newParticles.some((np) => np.id === p.id)));
+    }, 1100);
+
+    // Provide premium vibration patterns if available
+    if (navigator.vibrate) {
+      if (level === 'exalted') {
+        navigator.vibrate([40, 30, 40]);
+      } else if (level === 'strong') {
+        navigator.vibrate(30);
+      } else {
+        navigator.vibrate(15);
+      }
+    }
+
+    showToast(toastMsg, 'success', toastIcon);
   };
 
   const dynamicCareScore = Math.min(
@@ -57,11 +142,11 @@ export function PetCard({ pet, className = '' }: PetCardProps) {
           title="Tap to give head pats!"
         >
           <motion.div 
-            animate={{ 
+            animate={avatarAnim.scale ? avatarAnim : { 
               scale: [1, 1.02, 1],
               y: [0, -1, 0]
             }}
-            transition={{ 
+            transition={avatarAnim.scale ? { duration: 0.6, ease: "easeOut" } : { 
               duration: 4, 
               repeat: Infinity, 
               ease: "easeInOut" 
@@ -104,17 +189,23 @@ export function PetCard({ pet, className = '' }: PetCardProps) {
           </div>
 
           <AnimatePresence>
-            {hearts.map((h) => (
+            {particles.map((p) => (
               <motion.span
-                key={h.id}
-                initial={{ opacity: 1, y: 0, scale: 0.5 }}
-                animate={{ opacity: 0, y: -50, scale: 1.5 }}
+                key={p.id}
+                initial={{ opacity: 1, scale: 0.4, x: p.x, y: p.y }}
+                animate={{ 
+                  opacity: [1, 1, 0], 
+                  scale: [0.4, 1.5, 0.8],
+                  x: p.x + (Math.sin(p.angle) * p.velocity),
+                  y: p.y - p.velocity,
+                  rotate: [0, (Math.random() - 0.5) * 60]
+                }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
-                className="absolute text-2xl pointer-events-none z-30"
-                style={{ left: h.x - 12, top: h.y - 12 }}
+                transition={{ duration: 1.0, ease: "easeOut" }}
+                className="absolute text-2xl pointer-events-none z-30 select-none"
+                style={{ left: -12, top: -12 }}
               >
-                💖
+                {p.emoji}
               </motion.span>
             ))}
           </AnimatePresence>

@@ -7,21 +7,21 @@ import { createServer as createViteServer } from "vite";
 import firebaseConfig from './firebase-applet-config.json';
 import webpush from 'web-push';
 
-// Initialize Firebase Admin securely (auto-detects ambient project ID on Google Cloud Run to prevent IAM PERMISSION_DENIED)
+// Initialize Firebase Admin securely using the explicit project ID from firebase-applet-config.json
 let dbAdmin: AdminFirestore;
 try {
   if (getAdminApps().length === 0) {
-    initializeAdminApp();
+    initializeAdminApp({
+      projectId: firebaseConfig.projectId
+    });
   }
   dbAdmin = getAdminFirestore(firebaseConfig.firestoreDatabaseId);
-  console.log("Firebase Admin initialized successfully using ambient project ID.");
+  console.log(`Firebase Admin initialized successfully using project ID: ${firebaseConfig.projectId}`);
 } catch (err: any) {
-  console.warn("Ambient Firebase Admin initialization failed, falling back to config projectId:", err.message);
+  console.error("Firebase Admin initialization failed:", err.message);
   try {
     if (getAdminApps().length === 0) {
-      initializeAdminApp({
-        projectId: firebaseConfig.projectId
-      });
+      initializeAdminApp();
     }
   } catch (e) {}
   dbAdmin = getAdminFirestore(firebaseConfig.firestoreDatabaseId);

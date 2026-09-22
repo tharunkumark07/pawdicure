@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Pet } from '../types';
 import { TapButton } from '../components/ui/TapButton';
+import { useApp } from '../context/AppContext';
 import {
   Utensils,
   Clock,
@@ -28,6 +29,7 @@ export function FeedView({
   onRefreshWater,
   onOrderFoodRefill,
 }: FeedViewProps) {
+  const { householdData } = useApp();
   const [portionGrams, setPortionGrams] = useState(pet.targetPortionGrams || (pet.species === 'Cat' ? 65 : 180));
   const [topperSalmon, setTopperSalmon] = useState(true);
   const [topperJoint, setTopperJoint] = useState(pet.species !== 'Cat');
@@ -35,6 +37,41 @@ export function FeedView({
   const [justFed, setJustFed] = useState(false);
   const [showMathDetails, setShowMathDetails] = useState(false);
   const [limitWarning, setLimitWarning] = useState<string | null>(null);
+
+  const currentHour = new Date().getHours();
+  
+  const getCurrentMealSlot = (hour: number) => {
+    if (hour >= 5 && hour < 12) return 'Morning';
+    if (hour >= 12 && hour < 17) return 'Afternoon';
+    return 'Evening';
+  };
+
+  const getSlotTimeRange = (slot: string) => {
+    if (slot === 'Morning') return '05:00 AM - 12:00 PM';
+    if (slot === 'Afternoon') return '12:00 PM - 05:00 PM';
+    return '05:00 PM - 05:00 AM';
+  };
+
+  const currentSlot = getCurrentMealSlot(currentHour);
+  const currentSlotRange = getSlotTimeRange(currentSlot);
+
+  // Find if already fed during the current slot today
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfTodayTime = startOfToday.getTime();
+
+  const feedingsToday = (householdData.feedingHistory || [])
+    .filter((fh) => {
+      if (fh.petId !== pet.id) return false;
+      const ts = parseInt(fh.id.replace('feed-', ''));
+      return !isNaN(ts) && ts >= startOfTodayTime;
+    });
+
+  const alreadyFedInCurrentSlot = feedingsToday.some((fh) => {
+    const ts = parseInt(fh.id.replace('feed-', ''));
+    const d = new Date(ts);
+    return getCurrentMealSlot(d.getHours()) === currentSlot;
+  });
 
   useEffect(() => {
     setPortionGrams(pet.targetPortionGrams || (pet.species === 'Cat' ? 65 : 180));
@@ -91,10 +128,12 @@ export function FeedView({
   const handleExecuteFeeding = () => {
     const safetyMaxGrams = dailyGoalGrams * 1.3;
 
-    if (currentMeals >= maxMealsLimit) {
-      setLimitWarning(`Daily meal frequency limit reached (${currentMeals}/${maxMealsLimit} meals today)! Additional feedings are restricted for digestive safety.`);
+    if (alreadyFedInCurrentSlot) {
+      const nextSlot = currentSlot === 'Morning' ? 'Afternoon (12:00 PM)' : currentSlot === 'Afternoon' ? 'Evening (5:00 PM)' : 'Morning (5:00 AM tomorrow)';
+      setLimitWarning(`Feeding limit reached for the ${currentSlot} slot (${currentSlotRange})! The feeding limit will reset for the ${nextSlot}.`);
       return;
     }
+
     if (projectedDailyGrams > safetyMaxGrams) {
       setLimitWarning(`Daily feed limit exceeded (${projectedDailyGrams}g / max ${Math.round(safetyMaxGrams)}g limit). Please reduce portion size.`);
       return;
@@ -119,7 +158,7 @@ export function FeedView({
       <div className="flex items-center justify-between px-1">
         <div>
           <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 border border-[var(--primary)]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-            Supper Routine #{pet.mealsToday || 2}
+            {currentSlot} Slot ({alreadyFedInCurrentSlot ? 'Fed ✓' : 'Pending 🥣'})
           </span>
           <h2 className="font-heading font-extrabold text-2xl text-[var(--text)] mt-1">
             Time to fill the bowl.

@@ -62,6 +62,19 @@ export function OnboardingView() {
     }
   }, [savedStep]);
 
+  // Synchronize state when userProfile or currentUser is loaded/asynchronously populated
+  useEffect(() => {
+    if (userProfile) {
+      if (!fullName) setFullName(userProfile.displayName || userProfile.name || '');
+      if (!preferredName) setPreferredName(userProfile.preferredName || userProfile.displayName || '');
+      if (!email) setEmail(userProfile.email || '');
+      if (!phone && userProfile.phone) setPhone(userProfile.phone);
+    } else if (currentUser) {
+      if (!fullName && currentUser.displayName) setFullName(currentUser.displayName);
+      if (!email && currentUser.email) setEmail(currentUser.email);
+    }
+  }, [userProfile, currentUser]);
+
   const changeStep = async (nextStep: number) => {
     setStep(nextStep);
     await updateOnboardingStep(nextStep);
