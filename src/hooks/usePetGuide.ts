@@ -33,7 +33,7 @@ export const usePetGuide = () => {
             }
           }
         } catch (err) {
-          console.error("Error checking guide progress from Firebase:", err);
+          console.info("[Guide] Skipping remote guide sync, falling back to local state.");
         }
       }
     };
