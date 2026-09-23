@@ -21,6 +21,7 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  signInWithCredential,
   User,
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -101,8 +102,47 @@ export function mapAuthErrorMessage(error: any): string {
   return error.message || 'Authentication failed. Please verify your details.';
 }
 
+export function isCapacitorApp(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    !!(window as any).Capacitor?.isNativePlatform?.() ||
+    !!(window as any).Capacitor ||
+    window.location.origin.includes('capacitor://') ||
+    (window.location.hostname === 'localhost' && /Android|iPhone|iPad/i.test(navigator.userAgent))
+  );
+}
+
 // Google Sign-In helper
 export async function loginWithGoogle(): Promise<{ success: boolean; user?: User; redirecting?: boolean; error?: string }> {
+  // Check if running inside Capacitor Android native app
+  if (isCapacitorApp()) {
+    console.log('Running inside native Capacitor environment...');
+    try {
+      const CapAuth = (window as any).Capacitor?.Plugins?.FirebaseAuthentication;
+      if (CapAuth && typeof CapAuth.signInWithGoogle === 'function') {
+        const res = await CapAuth.signInWithGoogle();
+        if (res?.credential?.idToken) {
+          const credential = GoogleAuthProvider.credential(res.credential.idToken);
+          const userCred = await signInWithCredential(auth, credential);
+          return { success: true, user: userCred.user };
+        }
+      }
+    } catch (capErr: any) {
+      console.warn('Capacitor native auth failed:', capErr);
+      return { 
+        success: false, 
+        error: capErr?.message || 'Native Google Sign-In error. Please use Email/Password or Guest mode.' 
+      };
+    }
+
+    // If native plugin is not loaded, DO NOT call signInWithRedirect
+    // Calling signInWithRedirect from localhost inside a WebView causes Firebase's "The requested action is invalid" error page.
+    return {
+      success: false,
+      error: 'In the Android APK, browser redirects are blocked. Please sign in with Email & Password below or tap "Instant Entry (Guest Sandbox Mode)".'
+    };
+  }
+
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   
@@ -112,8 +152,8 @@ export async function loginWithGoogle(): Promise<{ success: boolean; user?: User
 
     console.log('Login attempt environment:', { isStandalone, isInAppBrowser });
 
-    // On standalone PWA or in-app webviews, redirect is the most reliable
-    if (isStandalone || isInAppBrowser) {
+    // On standalone web PWA (hosted on web domain, NOT Capacitor localhost)
+    if ((isStandalone || isInAppBrowser) && window.location.hostname !== 'localhost') {
       try {
         console.log('Standalone/In-App mode: using signInWithRedirect...');
         await signInWithRedirect(auth, provider);
@@ -132,11 +172,12 @@ export async function loginWithGoogle(): Promise<{ success: boolean; user?: User
       return { success: true, user: cred.user };
     } catch (popupErr: any) {
       console.warn('Popup attempt failed:', popupErr.code, popupErr.message);
-      // If popup was blocked or failed due to mobile restriction/internal-error, fallback to redirect
+      // If popup was blocked or failed due to mobile restriction, and on authorized web domain
       if (
-        popupErr.code === 'auth/popup-blocked' ||
+        (popupErr.code === 'auth/popup-blocked' ||
         popupErr.code === 'auth/internal-error' ||
-        popupErr.code === 'auth/cancelled-popup-request'
+        popupErr.code === 'auth/cancelled-popup-request') &&
+        window.location.hostname !== 'localhost'
       ) {
         console.log('Falling back to signInWithRedirect...');
         await signInWithRedirect(auth, provider);
