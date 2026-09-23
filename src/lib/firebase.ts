@@ -19,6 +19,8 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   User,
 } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -43,62 +45,17 @@ export function determineInitialRoute(user: User | null, profile: UserProfile | 
 const LOCAL_STORAGE_KEY_PREFIX = 'PAWdiCURE_SYNCED_HOUSEHOLD_V3';
 
 // 1. Initialize Firebase App securely
-let app;
-try {
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-} catch (err) {
-  console.error("Firebase App initialization failed, falling back to empty config:", err);
-  app = initializeApp({
-    projectId: "crested-quasar-zt3g1",
-    apiKey: "dummy-key"
-  });
-}
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // 2. Initialize Firestore with specific database ID
-let dbInstance: Firestore;
-try {
-  const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
-    ? firebaseConfig.firestoreDatabaseId.trim() 
-    : undefined;
-  
-  if (dbId) {
-    dbInstance = getFirestore(app, dbId);
-  } else {
-    dbInstance = getFirestore(app);
-  }
-} catch (err) {
-  console.error("Firestore initialization with database ID failed, trying default:", err);
-  try {
-    dbInstance = getFirestore(app);
-  } catch (e3) {
-    console.error("Firestore initialization failed entirely:", e3);
-    dbInstance = {} as Firestore;
-  }
-}
+const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
+  ? firebaseConfig.firestoreDatabaseId.trim() 
+  : undefined;
 
-export const db = dbInstance;
+export const db = dbId ? getFirestore(app, dbId) : getFirestore(app);
 
 // 3. Initialize Firebase Auth safely
-let authInstance;
-try {
-  authInstance = getAuth(app);
-} catch (err) {
-  console.error("Firebase Auth initialization failed:", err);
-  try {
-    authInstance = getAuth();
-  } catch (e) {
-    console.error("Firebase Auth fallback failed:", e);
-    authInstance = {
-      currentUser: null,
-      onAuthStateChanged: (callback: any) => {
-        callback(null);
-        return () => {};
-      }
-    } as any;
-  }
-}
-
-export const auth = authInstance;
+export const auth = getAuth(app);
 
 // Keep track of current user and sync connection
 let currentUser: User | null = null;
@@ -131,6 +88,12 @@ export function mapAuthErrorMessage(error: any): string {
   if (fullErrorStr.includes('auth/user-disabled')) {
     return 'This account has been disabled. Please contact support.';
   }
+  if (fullErrorStr.includes('auth/internal-error') || fullErrorStr.includes('internal-error')) {
+    return 'Google Sign-In encountered a browser restriction. Please try again, or sign in with your email and password.';
+  }
+  if (fullErrorStr.includes('redirect_uri_mismatch')) {
+    return 'Google authentication configuration mismatch. The authorized domain has been updated, please refresh and try again.';
+  }
   if (fullErrorStr.includes('auth/network-request-failed')) {
     return 'Network error. Please check your internet connection.';
   }
@@ -139,16 +102,65 @@ export function mapAuthErrorMessage(error: any): string {
 }
 
 // Google Sign-In helper
-export async function loginWithGoogle(): Promise<{ success: boolean; user?: User; error?: string }> {
+export async function loginWithGoogle(): Promise<{ success: boolean; user?: User; redirecting?: boolean; error?: string }> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  
   try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    const cred = await signInWithPopup(auth, provider);
-    return { success: true, user: cred.user };
+    const isStandalone = (window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
+    const isInAppBrowser = /FBAN|FBAV|Instagram|LinkedIn|Twitter|MicroMessenger/i.test(navigator.userAgent);
+
+    console.log('Login attempt environment:', { isStandalone, isInAppBrowser });
+
+    // On standalone PWA or in-app webviews, redirect is the most reliable
+    if (isStandalone || isInAppBrowser) {
+      try {
+        console.log('Standalone/In-App mode: using signInWithRedirect...');
+        await signInWithRedirect(auth, provider);
+        return { success: true, redirecting: true };
+      } catch (redirectErr: any) {
+        console.warn('signInWithRedirect failed, trying popup fallback:', redirectErr);
+        const cred = await signInWithPopup(auth, provider);
+        return { success: true, user: cred.user };
+      }
+    }
+
+    // Default flow: Try popup first for seamless experience
+    try {
+      console.log('Standard browser: attempting signInWithPopup...');
+      const cred = await signInWithPopup(auth, provider);
+      return { success: true, user: cred.user };
+    } catch (popupErr: any) {
+      console.warn('Popup attempt failed:', popupErr.code, popupErr.message);
+      // If popup was blocked or failed due to mobile restriction/internal-error, fallback to redirect
+      if (
+        popupErr.code === 'auth/popup-blocked' ||
+        popupErr.code === 'auth/internal-error' ||
+        popupErr.code === 'auth/cancelled-popup-request'
+      ) {
+        console.log('Falling back to signInWithRedirect...');
+        await signInWithRedirect(auth, provider);
+        return { success: true, redirecting: true };
+      }
+      throw popupErr;
+    }
   } catch (err: any) {
-    console.error('Google Sign-In Error:', err);
+    console.error('Full Firebase Auth Error:', err);
     return { success: false, error: mapAuthErrorMessage(err) };
   }
+}
+
+// Handle Redirect Result (Call this in your App initialization)
+export async function handleRedirectResult(): Promise<User | null> {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result) {
+      return result.user;
+    }
+  } catch (err) {
+    console.error('Redirect result error:', err);
+  }
+  return null;
 }
 
 // Password Reset helper
@@ -192,14 +204,18 @@ export async function initializeNewUser(uid: string): Promise<void> {
     console.warn('Failed to initialize biometry profile for new user:', err);
   }
 
-  // 2. Initialize other base states (Paw Points, etc.) as zero
+  // 2. Initialize other base states (Paw Points, etc.) as zero if they don't exist
+  // Note: pawPoints should ideally be set in createUserProfileDoc to avoid permission issues
   try {
-    await updateDoc(doc(db, 'users', uid), {
-        pawPoints: 0,
-        // ... other base states
-    });
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists() && !snap.data().pawPoints) {
+      await updateDoc(userRef, {
+          pawPoints: 0,
+      });
+    }
   } catch (err) {
-      console.warn('Failed to initialize base states for new user:', err);
+      console.warn('Failed to verify base states for new user:', err);
   }
 }
 
@@ -217,6 +233,7 @@ export async function createUserProfileDoc(
     photoURL: profile.photoURL || profile.avatar || '',
     avatar: profile.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
     theme: 'light',
+    pawPoints: 0,
     onboardingCompleted: profile.onboardingCompleted ?? false,
     onboardingStep: profile.onboardingStep ?? 1,
     createdAt: Date.now(),

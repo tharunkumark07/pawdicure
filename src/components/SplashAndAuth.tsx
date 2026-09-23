@@ -91,7 +91,9 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
     try {
       const res = await loginUserWithGoogle();
       if (res.success) {
-        onComplete();
+        if (!('redirecting' in res && (res as any).redirecting)) {
+          onComplete();
+        }
       } else if (res.error) {
         setErrorMessage(res.error);
       }
@@ -405,6 +407,28 @@ export function SplashAndAuth({ onComplete }: SplashAndAuthProps) {
                 <span className="ml-auto text-[9px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                   Fast &amp; Secure
                 </span>
+              </button>
+
+              {/* Direct Instant Sandbox Access Button */}
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    const res = await loginUserAnonymously();
+                    if (res.success) {
+                      onComplete();
+                    }
+                  } catch (err) {
+                    console.error('Guest mode failed:', err);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="w-full py-2.5 px-3 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200/80 font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              >
+                <span>🚀 Instant Entry (Guest Sandbox Mode)</span>
               </button>
 
               <div className="relative py-1">

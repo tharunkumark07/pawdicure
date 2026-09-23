@@ -28,8 +28,15 @@ service cloud.firestore {
     // User Profile Documents (/users/{userId})
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && (!('pawPoints' in request.resource.data) || request.resource.data.pawPoints == 0);
-      allow update: if isOwner(userId) && (!('pawPoints' in request.resource.data) || (resource != null && 'pawPoints' in resource.data && request.resource.data.pawPoints == resource.data.pawPoints));
+      allow create: if isOwner(userId) && (
+        !('pawPoints' in request.resource.data) || 
+        request.resource.data.pawPoints == 0
+      );
+      allow update: if isOwner(userId) && (
+        !('pawPoints' in request.resource.data) || 
+        (resource != null && 'pawPoints' in resource.data && request.resource.data.pawPoints == resource.data.pawPoints) ||
+        (resource != null && !('pawPoints' in resource.data) && request.resource.data.pawPoints == 0)
+      );
       allow delete: if false;
 
       // Secure, read-only transaction history

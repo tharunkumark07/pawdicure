@@ -25,7 +25,7 @@ import {
   LaunchStage,
 } from '../types';
 import { INITIAL_HOUSEHOLD_DATA, INITIAL_EMPTY_HOUSEHOLD_DATA, INITIAL_PRODUCTS, INITIAL_REWARDS } from '../lib/mockData';
-import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db, auth, getUserProfileDoc, createUserProfileDoc, updateUserProfileDoc, sendPasswordReset, mapAuthErrorMessage, clearUserCachedState, loginWithGoogle, determineInitialRoute } from '../lib/firebase';
+import { subscribeToHousehold, syncHouseholdToCloud, initFirebaseAuth, db, auth, getUserProfileDoc, createUserProfileDoc, updateUserProfileDoc, sendPasswordReset, mapAuthErrorMessage, clearUserCachedState, loginWithGoogle, determineInitialRoute, handleRedirectResult } from '../lib/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import { dailyCycleService } from '../services/dailyCycleService';
 import { activityService } from '../services/activityService';
@@ -350,6 +350,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Handle Firebase Redirect Results (for Mobile/PWA)
+  useEffect(() => {
+    const processRedirect = async () => {
+      try {
+        setAuthLoading(true);
+        const user = await handleRedirectResult();
+        if (user) {
+          console.log('Successfully handled redirect login for:', user.email);
+          let profile = await getUserProfileDoc(user.uid);
+          if (!profile) {
+            profile = await createUserProfileDoc(user.uid, {
+              name: user.displayName || 'Pet Parent',
+              displayName: user.displayName || 'Pet Parent',
+              preferredName: user.displayName || 'Pet Parent',
+              email: user.email || '',
+              photoURL: user.photoURL || '',
+              onboardingCompleted: false,
+              onboardingStep: 1,
+            });
+          }
+          setUserProfile(profile);
+          setOnboardingCompleted(!!profile.onboardingCompleted);
+          const targetRoute = determineInitialRoute(user, profile);
+          showToast(`Welcome to PAWdiCURE, ${user.displayName || 'Pet Parent'}! ✨`, 'success', '🐾');
+          navigate(targetRoute, { replace: true });
+        }
+      } catch (err) {
+        console.error('Error processing redirect result:', err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    processRedirect();
   }, []);
 
   // Save to localStorage whenever householdData changes
@@ -2147,6 +2182,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showToast('Signed in with Google! Welcome to PAWdiCURE. ✨', 'success', '🔑');
         navigate(targetRoute, { replace: true });
         return { success: true };
+      } else if (res.success && res.redirecting) {
+        // Full page redirect in progress - do not show failure
+        showToast('Redirecting to Google securely...', 'info', '🔄');
+        return { success: true, redirecting: true };
       } else {
         const userMsg = res.error || 'Google Sign-In failed.';
         showToast(userMsg, 'error', '❌');

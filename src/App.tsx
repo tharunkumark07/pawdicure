@@ -143,7 +143,12 @@ function AppContent() {
         setLaunchStage('APP');
       }
     }
-  }, [launchStage, isAuthenticated, onboardingCompleted]);
+    
+    // Auto-transition to APP if tutorial is skipped or finished
+    if (launchStage === 'TUTORIAL' && !isVisible) {
+      setLaunchStage('APP');
+    }
+  }, [launchStage, isAuthenticated, onboardingCompleted, isVisible]);
 
   // One-time login / entrance animation state
   const [showSplashAndAuth, setShowSplashAndAuth] = useState<boolean>(false);
@@ -623,7 +628,7 @@ function AppContent() {
       )}
       {launchStage === 'BUDDY_INTRO' && <BuddyIntro onComplete={() => setLaunchStage('TUTORIAL')} />}
 
-      {launchStage === 'APP' && (
+      {(launchStage === 'APP' || launchStage === 'TUTORIAL') && (
         <div
           id="app-mobile-shell"
           className="w-full max-w-md md:max-w-2xl lg:max-w-4xl min-h-screen bg-transparent flex flex-col relative shadow-2xl border-x border-[var(--card-border)] overflow-hidden"
