@@ -13,27 +13,55 @@ try {
   // Use require inside a block so it's only called if isProduction is true
   if (isProduction) {
     const admin = require('firebase-admin');
+    const { getFirestore } = require('firebase-admin/firestore');
     const app = admin.initializeApp({ projectId: firebaseConfig.projectId });
     const dbId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId.trim() !== "" 
       ? firebaseConfig.firestoreDatabaseId.trim() 
       : undefined;
-    dbAdmin = dbId ? admin.firestore(app).db(dbId) : admin.firestore(app);
-    console.log(`Firebase Admin initialized successfully using project ID: ${firebaseConfig.projectId}`);
+    
+    dbAdmin = dbId ? getFirestore(app, dbId) : getFirestore(app);
+    console.log(`Firebase Admin initialized successfully using project ID: ${firebaseConfig.projectId}${dbId ? ` and database: ${dbId}` : ''}`);
   } else {
     throw new Error("Skipping Admin initialization for local dev");
   }
 } catch (err: any) {
   console.log("Firebase Admin not initialized (expected for local dev or fallback):", err.message);
   
-  // Create mock admin Firestore
+  // Create robust mock admin Firestore for local/sandbox environments
+  const createMockDoc = () => ({
+    get: async () => ({ exists: false, data: () => ({}), id: 'mock-id' }),
+    set: async () => {},
+    update: async () => {},
+    delete: async () => {},
+    collection: () => createMockCollection()
+  });
+
+  const createMockCollection = () => ({
+    doc: () => createMockDoc(),
+    where: () => createMockCollection(),
+    orderBy: () => createMockCollection(),
+    limit: () => createMockCollection(),
+    get: async () => ({ empty: true, docs: [], size: 0 }),
+    add: async () => ({ id: 'mock-id' })
+  });
+
   dbAdmin = {
-    collection: () => ({
-      doc: () => ({
-        get: async () => ({ exists: false, data: () => null }),
-        set: async () => {},
-        update: async () => {},
-        delete: async () => {},
-      })
+    collection: () => createMockCollection(),
+    doc: () => createMockDoc(),
+    runTransaction: async (cb: any) => {
+      const tx = {
+        get: async (ref: any) => ({ exists: false, data: () => ({}), id: 'mock-id' }),
+        set: () => {},
+        update: () => {},
+        delete: () => {},
+      };
+      return cb(tx);
+    },
+    batch: () => ({
+      set: () => {},
+      update: () => {},
+      delete: () => {},
+      commit: async () => {}
     })
   } as any;
 }

@@ -166,7 +166,8 @@ export function SettingsModal({
         </div>
       }
     >
-      <div className="mt-2 space-y-6">
+      <>
+        <div className="mt-2 space-y-6">
           {/* Theme Color Palette Section */}
           <div className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80">
             <div className="flex items-center gap-2 mb-2.5">
@@ -174,11 +175,11 @@ export function SettingsModal({
               <span className="text-xs font-bold text-slate-900">Accent Color Theme</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {themes.map((t) => {
+              {themes.map((t, idx) => {
                 const isSelected = currentTheme === t.id;
                 return (
                   <button
-                    key={t.id}
+                    key={`${t.id}-${idx}`}
                     type="button"
                     onClick={() => onSelectTheme(t.id)}
                     className={`flex items-center justify-between p-2.5 rounded-xl border transition cursor-pointer ${
@@ -224,11 +225,11 @@ export function SettingsModal({
               </button>
             </div>
             <div className="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar">
-              {Object.values(pets).map((p) => {
+              {Object.values(pets).map((p, idx) => {
                 const isActive = p.id === activePet.id;
                 return (
                   <div
-                    key={p.id}
+                    key={`pet-switch-${p.id || idx}`}
                     className={`w-full flex items-center justify-between p-2 rounded-xl transition ${
                       isActive
                         ? 'bg-[var(--primary-light)] border border-[var(--primary)] text-slate-900 font-bold'
@@ -663,6 +664,7 @@ export function SettingsModal({
           isOpen={showLogoutModal}
           onClose={() => setShowLogoutModal(false)}
         />
+      </>
     </MobileBottomSheet>
   );
 }
