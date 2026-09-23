@@ -553,7 +553,7 @@ export function RoutinesView() {
                 {/* Items preview */}
                 <div className="mt-3 space-y-1.5 pt-2 border-t border-[var(--card-border)]">
                   {tpl.items.slice(0, 3).map((it, i) => (
-                    <div key={i} className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
+                    <div key={`${it.title}-${i}`} className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
                       <span className="flex items-center gap-1.5 truncate">
                         <span>{it.icon}</span>
                         <span className="truncate">{it.title}</span>

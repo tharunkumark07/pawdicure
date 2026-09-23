@@ -33,6 +33,9 @@ import {
   Scale,
   Zap,
   Activity,
+  PawPrint,
+  Dog,
+  Cat,
 } from 'lucide-react';
 
 interface HomeViewProps {
@@ -69,6 +72,7 @@ export function HomeView({
     updatePetActivity,
     deletePetActivity,
     userProfile,
+    setIsAddPetOpen,
   } = useApp();
   const [completedAnimationId, setCompletedAnimationId] = useState<string | null>(null);
 
@@ -192,6 +196,47 @@ export function HomeView({
     (m) => !m.petId || m.petId === pet.id
   );
   const latestMemory = petMemories.length > 0 ? petMemories[0] : null;
+
+  if (pet.id === 'empty') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] w-full text-center p-6 space-y-6 animate-in fade-in zoom-in duration-500">
+        <div className="relative">
+          <div className="w-32 h-32 rounded-full bg-[var(--primary)]/10 flex items-center justify-center border-2 border-dashed border-[var(--primary)]/30">
+            <Plus className="w-12 h-12 text-[var(--primary)] animate-pulse" />
+          </div>
+          <motion.div 
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute -top-4 -right-4 bg-white p-2 rounded-2xl shadow-lg border border-[var(--card-border)]"
+          >
+            <Sparkles className="w-6 h-6 text-amber-500" />
+          </motion.div>
+        </div>
+
+        <div className="space-y-2 max-w-sm">
+          <h2 className="font-heading font-black text-2xl text-[var(--text)]">Ready for a Companion?</h2>
+          <p className="text-[var(--text-muted)] text-sm leading-relaxed">
+            Every journey starts with a paw print. Add your first pet to unlock health tracking, routines, and bonding milestones.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsAddPetOpen(true)}
+          className="flex items-center gap-2 px-8 py-4 rounded-3xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-black shadow-[0_12px_24px_rgba(var(--primary-rgb),0.3)] transition transform hover:-translate-y-1 active:scale-95"
+        >
+          <PawPrint className="w-5 h-5" fill="currentColor" />
+          <span>Add Your First Pet</span>
+        </button>
+
+        <div className="pt-4 flex items-center gap-6 opacity-40 grayscale">
+          <Dog className="w-8 h-8" />
+          <Cat className="w-8 h-8" />
+          <Heart className="w-8 h-8" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col w-full pb-24 space-y-8 sm:space-y-10 animate-in fade-in duration-400">

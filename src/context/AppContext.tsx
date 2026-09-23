@@ -55,6 +55,9 @@ interface AppContextType {
   removeToast: (id: string) => void;
   triggerConfetti: () => void;
   
+  isAddPetOpen: boolean;
+  setIsAddPetOpen: (isOpen: boolean) => void;
+  
   // Pet Actions
   setActivePetId: (petId: string) => void;
   addPet: (newPet: Pet) => void;
@@ -224,6 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [isAddPetOpen, setIsAddPetOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -390,16 +394,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 preferredName: user.displayName || 'Sarah',
                 email: user.email || '',
                 photoURL: user.photoURL || '',
-                onboardingCompleted: true,
-                onboardingStep: 4,
-                pawPoints: 350,
+                onboardingCompleted: false,
+                onboardingStep: 1,
+                pawPoints: 0,
               });
             } else {
               updateUserProfileDoc(user.uid, { lastLoginAt: Date.now() });
             }
 
             setUserProfile(profile);
-            setOnboardingCompleted(true);
+            setOnboardingCompleted(!!profile.onboardingCompleted);
 
             // Subscribe to profile doc in real-time
             const userDocRef = doc(db, 'users', user.uid);
@@ -408,7 +412,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 if (snap.exists()) {
                   const updatedProfile = snap.data() as UserProfile;
                   setUserProfile(updatedProfile);
-                  setOnboardingCompleted(true);
+                  setOnboardingCompleted(!!updatedProfile.onboardingCompleted);
                 }
               },
               (err) => {
@@ -2460,6 +2464,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showToast,
         removeToast,
         triggerConfetti,
+        isAddPetOpen,
+        setIsAddPetOpen,
         setActivePetId,
         addPet,
         updatePet,

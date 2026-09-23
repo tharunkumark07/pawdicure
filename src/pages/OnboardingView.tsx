@@ -24,6 +24,7 @@ export function OnboardingView({ initialStep }: { initialStep?: number }) {
     completeUserOnboarding,
     showToast,
     navigate,
+    setLaunchStage,
   } = useApp();
 
   const [step, setStep] = useState<number>(() => initialStep || savedStep || 1);
@@ -135,6 +136,7 @@ export function OnboardingView({ initialStep }: { initialStep?: number }) {
 
     await completeUserOnboarding(userUpdates, petData);
     showToast(`Welcome to PAWdiCURE, ${userUpdates.preferredName}! 🐾`, 'success', '🎉');
+    setLaunchStage('TUTORIAL');
   };
 
   return (

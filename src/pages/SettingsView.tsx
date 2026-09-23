@@ -16,6 +16,7 @@ import {
   Trash2,
   LogOut,
   LogIn,
+  Plus,
   UserCheck,
   Mail,
   Lock,
@@ -37,6 +38,8 @@ export function SettingsView() {
     loginUserWithFirebase,
     signupUserWithFirebase,
     logoutUserWithFirebase,
+    setIsAddPetOpen,
+    setLaunchStage,
   } = useApp();
 
   const [showAuthInline, setShowAuthInline] = useState(false);
@@ -155,6 +158,41 @@ export function SettingsView() {
 
         <div className="w-10 h-10 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
           <SettingsIcon className="w-5 h-5" />
+        </div>
+      </div>
+
+      {/* Pet Management Section */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
+              <Plus className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="font-heading font-black text-sm text-slate-900">Pet Management</h2>
+              <p className="text-[10px] text-slate-500">Add or remove companions</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setLaunchStage('TUTORIAL');
+                showToast('Starting the tutorial guide... 🐾', 'info', '💡');
+              }}
+              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition active:scale-95 flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Tutorial</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAddPetOpen(true)}
+              className="px-4 py-2 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold transition shadow-sm active:scale-95"
+            >
+              Add New Pet
+            </button>
+          </div>
         </div>
       </div>
 
